@@ -95,4 +95,9 @@ $approvalflow = $instance->modules['approvalflow'];
 $_POST['item_id'] = 202;
 $approvalflow->handle_approve_content();
 
+// 4. Test ClientSync message fetching
+echo "\nTesting ClientSync message fetching...\n";
+$_POST['client_id'] = 5;
+$clientsync->handle_get_messages();
+
 echo "\nAll expanded functional tests passed.\n";

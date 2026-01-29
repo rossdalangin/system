@@ -38,13 +38,41 @@
 
 <script>
 function selectClient(id, name) {
+	var jQuery = window.jQuery;
 	jQuery('#selected-client-name').text(name);
 	jQuery('#chat-client-id').val(id);
 	jQuery('#chat-message-text').prop('disabled', false).focus();
 	jQuery('#send-msg-btn').prop('disabled', false);
 
-	// Simulated existing messages
-	jQuery('#chat-messages').html('<div class="msg received" style="margin-bottom: 15px;"><div style="background: #eee; padding: 10px; border-radius: 10px; display: inline-block; max-width: 80%;">Hi, just checking on the status of the homepage design.</div></div>');
+	// Load real messages
+	var data = {
+		action: 'an_get_messages',
+		client_id: id,
+		security: jQuery('#security').val()
+	};
+
+	jQuery.post(ajaxurl, data, function(response) {
+		if (response.success) {
+			var html = '';
+			var currentUserId = <?php echo get_current_user_id(); ?>;
+			response.data.forEach(function(msg) {
+				var isSent = msg.sender_id == currentUserId;
+				var align = isSent ? 'right' : 'left';
+				var bg = isSent ? '#0073aa' : '#eee';
+				var color = isSent ? '#fff' : '#333';
+				html += '<div class="msg" style="margin-bottom: 15px; text-align: ' + align + ';">';
+				html += '<div style="background: ' + bg + '; color: ' + color + '; padding: 10px; border-radius: 10px; display: inline-block; max-width: 80%;">' + msg.message + '</div>';
+				html += '</div>';
+			});
+			if (html === '') {
+				html = '<div class="system-msg" style="text-align: center; color: #999; margin: 20px 0;">No messages yet.</div>';
+			}
+			jQuery('#chat-messages').html(html);
+			// Scroll to bottom
+			var chatMessages = document.getElementById('chat-messages');
+			chatMessages.scrollTop = chatMessages.scrollHeight;
+		}
+	});
 }
 
 jQuery(document).ready(function($) {

@@ -33,14 +33,17 @@
 		<?php endforeach; ?>
 
 		<?php
-		// Simple representation of a week for demo
-		for ($i = 1; $i <= 7; $i++) : ?>
-			<div class="calendar-day" data-date="2023-10-<?php echo sprintf('%02d', $i + 15); ?>" style="min-height: 150px; background: #fff; border: 1px solid #ddd; padding: 10px;" ondrop="drop(event)" ondragover="allowDrop(event)">
-				<div class="day-number" style="color: #999; margin-bottom: 5px;"><?php echo $i + 15; ?></div>
+		// Calculate current week's dates starting from Monday
+		$monday = strtotime('monday this week');
+		for ($i = 0; $i < 7; $i++) :
+			$current_date = date('Y-m-d', strtotime("+$i days", $monday));
+			$display_day = date('j M', strtotime($current_date));
+			?>
+			<div class="calendar-day" data-date="<?php echo $current_date; ?>" style="min-height: 150px; background: #fff; border: 1px solid #ddd; padding: 10px;" ondrop="drop(event)" ondragover="allowDrop(event)">
+				<div class="day-number" style="color: #999; margin-bottom: 5px;"><?php echo $display_day; ?></div>
 				<?php
 				foreach ($content_items as $item) {
-					$item_day = date('j', strtotime($item->scheduled_date));
-					if ($item_day == ($i + 15)) {
+					if (substr($item->scheduled_date, 0, 10) === $current_date) {
 						?>
 						<div class="content-item" draggable="true" ondragstart="drag(event)" id="content-<?php echo $item->id; ?>" data-id="<?php echo $item->id; ?>" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 5px; margin-bottom: 5px; cursor: move; font-size: 12px;">
 							<?php echo esc_html($item->title); ?>

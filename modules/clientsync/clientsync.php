@@ -15,6 +15,7 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
 		add_action( 'wp_ajax_an_send_message', [ $this, 'handle_send_message' ] );
+		add_action( 'wp_ajax_an_get_messages', [ $this, 'handle_get_messages' ] );
 	}
 
 	public function register_submenu() {
@@ -32,6 +33,28 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 		global $wpdb;
 		$clients = $wpdb->get_results( "SELECT id, name FROM {$wpdb->prefix}an_clients" );
 		$this->get_template( 'messages', [ 'clients' => $clients ] );
+	}
+
+	/**
+	 * AJAX handler for fetching messages.
+	 */
+	public function handle_get_messages() {
+		check_ajax_referer( 'an_message_nonce', 'security' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		global $wpdb;
+		$client_id = intval( $_POST['client_id'] );
+
+		$messages = $wpdb->get_results( $wpdb->prepare( "
+			SELECT * FROM {$wpdb->prefix}an_messages
+			WHERE client_id = %d
+			ORDER BY created_at ASC
+		", $client_id ) );
+
+		wp_send_json_success( $messages );
 	}
 
 	/**
