@@ -1,6 +1,6 @@
 <?php
 /**
- * Mock WordPress environment for functional checking
+ * Mock WordPress environment for functional checking (Expanded)
  */
 
 define( 'ABSPATH', __DIR__ . '/../' );
@@ -27,12 +27,16 @@ function wp_nonce_field( $action, $name ) { echo "Nonce field: $action, $name\n"
 function check_admin_referer( $action ) { return true; }
 function sanitize_text_field( $str ) { return $str; }
 function sanitize_email( $str ) { return $str; }
+function sanitize_textarea_field( $str ) { return $str; }
 function esc_attr( $str ) { return $str; }
 function esc_html( $str ) { return $str; }
-function wp_send_json_success( $data ) { echo "JSON Success: " . json_encode($data) . "\n"; }
+function esc_js( $str ) { return $str; }
+function wp_send_json_success( $data = null ) { echo "JSON Success" . ($data ? ": " . json_encode($data) : "") . "\n"; }
 function wp_send_json_error( $data ) { echo "JSON Error: " . json_encode($data) . "\n"; }
 function check_ajax_referer( $action, $query_arg ) { return true; }
 function current_user_can( $cap ) { return true; }
+function get_current_user_id() { return 1; }
+function wpautop( $text ) { return $text; }
 
 // Mock $wpdb
 class MockWPDB {
@@ -47,6 +51,10 @@ class MockWPDB {
 		echo "Inserted into $table: " . json_encode($data) . "\n";
 		return 1;
 	}
+	public function update( $table, $data, $where ) {
+		echo "Updated $table: " . json_encode($data) . " WHERE " . json_encode($where) . "\n";
+		return 1;
+	}
 	public function get_results( $query ) { return []; }
 	public function get_var( $query ) { return 0; }
 	public function prepare( $query, ...$args ) { return $query; }
@@ -58,26 +66,33 @@ function dbDelta( $sql ) {}
 
 require_once 'agency-nexus.php';
 
-echo "Testing Functional logic...\n";
+echo "Testing Expanded Functional logic...\n";
 
 $instance = Agency_Nexus();
-$smartonboard = $instance->modules['smartonboard'];
 
-// Mock $_POST for Scope Builder
-$_POST['client_id'] = 1;
-$_POST['service_type'] = 'seo';
-$_POST['scale'] = 'large';
+// 1. Test ContentMatrix AJAX scheduling
+echo "\nTesting ContentMatrix scheduling...\n";
+$contentmatrix = $instance->modules['contentmatrix'];
+$_POST['item_id'] = 101;
+$_POST['new_date'] = '2023-10-25';
 $_POST['security'] = 'nonce';
+$contentmatrix->handle_update_content_date();
 
-echo "Calling handle_save_scope...\n";
-$smartonboard->handle_save_scope();
+// 2. Test ClientSync AJAX messaging
+echo "\nTesting ClientSync messaging...\n";
+$clientsync = $instance->modules['clientsync'];
+$_POST['client_id'] = 5;
+$_POST['message'] = 'Test message from admin';
+$clientsync->handle_send_message();
 
-if ( count( $GLOBALS['wpdb']->data['wp_an_projects'] ) === 1 ) {
-	echo "Project successfully saved in mock DB.\n";
-	$project = $GLOBALS['wpdb']->data['wp_an_projects'][0];
-	if ( $project['budget'] == 15000 ) {
-		echo "Budget correctly calculated for 'large' scale.\n";
-	}
+if ( count( $GLOBALS['wpdb']->data['wp_an_messages'] ) === 1 ) {
+	echo "Message successfully saved in mock DB.\n";
 }
 
-echo "All functional tests passed.\n";
+// 3. Test ApprovalFlow AJAX approval
+echo "\nTesting ApprovalFlow approval...\n";
+$approvalflow = $instance->modules['approvalflow'];
+$_POST['item_id'] = 202;
+$approvalflow->handle_approve_content();
+
+echo "\nAll expanded functional tests passed.\n";

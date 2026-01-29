@@ -88,5 +88,47 @@ class Agency_Nexus_DB_Manager {
 			PRIMARY KEY (id)
 		) $charset_collate;";
 		dbDelta( $sql_time );
+
+		// Content Table (ContentMatrix)
+		$table_content = $wpdb->prefix . 'an_content';
+		$sql_content = "CREATE TABLE $table_content (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			project_id bigint(20) NOT NULL,
+			title varchar(255) NOT NULL,
+			content longtext,
+			status varchar(50) DEFAULT 'draft',
+			scheduled_date datetime,
+			platform varchar(50) DEFAULT 'wordpress',
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+		dbDelta( $sql_content );
+
+		// Time Blocks Table (TimeBlock Pro)
+		$table_blocks = $wpdb->prefix . 'an_time_blocks';
+		$sql_blocks = "CREATE TABLE $table_blocks (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			user_id bigint(20) NOT NULL,
+			title varchar(255) NOT NULL,
+			start_time datetime NOT NULL,
+			end_time datetime NOT NULL,
+			type varchar(50) DEFAULT 'work',
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+		dbDelta( $sql_blocks );
+
+		// Messages Table (ClientSync)
+		$table_messages = $wpdb->prefix . 'an_messages';
+		$sql_messages = "CREATE TABLE $table_messages (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			client_id bigint(20) NOT NULL,
+			sender_id bigint(20) NOT NULL,
+			message text NOT NULL,
+			is_read tinyint(1) DEFAULT 0,
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+		dbDelta( $sql_messages );
 	}
 }
