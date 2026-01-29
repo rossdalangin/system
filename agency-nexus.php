@@ -49,7 +49,6 @@ class Agency_Nexus {
 	private function __construct() {
 		$this->includes();
 		$this->init_hooks();
-		$this->load_modules();
 	}
 
 	/**
@@ -87,6 +86,9 @@ class Agency_Nexus {
 
 		// Initialize API Handler
 		Agency_Nexus_API_Handler::get_instance();
+
+		// Load modules after core components are ready
+		$this->load_modules();
 	}
 
 	/**

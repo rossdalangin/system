@@ -69,6 +69,7 @@ require_once 'agency-nexus.php';
 echo "Testing Expanded Functional logic...\n";
 
 $instance = Agency_Nexus();
+$instance->init_plugin(); // Trigger module loading
 
 // 1. Test ContentMatrix AJAX scheduling
 echo "\nTesting ContentMatrix scheduling...\n";

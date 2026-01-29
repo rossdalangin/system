@@ -19,7 +19,8 @@ class Agency_Nexus_Admin_Dashboard {
 	}
 
 	public function __construct() {
-		add_action( 'admin_menu', [ $this, 'register_menu' ] );
+		// Use priority 5 to ensure this fires before modules (default 10)
+		add_action( 'admin_menu', [ $this, 'register_menu' ], 5 );
 	}
 
 	/**

@@ -70,6 +70,7 @@ require_once 'agency-nexus.php';
 echo "Testing Integration logic...\n";
 
 $instance = Agency_Nexus();
+$instance->init_plugin(); // Trigger module loading
 $dashboard = Agency_Nexus_Admin_Dashboard::get_instance();
 
 // 1. Create a client
