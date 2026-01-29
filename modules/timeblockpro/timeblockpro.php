@@ -29,8 +29,65 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 
 	public function render_dashboard() {
 		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_time_blocks';
 		$user_id = get_current_user_id();
-		$blocks = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_time_blocks WHERE user_id = %d", $user_id ) );
+		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+		if ($action === 'delete' && $id) {
+			check_admin_referer('an_delete_block_' . $id);
+			$wpdb->delete($table_name, ['id' => $id]);
+			echo '<div class="updated"><p>Block deleted!</p></div>';
+			$action = 'list';
+		}
+
+		if (isset($_POST['an_save_block']) && check_admin_referer('an_save_block_nonce')) {
+			$data = [
+				'user_id'    => $user_id,
+				'title'      => sanitize_text_field($_POST['title']),
+				'start_time' => sanitize_text_field($_POST['start_time']),
+				'end_time'   => sanitize_text_field($_POST['end_time']),
+				'type'       => sanitize_text_field($_POST['type'])
+			];
+			if ($id) {
+				$wpdb->update($table_name, $data, ['id' => $id]);
+				echo '<div class="updated"><p>Block updated!</p></div>';
+			} else {
+				$wpdb->insert($table_name, $data);
+				echo '<div class="updated"><p>Block added!</p></div>';
+			}
+			$action = 'list';
+		}
+
+		if ($action === 'edit' || $action === 'add') {
+			$block = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
+			?>
+			<div class="wrap">
+				<h1><?php echo $id ? __('Edit Time Block', 'agency-nexus') : __('Add New Time Block', 'agency-nexus'); ?></h1>
+				<form method="post">
+					<?php wp_nonce_field('an_save_block_nonce'); ?>
+					<table class="form-table">
+						<tr><th>Title</th><td><input type="text" name="title" value="<?php echo $block ? esc_attr($block->title) : ''; ?>" required class="regular-text"></td></tr>
+						<tr><th>Start</th><td><input type="datetime-local" name="start_time" value="<?php echo $block ? date('Y-m-d\TH:i', strtotime($block->start_time)) : ''; ?>" required></td></tr>
+						<tr><th>End</th><td><input type="datetime-local" name="end_time" value="<?php echo $block ? date('Y-m-d\TH:i', strtotime($block->end_time)) : ''; ?>" required></td></tr>
+						<tr><th>Type</th><td>
+							<select name="type">
+								<option value="deep_work" <?php selected($block ? $block->type : '', 'deep_work'); ?>>Deep Work</option>
+								<option value="shallow_work" <?php selected($block ? $block->type : '', 'shallow_work'); ?>>Shallow Work</option>
+								<option value="meeting" <?php selected($block ? $block->type : '', 'meeting'); ?>>Meeting</option>
+								<option value="break" <?php selected($block ? $block->type : '', 'break'); ?>>Break</option>
+							</select>
+						</td></tr>
+					</table>
+					<input type="submit" name="an_save_block" class="button button-primary" value="Save Block">
+					<a href="?page=an-time-blocking" class="button">Cancel</a>
+				</form>
+			</div>
+			<?php
+			return;
+		}
+
+		$blocks = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name WHERE user_id = %d ORDER BY start_time ASC", $user_id ) );
 		$this->get_template( 'dashboard', [ 'blocks' => $blocks ] );
 	}
 

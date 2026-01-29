@@ -16,8 +16,8 @@ Before using the advanced modules, you must set up your core data.
 ### 📁 Project Management
 - Navigate to **Agency Nexus > Projects**.
 - **Create New Project**: Select a client, set a budget, and add a description.
-- **Manage**: View detailed reports, edit project details, or delete completed projects.
-- **Tasks & Team**: Assign tasks to specific team members.
+- **Manage**: View detailed reports, edit project details, or delete completed projects. Full CRUD is available.
+- **Tasks & Team**: Assign tasks to specific team members in the Project View.
 - **Logging Time**: Against each task, use the "Log Time" field to enter hours worked.
     - *Note: Logged time automatically updates your financial ROI and workload capacity.*
 - **Print Report**: In the Project View, click "Print Report" for a hard copy of progress.
@@ -56,8 +56,8 @@ Before using the advanced modules, you must set up your core data.
 ### 💬 ClientSync (Messaging Hub & File Sharing)
 - Navigate to **Agency Nexus > Messages**.
 - Select a client from the sidebar to open the chat window.
-- **Messages**: Chat in real-time with your clients.
-- **Shared Files**: Use the "Shared Files" tab in the chat window to upload assets, deliverables, or contracts for your clients to download.
+- **Messages**: Chat in real-time with your clients. You can delete individual messages.
+- **Shared Files**: Use the "Shared Files" tab in the chat window to upload assets, deliverables, or contracts for your clients to download. Manage files by deleting them when no longer needed.
 
 ---
 
@@ -65,7 +65,8 @@ Before using the advanced modules, you must set up your core data.
 
 ### ⏱️ TimeBlock Pro
 - Navigate to **Agency Nexus > Time Blocking**.
-- View your daily schedule divided into **Deep Work** and **Shallow Work** blocks.
+- **Manage Blocks**: Add, edit, or delete your daily focus blocks.
+- View your daily schedule divided into **Deep Work**, **Shallow Work**, **Meetings**, and **Breaks**.
 - Check the **AI Suggestion** box for tips on optimizing your focus based on your cognitive load patterns.
 
 ### 🛡️ BurnoutGuard (Workload Monitoring & Health Check)
@@ -97,8 +98,9 @@ Before using the advanced modules, you must set up your core data.
 
 ### ⚙️ AutoPilot (Automation Center)
 - Navigate to **Agency Nexus > Automations**.
-- Configure your **Zapier/Make.com Webhook URL**.
-- Enable triggers for "Project Created" or "Payment Received" to automate your external workflows.
+- **Automation Rules**: Create custom IFTTT rules (e.g., IF Project Completed THEN Send Email).
+- Manage your rules by activating/deactivating, editing, or deleting them.
+- Configure your **Zapier/Make.com Webhook URL** for external integrations.
 
 ### 📚 FreebieFactory (Resource Library)
 - Navigate to **Agency Nexus > Resource Library**.

@@ -236,5 +236,18 @@ class Agency_Nexus_DB_Manager {
 			PRIMARY KEY (id)
 		) $charset_collate;";
 		dbDelta( $sql_payments );
+
+		// Autopilot Rules Table (AutoPilot)
+		$table_rules = $wpdb->prefix . 'an_autopilot_rules';
+		$sql_rules = "CREATE TABLE $table_rules (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			title varchar(255) NOT NULL,
+			trigger_evt varchar(100) NOT NULL,
+			action_evt varchar(100) NOT NULL,
+			is_active tinyint(1) DEFAULT 1,
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+		dbDelta( $sql_rules );
 	}
 }

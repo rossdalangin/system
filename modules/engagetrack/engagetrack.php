@@ -127,38 +127,65 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 	public function render_canned_responses() {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_canned_responses';
+		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-		if ( isset( $_POST['an_add_response'] ) && check_admin_referer( 'an_add_response_nonce' ) ) {
-			$wpdb->insert(
-				$table_name,
-				[
-					'title'   => sanitize_text_field( $_POST['title'] ),
-					'content' => sanitize_textarea_field( $_POST['content'] )
-				]
-			);
-			echo '<div class="updated"><p>Response saved!</p></div>';
+		if ($action === 'delete' && $id) {
+			check_admin_referer('an_delete_response_' . $id);
+			$wpdb->delete($table_name, ['id' => $id]);
+			echo '<div class="updated"><p>Response deleted!</p></div>';
+			$action = 'list';
+		}
+
+		if ( isset( $_POST['an_save_response'] ) && check_admin_referer( 'an_save_response_nonce' ) ) {
+			$data = [
+				'title'   => sanitize_text_field( $_POST['title'] ),
+				'content' => sanitize_textarea_field( $_POST['content'] )
+			];
+			if ($id) {
+				$wpdb->update($table_name, $data, ['id' => $id]);
+				echo '<div class="updated"><p>Response updated!</p></div>';
+			} else {
+				$wpdb->insert($table_name, $data);
+				echo '<div class="updated"><p>Response saved!</p></div>';
+			}
+			$action = 'list';
+		}
+
+		if ($action === 'edit' || $action === 'add') {
+			$resp = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
+			?>
+			<div class="wrap">
+				<h1><?php echo $id ? __('Edit Response', 'agency-nexus') : __('Add New Response', 'agency-nexus'); ?></h1>
+				<form method="post">
+					<?php wp_nonce_field( 'an_save_response_nonce' ); ?>
+					<table class="form-table">
+						<tr><th>Shortcut Title</th><td><input type="text" name="title" value="<?php echo $resp ? esc_attr($resp->title) : ''; ?>" required class="regular-text"></td></tr>
+						<tr><th>Content</th><td><textarea name="content" required class="regular-text" rows="5"><?php echo $resp ? esc_textarea($resp->content) : ''; ?></textarea></td></tr>
+					</table>
+					<input type="submit" name="an_save_response" class="button button-primary" value="Save Response">
+					<a href="?page=an-canned-responses" class="button">Cancel</a>
+				</form>
+			</div>
+			<?php
+			return;
 		}
 
 		$responses = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC" );
 		?>
 		<div class="wrap">
-			<h1><?php _e( 'Canned Responses (Smart DM)', 'agency-nexus' ); ?></h1>
-			<div class="postbox" style="padding: 20px; margin-top: 20px;">
-				<h2>Add New Response</h2>
-				<form method="post">
-					<?php wp_nonce_field( 'an_add_response_nonce' ); ?>
-					<table class="form-table">
-						<tr><th>Shortcut Title</th><td><input type="text" name="title" required class="regular-text" placeholder="e.g. Pricing Query"></td></tr>
-						<tr><th>Content</th><td><textarea name="content" required class="regular-text" rows="5"></textarea></td></tr>
-					</table>
-					<input type="submit" name="an_add_response" class="button button-primary" value="Save Response">
-				</form>
-			</div>
-			<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+			<h1 class="wp-heading-inline"><?php _e( 'Canned Responses', 'agency-nexus' ); ?></h1>
+			<a href="?page=an-canned-responses&action=add" class="page-title-action">Add New</a>
+			<hr class="wp-header-end">
+			<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top:20px;">
 				<?php foreach ($responses as $resp) : ?>
-					<div class="card" style="padding: 15px; background: #fff; border: 1px solid #ddd;">
+					<div class="card" style="padding: 15px; background: #fff; border: 1px solid #ddd; position: relative;">
 						<h3><?php echo esc_html($resp->title); ?></h3>
 						<p><?php echo nl2br(esc_html($resp->content)); ?></p>
+						<div style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px;">
+							<a href="?page=an-canned-responses&action=edit&id=<?php echo $resp->id; ?>">Edit</a> |
+							<a href="<?php echo wp_nonce_url('?page=an-canned-responses&action=delete&id=' . $resp->id, 'an_delete_response_' . $resp->id); ?>" style="color:red;" onclick="return confirm('Delete response?')">Delete</a>
+						</div>
 					</div>
 				<?php endforeach; ?>
 			</div>

@@ -28,78 +28,115 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_automations() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_autopilot_rules';
+		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+		if ($action === 'delete' && $id) {
+			check_admin_referer('an_delete_rule_' . $id);
+			$wpdb->delete($table_name, ['id' => $id]);
+			echo '<div class="updated"><p>Automation rule deleted!</p></div>';
+			$action = 'list';
+		}
+
+		if (isset($_POST['an_save_rule']) && check_admin_referer('an_save_rule_nonce')) {
+			$data = [
+				'title'       => sanitize_text_field($_POST['title']),
+				'trigger_evt' => sanitize_text_field($_POST['trigger_evt']),
+				'action_evt'  => sanitize_text_field($_POST['action_evt']),
+				'is_active'   => isset($_POST['is_active']) ? 1 : 0
+			];
+			if ($id) {
+				$wpdb->update($table_name, $data, ['id' => $id]);
+				echo '<div class="updated"><p>Rule updated!</p></div>';
+			} else {
+				$wpdb->insert($table_name, $data);
+				echo '<div class="updated"><p>Rule activated!</p></div>';
+			}
+			$action = 'list';
+		}
+
+		if ($action === 'edit' || $action === 'add') {
+			$rule = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
+			?>
+			<div class="wrap">
+				<h1><?php echo $id ? __('Edit Rule', 'agency-nexus') : __('Add New Rule', 'agency-nexus'); ?></h1>
+				<form method="post">
+					<?php wp_nonce_field('an_save_rule_nonce'); ?>
+					<table class="form-table">
+						<tr><th>Rule Name</th><td><input type="text" name="title" value="<?php echo $rule ? esc_attr($rule->title) : ''; ?>" required class="regular-text"></td></tr>
+						<tr><th>IF This Happens:</th><td>
+							<select name="trigger_evt" class="regular-text">
+								<option value="project_completed" <?php selected($rule ? $rule->trigger_evt : '', 'project_completed'); ?>>Project status changes to 'Completed'</option>
+								<option value="new_lead" <?php selected($rule ? $rule->trigger_evt : '', 'new_lead'); ?>>New lead recorded in EngageTrack</option>
+								<option value="content_approved" <?php selected($rule ? $rule->trigger_evt : '', 'content_approved'); ?>>Content item approved in ApprovalFlow</option>
+								<option value="invoice_overdue" <?php selected($rule ? $rule->trigger_evt : '', 'invoice_overdue'); ?>>Invoice becomes overdue</option>
+							</select>
+						</td></tr>
+						<tr><th>THEN Do This:</th><td>
+							<select name="action_evt" class="regular-text">
+								<option value="email_client" <?php selected($rule ? $rule->action_evt : '', 'email_client'); ?>>Send email to Client</option>
+								<option value="slack_msg" <?php selected($rule ? $rule->action_evt : '', 'slack_msg'); ?>>Post message to Slack channel</option>
+								<option value="zapier_hook" <?php selected($rule ? $rule->action_evt : '', 'zapier_hook'); ?>>Trigger Zapier Webhook</option>
+								<option value="create_task" <?php selected($rule ? $rule->action_evt : '', 'create_task'); ?>>Create new task in 'Follow-up' project</option>
+							</select>
+						</td></tr>
+						<tr><th>Active</th><td><input type="checkbox" name="is_active" <?php checked($rule ? $rule->is_active : 1, 1); ?>></td></tr>
+					</table>
+					<input type="submit" name="an_save_rule" class="button button-primary" value="Save Rule">
+					<a href="?page=an-automations" class="button">Cancel</a>
+				</form>
+			</div>
+			<?php
+			return;
+		}
+
+		$rules = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY id DESC" );
 		?>
 		<div class="wrap">
-			<h1><?php _e( 'Automation Center (AutoPilot)', 'agency-nexus' ); ?></h1>
+			<h1 class="wp-heading-inline"><?php _e( 'Automation Center (AutoPilot)', 'agency-nexus' ); ?></h1>
+			<a href="?page=an-automations&action=add" class="page-title-action">Add New Rule</a>
+			<hr class="wp-header-end">
 
 			<div style="display: flex; gap: 20px; margin-top: 20px;">
-				<div style="flex: 1;">
-					<div class="postbox" style="padding: 20px;">
-						<h3><?php _e( 'Custom Automation Builder (IFTTT)', 'agency-nexus' ); ?></h3>
-						<form>
-							<table class="form-table">
+				<div style="flex: 2;">
+					<h3>Active Workflows</h3>
+					<table class="wp-list-table widefat fixed striped">
+						<thead><tr><th>Rule Name</th><th>Trigger</th><th>Action</th><th>Status</th><th>Actions</th></tr></thead>
+						<tbody>
+							<?php if ($rules) : foreach ($rules as $r) : ?>
 								<tr>
-									<th>IF This Happens:</th>
+									<td><strong><?php echo esc_html($r->title); ?></strong></td>
+									<td><?php echo esc_html($r->trigger_evt); ?></td>
+									<td><?php echo esc_html($r->action_evt); ?></td>
+									<td><span style="color: <?php echo $r->is_active ? 'green' : 'red'; ?>;"><?php echo $r->is_active ? 'Active' : 'Inactive'; ?></span></td>
 									<td>
-										<select class="regular-text">
-											<option>Project status changes to 'Completed'</option>
-											<option>New lead recorded in EngageTrack</option>
-											<option>Content item approved in ApprovalFlow</option>
-											<option>Invoice becomes overdue</option>
-										</select>
+										<a href="?page=an-automations&action=edit&id=<?php echo $r->id; ?>">Edit</a> |
+										<a href="<?php echo wp_nonce_url('?page=an-automations&action=delete&id=' . $r->id, 'an_delete_rule_' . $r->id); ?>" style="color:red;" onclick="return confirm('Delete rule?')">Delete</a>
 									</td>
 								</tr>
-								<tr>
-									<th>THEN Do This:</th>
-									<td>
-										<select class="regular-text">
-											<option>Send email to Client</option>
-											<option>Post message to Slack channel</option>
-											<option>Trigger Zapier Webhook</option>
-											<option>Create new task in 'Follow-up' project</option>
-										</select>
-									</td>
-								</tr>
-							</table>
-							<button type="button" class="button button-primary" onclick="alert('Rule saved!')"><?php _e( 'Activate Rule', 'agency-nexus' ); ?></button>
-						</form>
-					</div>
+							<?php endforeach; else : ?>
+								<tr><td colspan="5">No automation rules yet.</td></tr>
+							<?php endif; ?>
+						</tbody>
+					</table>
 				</div>
 
 				<div style="flex: 1;">
 					<div class="card" style="padding: 20px; background: #fff; border: 1px solid #ddd;">
-						<h3><?php _e( 'Zapier/Make.com Integration', 'agency-nexus' ); ?></h3>
-						<p><?php _e( 'Connect your agency workflow to 5000+ apps.', 'agency-nexus' ); ?></p>
+						<h3><?php _e( 'Global Settings', 'agency-nexus' ); ?></h3>
 						<table class="form-table">
 							<tr>
-								<th>Webhook URL</th>
+								<th>Zapier Webhook</th>
 								<td><input type="text" value="https://hooks.zapier.com/v1/..." class="large-text" readonly></td>
 							</tr>
 						</table>
 						<p><label><input type="checkbox" checked> Enable Global Webhooks</label></p>
-						<button class="button"><?php _e( 'Save Settings', 'agency-nexus' ); ?></button>
+						<button class="button">Save Settings</button>
 					</div>
 				</div>
 			</div>
-
-			<h2 style="margin-top: 30px;">Active Workflows</h2>
-			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>Workflow Name</th><th>Trigger</th><th>Action</th><th>Status</th></tr></thead>
-				<tbody>
-					<tr>
-						<td>Client Welcome Sequence</td>
-						<td>Project Created</td>
-						<td>Email Client</td>
-						<td><span style="color: green;">Active</span></td>
-					</tr>
-					<tr>
-						<td>Slack Notifications</td>
-						<td>Content Approved</td>
-						<td>Slack Message</td>
-						<td><span style="color: green;">Active</span></td>
-					</tr>
-				</tbody>
-			</table>
 		</div>
 		<?php
 	}

@@ -30,48 +30,71 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 	public function render_health_check() {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_burnout_logs';
+		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-		if ( isset( $_POST['an_add_check'] ) && check_admin_referer( 'an_add_check_nonce' ) ) {
-			$wpdb->insert(
-				$table_name,
-				[
-					'user_id'      => get_current_user_id(),
-					'stress_level' => intval( $_POST['stress_level'] ),
-					'note'         => sanitize_textarea_field( $_POST['note'] ),
-					'created_at'   => current_time( 'mysql' )
-				]
-			);
-			echo '<div class="updated"><p>Log recorded. Remember to take breaks!</p></div>';
+		if ($action === 'delete' && $id) {
+			check_admin_referer('an_delete_check_' . $id);
+			$wpdb->delete($table_name, ['id' => $id]);
+			echo '<div class="updated"><p>Log entry deleted!</p></div>';
+			$action = 'list';
 		}
 
-		$logs = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC LIMIT 10" );
-		?>
-		<div class="wrap">
-			<h1><?php _e( 'Health & Sustainability System', 'agency-nexus' ); ?></h1>
-			<div class="postbox" style="padding: 20px; margin-top: 20px;">
-				<h2><?php _e( 'Daily Stress Self-Check', 'agency-nexus' ); ?></h2>
+		if ( isset( $_POST['an_save_check'] ) && check_admin_referer( 'an_save_check_nonce' ) ) {
+			$data = [
+				'user_id'      => get_current_user_id(),
+				'stress_level' => intval( $_POST['stress_level'] ),
+				'note'         => sanitize_textarea_field( $_POST['note'] ),
+				'created_at'   => current_time( 'mysql' )
+			];
+			if ($id) {
+				$wpdb->update($table_name, $data, ['id' => $id]);
+				echo '<div class="updated"><p>Log updated!</p></div>';
+			} else {
+				$wpdb->insert($table_name, $data);
+				echo '<div class="updated"><p>Log recorded. Remember to take breaks!</p></div>';
+			}
+			$action = 'list';
+		}
+
+		if ($action === 'edit' || $action === 'add') {
+			$log = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
+			?>
+			<div class="wrap">
+				<h1><?php echo $id ? __('Edit Health Check', 'agency-nexus') : __('New Health Check', 'agency-nexus'); ?></h1>
 				<form method="post">
-					<?php wp_nonce_field( 'an_add_check_nonce' ); ?>
+					<?php wp_nonce_field( 'an_save_check_nonce' ); ?>
 					<table class="form-table">
 						<tr>
 							<th><label>Stress Level (1-10)</label></th>
 							<td>
-								<input type="range" name="stress_level" min="1" max="10" value="5" class="regular-text" oninput="this.nextElementSibling.value = this.value">
-								<output>5</output>
+								<input type="range" name="stress_level" min="1" max="10" value="<?php echo $log ? $log->stress_level : 5; ?>" class="regular-text" oninput="this.nextElementSibling.value = this.value">
+								<output><?php echo $log ? $log->stress_level : 5; ?></output>
 							</td>
 						</tr>
 						<tr>
-							<th><label>Notes / How are you feeling?</label></th>
-							<td><textarea name="note" class="regular-text" rows="3"></textarea></td>
+							<th><label>Notes</label></th>
+							<td><textarea name="note" class="regular-text" rows="3"><?php echo $log ? esc_textarea($log->note) : ''; ?></textarea></td>
 						</tr>
 					</table>
-					<input type="submit" name="an_add_check" class="button button-primary" value="Log Check-in">
+					<input type="submit" name="an_save_check" class="button button-primary" value="Save Entry">
+					<a href="?page=an-health-check" class="button">Cancel</a>
 				</form>
 			</div>
+			<?php
+			return;
+		}
+
+		$logs = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC LIMIT 20" );
+		?>
+		<div class="wrap">
+			<h1 class="wp-heading-inline"><?php _e( 'Health & Sustainability System', 'agency-nexus' ); ?></h1>
+			<a href="?page=an-health-check&action=add" class="page-title-action">New Check-in</a>
+			<hr class="wp-header-end">
 
 			<h2>Recent Check-ins</h2>
 			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>Date</th><th>Stress Level</th><th>Note</th></tr></thead>
+				<thead><tr><th>Date</th><th>Stress Level</th><th>Note</th><th>Actions</th></tr></thead>
 				<tbody>
 					<?php foreach ($logs as $log) :
 						$color = $log->stress_level > 7 ? 'red' : ($log->stress_level > 4 ? 'orange' : 'green');
@@ -80,6 +103,10 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 							<td><?php echo $log->created_at; ?></td>
 							<td style="color: <?php echo $color; ?>; font-weight: bold;"><?php echo $log->stress_level; ?> / 10</td>
 							<td><?php echo esc_html($log->note); ?></td>
+							<td>
+								<a href="?page=an-health-check&action=edit&id=<?php echo $log->id; ?>">Edit</a> |
+								<a href="<?php echo wp_nonce_url('?page=an-health-check&action=delete&id=' . $log->id, 'an_delete_check_' . $log->id); ?>" style="color:red;" onclick="return confirm('Delete log?')">Delete</a>
+							</td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>

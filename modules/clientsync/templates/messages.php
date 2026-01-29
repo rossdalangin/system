@@ -81,9 +81,10 @@ function loadMessages(id) {
 				var align = isSent ? 'right' : 'left';
 				var bg = isSent ? '#0073aa' : '#eee';
 				var color = isSent ? '#fff' : '#333';
-				html += '<div class="msg" style="margin-bottom: 15px; text-align: ' + align + ';">';
-				html += '<div style="background: ' + bg + '; color: ' + color + '; padding: 10px; border-radius: 10px; display: inline-block; max-width: 80%;">' + msg.message + '</div>';
-				html += '</div>';
+				html += '<div class="msg" id="msg-' + msg.id + '" style="margin-bottom: 15px; text-align: ' + align + ';">';
+				html += '<div style="background: ' + bg + '; color: ' + color + '; padding: 10px; border-radius: 10px; display: inline-block; max-width: 80%; position:relative;">' + msg.message;
+				html += '<span class="delete-msg" onclick="deleteMessage(' + msg.id + ')" style="cursor:pointer; font-size:10px; opacity:0.5; margin-left:10px;">×</span>';
+				html += '</div></div>';
 			});
 			if (html === '') {
 				html = '<div class="system-msg" style="text-align: center; color: #999; margin: 20px 0;">No messages yet.</div>';
@@ -93,6 +94,22 @@ function loadMessages(id) {
 			var chatMessages = document.getElementById('chat-messages');
 			chatMessages.scrollTop = chatMessages.scrollHeight;
 		}
+	});
+}
+
+function deleteMessage(msgId) {
+	if (!confirm('Delete message?')) return;
+	var jQuery = window.jQuery;
+	jQuery.post(ajaxurl, { action: 'an_delete_message', message_id: msgId, security: jQuery('#security').val() }, function() {
+		jQuery('#msg-' + msgId).fadeOut();
+	});
+}
+
+function deleteFile(fileId) {
+	if (!confirm('Delete file?')) return;
+	var jQuery = window.jQuery;
+	jQuery.post(ajaxurl, { action: 'an_delete_file', file_id: fileId, security: jQuery('#security').val() }, function() {
+		jQuery('#file-' + fileId).fadeOut();
 	});
 }
 
@@ -108,9 +125,10 @@ function loadFiles(id) {
 		if (response.success) {
 			var html = '';
 			response.data.forEach(function(file) {
-				html += '<li style="padding: 10px; background: #fff; border: 1px solid #eee; margin-bottom: 5px; display: flex; justify-content: space-between;">';
+				html += '<li id="file-' + file.id + '" style="padding: 10px; background: #fff; border: 1px solid #eee; margin-bottom: 5px; display: flex; justify-content: space-between;">';
 				html += '<span>' + file.file_name + '</span>';
-				html += '<a href="' + file.file_url + '" class="button button-small" target="_blank">Download</a>';
+				html += '<div><a href="' + file.file_url + '" class="button button-small" target="_blank">Download</a> ';
+				html += '<button onclick="deleteFile(' + file.id + ')" class="button button-small" style="color:red;">×</button></div>';
 				html += '</li>';
 			});
 			if (html === '') {

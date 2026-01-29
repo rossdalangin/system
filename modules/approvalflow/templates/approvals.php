@@ -27,6 +27,21 @@
 		<?php endif; ?>
 	</div>
 
+	<h2 style="margin-top: 40px;">Approval History</h2>
+	<table class="wp-list-table widefat fixed striped">
+		<thead><tr><th>Title</th><th>Project</th><th>Status</th><th>Date</th></tr></thead>
+		<tbody>
+			<?php foreach ($history as $item) : ?>
+				<tr>
+					<td><?php echo esc_html($item->title); ?></td>
+					<td><?php echo esc_html($item->project_title); ?></td>
+					<td><span class="badge status-<?php echo $item->status; ?>"><?php echo ucfirst($item->status); ?></span></td>
+					<td><?php echo $item->created_at; ?></td>
+				</tr>
+			<?php endforeach; ?>
+		</tbody>
+	</table>
+
 	<?php wp_nonce_field( 'an_approval_nonce', 'security' ); ?>
 </div>
 

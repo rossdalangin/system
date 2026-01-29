@@ -4,21 +4,29 @@
 
 	<div style="display: flex; gap: 20px; margin-top: 20px;">
 		<div id="time-blocks-list" style="flex: 2; background: #fff; padding: 20px; border: 1px solid #ccd0d4;">
-			<h3><?php _e( 'Today\'s Blocks', 'agency-nexus' ); ?></h3>
+			<div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+				<h3 style="margin:0;"><?php _e( 'Schedule Blocks', 'agency-nexus' ); ?></h3>
+				<a href="?page=an-time-blocking&action=add" class="button button-primary"><?php _e('Add Block', 'agency-nexus'); ?></a>
+			</div>
 			<table class="wp-list-table widefat fixed striped">
 				<thead>
 					<tr>
 						<th><?php _e( 'Time', 'agency-nexus' ); ?></th>
 						<th><?php _e( 'Task/Block Name', 'agency-nexus' ); ?></th>
 						<th><?php _e( 'Type', 'agency-nexus' ); ?></th>
+						<th><?php _e( 'Actions', 'agency-nexus' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php if ($blocks) : foreach ($blocks as $block) : ?>
 						<tr>
-							<td><?php echo date('H:i', strtotime($block->start_time)) . ' - ' . date('H:i', strtotime($block->end_time)); ?></td>
+							<td><?php echo date('Y-m-d H:i', strtotime($block->start_time)) . ' - ' . date('H:i', strtotime($block->end_time)); ?></td>
 							<td><strong><?php echo esc_html($block->title); ?></strong></td>
-							<td><span class="badge" style="background: <?php echo $block->type == 'deep_work' ? '#d32f2f' : '#1976d2'; ?>; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px;"><?php echo esc_html(ucfirst(str_replace('_', ' ', $block->type))); ?></span></td>
+							<td><span class="badge" style="background: <?php echo $block->type == 'deep_work' ? '#d32f2f' : ($block->type == 'break' ? '#4caf50' : '#1976d2'); ?>; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px;"><?php echo esc_html(ucfirst(str_replace('_', ' ', $block->type))); ?></span></td>
+							<td>
+								<a href="?page=an-time-blocking&action=edit&id=<?php echo $block->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a> |
+								<a href="<?php echo wp_nonce_url('?page=an-time-blocking&action=delete&id=' . $block->id, 'an_delete_block_' . $block->id); ?>" style="color:red;" onclick="return confirm('Delete block?')"><?php _e('Delete', 'agency-nexus'); ?></a>
+							</td>
 						</tr>
 					<?php endforeach; else : ?>
 						<tr>

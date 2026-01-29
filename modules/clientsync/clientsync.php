@@ -18,6 +18,8 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 		add_action( 'wp_ajax_an_get_messages', [ $this, 'handle_get_messages' ] );
 		add_action( 'wp_ajax_an_share_file', [ $this, 'handle_share_file' ] );
 		add_action( 'wp_ajax_an_get_files', [ $this, 'handle_get_files' ] );
+		add_action( 'wp_ajax_an_delete_message', [ $this, 'handle_delete_message' ] );
+		add_action( 'wp_ajax_an_delete_file', [ $this, 'handle_delete_file' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
@@ -92,6 +94,28 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 			]
 		);
 
+		wp_send_json_success();
+	}
+
+	/**
+	 * AJAX handler for deleting a message.
+	 */
+	public function handle_delete_message() {
+		check_ajax_referer( 'an_message_nonce', 'security' );
+		if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Unauthorized' );
+		global $wpdb;
+		$wpdb->delete( $wpdb->prefix . 'an_messages', [ 'id' => intval( $_POST['message_id'] ) ] );
+		wp_send_json_success();
+	}
+
+	/**
+	 * AJAX handler for deleting a file.
+	 */
+	public function handle_delete_file() {
+		check_ajax_referer( 'an_message_nonce', 'security' );
+		if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Unauthorized' );
+		global $wpdb;
+		$wpdb->delete( $wpdb->prefix . 'an_shared_files', [ 'id' => intval( $_POST['file_id'] ) ] );
 		wp_send_json_success();
 	}
 
