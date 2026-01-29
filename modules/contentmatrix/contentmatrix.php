@@ -35,6 +35,15 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			'an-content-calendar',
 			[ $this, 'render_calendar' ]
 		);
+
+		add_submenu_page(
+			'agency-nexus',
+			__( 'Content List', 'agency-nexus' ),
+			__( 'Content List', 'agency-nexus' ),
+			'manage_options',
+			'an-content-list',
+			[ $this, 'render_content_list' ]
+		);
 	}
 
 	public function render_calendar() {
@@ -42,6 +51,121 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		$content_items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_content" );
 		$projects      = $wpdb->get_results( "SELECT id, title FROM {$wpdb->prefix}an_projects" );
 		$this->get_template( 'calendar', [ 'content_items' => $content_items, 'projects' => $projects ] );
+	}
+
+	public function render_content_list() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_content';
+		$projects_table = $wpdb->prefix . 'an_projects';
+		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+		if ($action === 'delete' && $id) {
+			check_admin_referer('an_delete_content_' . $id);
+			$wpdb->delete($table_name, ['id' => $id]);
+			echo '<div class="updated"><p>Content item deleted!</p></div>';
+			$action = 'list';
+		}
+
+		if (isset($_POST['an_save_content']) && check_admin_referer('an_save_content_nonce')) {
+			$data = [
+				'project_id'     => intval($_POST['project_id']),
+				'title'          => sanitize_text_field($_POST['title']),
+				'content'        => sanitize_textarea_field($_POST['content']),
+				'media_url'      => esc_url_raw($_POST['media_url']),
+				'status'         => sanitize_text_field($_POST['status']),
+				'scheduled_date' => sanitize_text_field($_POST['scheduled_date']),
+				'platform'       => sanitize_text_field($_POST['platform'])
+			];
+			if ($id) {
+				$wpdb->update($table_name, $data, ['id' => $id]);
+				echo '<div class="updated"><p>Content updated!</p></div>';
+			} else {
+				$wpdb->insert($table_name, $data);
+				echo '<div class="updated"><p>Content added!</p></div>';
+			}
+			$action = 'list';
+		}
+
+		if ($action === 'edit' || $action === 'add') {
+			$content = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
+			$projects = $wpdb->get_results("SELECT id, title FROM $projects_table");
+			?>
+			<div class="wrap">
+				<h1><?php echo $id ? __('Edit Content', 'agency-nexus') : __('Add New Content', 'agency-nexus'); ?></h1>
+				<form method="post">
+					<?php wp_nonce_field('an_save_content_nonce'); ?>
+					<table class="form-table">
+						<tr><th>Project</th><td>
+							<select name="project_id" required>
+								<?php foreach ($projects as $p) : ?>
+									<option value="<?php echo $p->id; ?>" <?php selected($content ? $content->project_id : 0, $p->id); ?>><?php echo esc_html($p->title); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</td></tr>
+						<tr><th>Title</th><td><input type="text" name="title" value="<?php echo $content ? esc_attr($content->title) : ''; ?>" required class="regular-text"></td></tr>
+						<tr><th>Body Content</th><td><textarea name="content" class="regular-text" rows="10"><?php echo $content ? esc_textarea($content->content) : ''; ?></textarea></td></tr>
+						<tr><th>Media URL</th><td>
+							<input type="text" name="media_url" id="media_url" value="<?php echo $content ? esc_attr($content->media_url) : ''; ?>" class="regular-text">
+							<button type="button" id="upload_media_btn" class="button">Upload/Select Media</button>
+						</td></tr>
+						<tr><th>Platform</th><td><input type="text" name="platform" value="<?php echo $content ? esc_attr($content->platform) : 'wordpress'; ?>" class="regular-text"></td></tr>
+						<tr><th>Status</th><td>
+							<select name="status">
+								<option value="draft" <?php selected($content ? $content->status : '', 'draft'); ?>>Draft</option>
+								<option value="pending_approval" <?php selected($content ? $content->status : '', 'pending_approval'); ?>>Pending Approval</option>
+								<option value="approved" <?php selected($content ? $content->status : '', 'approved'); ?>>Approved</option>
+								<option value="published" <?php selected($content ? $content->status : '', 'published'); ?>>Published</option>
+							</select>
+						</td></tr>
+						<tr><th>Scheduled Date</th><td><input type="datetime-local" name="scheduled_date" value="<?php echo $content ? date('Y-m-d\TH:i', strtotime($content->scheduled_date)) : ''; ?>"></td></tr>
+					</table>
+					<input type="submit" name="an_save_content" class="button button-primary" value="Save Content">
+					<a href="?page=an-content-list" class="button">Cancel</a>
+				</form>
+			</div>
+			<script>
+			jQuery(document).ready(function($){
+				$('#upload_media_btn').click(function(e) {
+					e.preventDefault();
+					var frame = wp.media({ title: 'Select Media', multiple: false }).open().on('select', function(e){
+						var attachment = frame.state().get('selection').first().toJSON();
+						$('#media_url').val(attachment.url);
+					});
+				});
+			});
+			</script>
+			<?php
+			return;
+		}
+
+		$items = $wpdb->get_results("SELECT c.*, p.title as project_title FROM $table_name c JOIN $projects_table p ON c.project_id = p.id ORDER BY c.created_at DESC");
+		?>
+		<div class="wrap">
+			<h1 class="wp-heading-inline"><?php _e('Content Management', 'agency-nexus'); ?></h1>
+			<a href="?page=an-content-list&action=add" class="page-title-action">Add New</a>
+			<hr class="wp-header-end">
+
+			<table class="wp-list-table widefat fixed striped">
+				<thead><tr><th>Title</th><th>Project</th><th>Platform</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+				<tbody>
+					<?php foreach ($items as $item) : ?>
+						<tr>
+							<td><strong><?php echo esc_html($item->title); ?></strong></td>
+							<td><?php echo esc_html($item->project_title); ?></td>
+							<td><?php echo esc_html(ucfirst($item->platform)); ?></td>
+							<td><span class="badge status-<?php echo $item->status; ?>"><?php echo ucfirst(str_replace('_', ' ', $item->status)); ?></span></td>
+							<td><?php echo $item->scheduled_date; ?></td>
+							<td>
+								<a href="?page=an-content-list&action=edit&id=<?php echo $item->id; ?>">Edit</a> |
+								<a href="<?php echo wp_nonce_url('?page=an-content-list&action=delete&id=' . $item->id, 'an_delete_content_' . $item->id); ?>" style="color:red;" onclick="return confirm('Delete item?')">Delete</a>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
+		<?php
 	}
 
 	/**

@@ -208,5 +208,33 @@ class Agency_Nexus_DB_Manager {
 			PRIMARY KEY (id)
 		) $charset_collate;";
 		dbDelta( $sql_burnout );
+
+		// Invoices Table (MoneyFlow)
+		$table_invoices = $wpdb->prefix . 'an_invoices';
+		$sql_invoices = "CREATE TABLE $table_invoices (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			project_id bigint(20) NOT NULL,
+			client_id bigint(20) NOT NULL,
+			number varchar(50) NOT NULL,
+			amount decimal(10,2) NOT NULL,
+			status varchar(50) DEFAULT 'draft',
+			due_date date,
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+		dbDelta( $sql_invoices );
+
+		// Payments Table (MoneyFlow)
+		$table_payments = $wpdb->prefix . 'an_payments';
+		$sql_payments = "CREATE TABLE $table_payments (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			invoice_id bigint(20) NOT NULL,
+			amount decimal(10,2) NOT NULL,
+			method varchar(50) DEFAULT 'stripe',
+			transaction_id varchar(255),
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+		dbDelta( $sql_payments );
 	}
 }

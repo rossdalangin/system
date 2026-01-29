@@ -16,9 +16,11 @@ Before using the advanced modules, you must set up your core data.
 ### 📁 Project Management
 - Navigate to **Agency Nexus > Projects**.
 - **Create New Project**: Select a client, set a budget, and add a description.
-- **Tasks**: Once a project is created, add specific tasks to it.
+- **Manage**: View detailed reports, edit project details, or delete completed projects.
+- **Tasks & Team**: Assign tasks to specific team members.
 - **Logging Time**: Against each task, use the "Log Time" field to enter hours worked.
     - *Note: Logged time automatically updates your financial ROI and workload capacity.*
+- **Print Report**: In the Project View, click "Print Report" for a hard copy of progress.
 
 ---
 
@@ -75,11 +77,13 @@ Before using the advanced modules, you must set up your core data.
 
 ## 6. Financials & Growth
 
-### 💰 MoneyFlow (Financial Dashboard & Expenses)
+### 💰 MoneyFlow (Financial Dashboard & Invoicing)
 - View the widget on the main **Agency Nexus Dashboard** for a real-time **Profitability** overview.
-- **Calculation**: Revenue (Budgets) - Labor Cost (Logged Hours x $50/hr) - Recorded Expenses.
-- **Expenses**: Navigate to **Agency Nexus > Expenses** to record costs like software, marketing, or travel.
-- **Receipt Scanning**: Upload files directly to each expense record for tax compliance.
+- **Calculation**: Revenue (Invoiced/Budgets) - Labor Cost (Logged Hours x $50/hr) - Recorded Expenses.
+- **Expenses**: Navigate to **Agency Nexus > Expenses** to record costs and upload receipts.
+- **Invoicing**: Navigate to **Agency Nexus > Invoices** to generate professional invoices.
+- **Printing**: Use the "Print" action on any invoice to generate a printable version.
+- **Payments**: Record payments against invoices to track your cash flow.
 
 ### 📈 EngageTrack (Leads & Sentiment)
 - View the widget on the main **Agency Nexus Dashboard**.

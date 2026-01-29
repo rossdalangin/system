@@ -38,27 +38,88 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 	public function render_resources() {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_resources';
-
-		// Handle adding
-		if ( isset( $_POST['an_add_resource'] ) && check_admin_referer( 'an_add_resource_nonce' ) ) {
-			$wpdb->insert(
-				$table_name,
-				[
-					'title'      => sanitize_text_field( $_POST['title'] ),
-					'type'       => sanitize_text_field( $_POST['type'] ),
-					'file_url'   => esc_url_raw( $_POST['file_url'] ),
-					'content'    => sanitize_textarea_field( $_POST['content'] ),
-					'created_at' => current_time( 'mysql' )
-				]
-			);
-			echo '<div class="updated"><p>Resource added!</p></div>';
-		}
+		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 		// Handle deleting
-		if ( isset( $_GET['action'] ) && $_GET['action'] === 'delete' && isset( $_GET['id'] ) ) {
-			check_admin_referer( 'an_delete_resource_' . $_GET['id'] );
-			$wpdb->delete( $table_name, [ 'id' => intval( $_GET['id'] ) ] );
+		if ( $action === 'delete' && $id ) {
+			check_admin_referer( 'an_delete_resource_' . $id );
+			$wpdb->delete( $table_name, [ 'id' => $id ] );
 			echo '<div class="updated"><p>Resource deleted!</p></div>';
+			$action = 'list';
+		}
+
+		// Handle saving
+		if ( isset( $_POST['an_save_resource'] ) && check_admin_referer( 'an_save_resource_nonce' ) ) {
+			$data = [
+				'title'      => sanitize_text_field( $_POST['title'] ),
+				'type'       => sanitize_text_field( $_POST['type'] ),
+				'file_url'   => esc_url_raw( $_POST['file_url'] ),
+				'content'    => sanitize_textarea_field( $_POST['content'] ),
+				'created_at' => current_time( 'mysql' )
+			];
+			if ($id) {
+				$wpdb->update($table_name, $data, ['id' => $id]);
+				echo '<div class="updated"><p>Resource updated!</p></div>';
+			} else {
+				$wpdb->insert($table_name, $data);
+				echo '<div class="updated"><p>Resource added!</p></div>';
+			}
+			$action = 'list';
+		}
+
+		if ($action === 'edit' || $action === 'add') {
+			$resource = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
+			?>
+			<div class="wrap">
+				<h1><?php echo $id ? __('Edit Resource', 'agency-nexus') : __('Add New Resource', 'agency-nexus'); ?></h1>
+				<form method="post">
+					<?php wp_nonce_field( 'an_save_resource_nonce' ); ?>
+					<table class="form-table">
+						<tr>
+							<th><label for="title">Title</label></th>
+							<td><input type="text" name="title" id="title" value="<?php echo $resource ? esc_attr($resource->title) : ''; ?>" class="regular-text" required></td>
+						</tr>
+						<tr>
+							<th><label for="type">Type</label></th>
+							<td>
+								<select name="type" id="type">
+									<option value="template" <?php selected($resource ? $resource->type : '', 'template'); ?>>Template</option>
+									<option value="swipe" <?php selected($resource ? $resource->type : '', 'swipe'); ?>>Swipe File</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="file_url">File URL</label></th>
+							<td>
+								<input type="text" name="file_url" id="file_url" value="<?php echo $resource ? esc_attr($resource->file_url) : ''; ?>" class="regular-text">
+								<button type="button" id="upload_resource_btn" class="button">Upload File</button>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="content">Text Content / Description</label></th>
+							<td><textarea name="content" id="content" class="regular-text"><?php echo $resource ? esc_textarea($resource->content) : ''; ?></textarea></td>
+						</tr>
+					</table>
+					<p class="submit">
+						<input type="submit" name="an_save_resource" class="button button-primary" value="Save Resource">
+						<a href="?page=an-resources" class="button">Cancel</a>
+					</p>
+				</form>
+			</div>
+			<script>
+			jQuery(document).ready(function($){
+				$('#upload_resource_btn').click(function(e) {
+					e.preventDefault();
+					var frame = wp.media({ title: 'Upload Resource', multiple: false }).open().on('select', function(e){
+						var attachment = frame.state().get('selection').first().toJSON();
+						$('#file_url').val(attachment.url);
+					});
+				});
+			});
+			</script>
+			<?php
+			return;
 		}
 
 		$resources = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC" );
@@ -67,53 +128,20 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 
 		?>
 		<div class="wrap">
-			<h1><?php _e( 'Agency Resource Library', 'agency-nexus' ); ?></h1>
-
-			<div class="postbox" style="padding: 20px; margin-top: 20px;">
-				<h2><?php _e( 'Add New Resource', 'agency-nexus' ); ?></h2>
-				<form method="post">
-					<?php wp_nonce_field( 'an_add_resource_nonce' ); ?>
-					<table class="form-table">
-						<tr>
-							<th><label for="title">Title</label></th>
-							<td><input type="text" name="title" id="title" class="regular-text" required></td>
-						</tr>
-						<tr>
-							<th><label for="type">Type</label></th>
-							<td>
-								<select name="type" id="type">
-									<option value="template">Template</option>
-									<option value="swipe">Swipe File</option>
-								</select>
-							</td>
-						</tr>
-						<tr>
-							<th><label for="file_url">File URL</label></th>
-							<td>
-								<input type="text" name="file_url" id="file_url" class="regular-text">
-								<button type="button" id="upload_resource_btn" class="button">Upload File</button>
-							</td>
-						</tr>
-						<tr>
-							<th><label for="content">Text Content / Description</label></th>
-							<td><textarea name="content" id="content" class="regular-text"></textarea></td>
-						</tr>
-					</table>
-					<p class="submit">
-						<input type="submit" name="an_add_resource" class="button button-primary" value="Add Resource">
-					</p>
-				</form>
-			</div>
+			<h1 class="wp-heading-inline"><?php _e( 'Agency Resource Library', 'agency-nexus' ); ?></h1>
+			<a href="?page=an-resources&action=add" class="page-title-action">Add New</a>
+			<hr class="wp-header-end">
 
 			<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
 				<div class="card" style="padding: 15px; background: #fff; border: 1px solid #ddd;">
 					<h3>📄 <?php _e( 'Contract & Proposal Templates', 'agency-nexus' ); ?></h3>
 					<ul>
 						<?php foreach ( $templates as $resource ) : ?>
-							<li style="margin-bottom: 10px; display: flex; justify-content: space-between;">
+							<li style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
 								<span><?php echo esc_html( $resource->title ); ?></span>
 								<div>
 									<?php if ($resource->file_url) : ?><a href="<?php echo esc_url($resource->file_url); ?>" target="_blank">View</a> | <?php endif; ?>
+									<a href="?page=an-resources&action=edit&id=<?php echo $resource->id; ?>">Edit</a> |
 									<a href="<?php echo wp_nonce_url( admin_url('admin.php?page=an-resources&action=delete&id=' . $resource->id), 'an_delete_resource_' . $resource->id ); ?>" style="color:red;" onclick="return confirm('Are you sure?')">Delete</a>
 								</div>
 							</li>
@@ -124,10 +152,11 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 					<h3>💡 <?php _e( 'Swipe Files & Assets', 'agency-nexus' ); ?></h3>
 					<ul>
 						<?php foreach ( $swipes as $resource ) : ?>
-							<li style="margin-bottom: 10px; display: flex; justify-content: space-between;">
+							<li style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
 								<span><?php echo esc_html( $resource->title ); ?></span>
 								<div>
 									<?php if ($resource->file_url) : ?><a href="<?php echo esc_url($resource->file_url); ?>" target="_blank">View</a> | <?php endif; ?>
+									<a href="?page=an-resources&action=edit&id=<?php echo $resource->id; ?>">Edit</a> |
 									<a href="<?php echo wp_nonce_url( admin_url('admin.php?page=an-resources&action=delete&id=' . $resource->id), 'an_delete_resource_' . $resource->id ); ?>" style="color:red;" onclick="return confirm('Are you sure?')">Delete</a>
 								</div>
 							</li>
@@ -137,21 +166,6 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 			</div>
 		</div>
 
-		<script>
-		jQuery(document).ready(function($){
-			$('#upload_resource_btn').click(function(e) {
-				e.preventDefault();
-				var frame = wp.media({
-					title: 'Upload Resource',
-					multiple: false
-				}).open()
-				.on('select', function(e){
-					var attachment = frame.state().get('selection').first().toJSON();
-					$('#file_url').val(attachment.url);
-				});
-			});
-		});
-		</script>
 		<?php
 	}
 

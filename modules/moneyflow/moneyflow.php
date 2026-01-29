@@ -26,6 +26,15 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			'an-expenses',
 			[ $this, 'render_expenses' ]
 		);
+
+		add_submenu_page(
+			'agency-nexus',
+			__( 'Invoices', 'agency-nexus' ),
+			__( 'Invoices', 'agency-nexus' ),
+			'manage_options',
+			'an-invoices',
+			[ $this, 'render_invoices' ]
+		);
 	}
 
 	public function enqueue_scripts( $hook ) {
@@ -161,6 +170,189 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			});
 		});
 		</script>
+		<?php
+	}
+
+	/**
+	 * Render the invoices management page.
+	 */
+	public function render_invoices() {
+		global $wpdb;
+		$invoices_table = $wpdb->prefix . 'an_invoices';
+		$projects_table = $wpdb->prefix . 'an_projects';
+		$clients_table  = $wpdb->prefix . 'an_clients';
+		$payments_table = $wpdb->prefix . 'an_payments';
+
+		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+		// Handle Delete
+		if ($action === 'delete' && $id) {
+			check_admin_referer('an_delete_invoice_' . $id);
+			$wpdb->delete($invoices_table, ['id' => $id]);
+			echo '<div class="updated"><p>Invoice deleted!</p></div>';
+			$action = 'list';
+		}
+
+		// Handle Save (Add/Edit)
+		if (isset($_POST['an_save_invoice']) && check_admin_referer('an_save_invoice_nonce')) {
+			$data = [
+				'project_id' => intval($_POST['project_id']),
+				'client_id'  => intval($_POST['client_id']),
+				'number'     => sanitize_text_field($_POST['number']),
+				'amount'     => floatval($_POST['amount']),
+				'status'     => sanitize_text_field($_POST['status']),
+				'due_date'   => sanitize_text_field($_POST['due_date']),
+				'created_at' => current_time('mysql')
+			];
+			if ($id) {
+				$wpdb->update($invoices_table, $data, ['id' => $id]);
+				echo '<div class="updated"><p>Invoice updated!</p></div>';
+			} else {
+				$wpdb->insert($invoices_table, $data);
+				echo '<div class="updated"><p>Invoice created!</p></div>';
+			}
+			$action = 'list';
+		}
+
+		// Handle Payment
+		if (isset($_POST['an_add_payment']) && check_admin_referer('an_add_payment_nonce')) {
+			$wpdb->insert($payments_table, [
+				'invoice_id'     => $id,
+				'amount'         => floatval($_POST['pay_amount']),
+				'method'         => sanitize_text_field($_POST['method']),
+				'transaction_id' => sanitize_text_field($_POST['transaction_id']),
+				'created_at'     => current_time('mysql')
+			]);
+			// Update status if fully paid
+			$total_paid = $wpdb->get_var($wpdb->prepare("SELECT SUM(amount) FROM $payments_table WHERE invoice_id = %d", $id));
+			$inv_amount = $wpdb->get_var($wpdb->prepare("SELECT amount FROM $invoices_table WHERE id = %d", $id));
+			if ($total_paid >= $inv_amount) {
+				$wpdb->update($invoices_table, ['status' => 'paid'], ['id' => $id]);
+			}
+			echo '<div class="updated"><p>Payment recorded!</p></div>';
+		}
+
+		if ($action === 'print' && $id) {
+			$invoice = $wpdb->get_row($wpdb->prepare("SELECT i.*, c.name as client_name, c.email as client_email, p.title as project_title FROM $invoices_table i JOIN $clients_table c ON i.client_id = c.id JOIN $projects_table p ON i.project_id = p.id WHERE i.id = %d", $id));
+			?>
+			<div class="wrap" id="printable-invoice" style="background: white; padding: 40px; font-family: sans-serif;">
+				<div style="display:flex; justify-content: space-between;">
+					<h1>INVOICE</h1>
+					<div style="text-align:right;">
+						<strong><?php echo esc_html($invoice->number); ?></strong><br>
+						Date: <?php echo date('Y-m-d', strtotime($invoice->created_at)); ?><br>
+						Due: <?php echo esc_html($invoice->due_date); ?>
+					</div>
+				</div>
+				<hr>
+				<div style="margin: 40px 0;">
+					<strong>Bill To:</strong><br>
+					<?php echo esc_html($invoice->client_name); ?><br>
+					<?php echo esc_html($invoice->client_email); ?>
+				</div>
+				<table style="width:100%; border-collapse: collapse;">
+					<thead><tr style="background:#eee;"><th style="padding:10px; text-align:left;">Description</th><th style="padding:10px; text-align:right;">Amount</th></tr></thead>
+					<tbody>
+						<tr>
+							<td style="padding:10px; border-bottom:1px solid #eee;"><?php echo esc_html($invoice->project_title); ?></td>
+							<td style="padding:10px; border-bottom:1px solid #eee; text-align:right;">$<?php echo number_format($invoice->amount, 2); ?></td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr><td style="padding:10px; text-align:right;"><strong>Total:</strong></td><td style="padding:10px; text-align:right;"><strong>$<?php echo number_format($invoice->amount, 2); ?></strong></td></tr>
+					</tfoot>
+				</table>
+				<div style="margin-top: 50px; text-align:center;">
+					<button onclick="window.print()" class="button button-primary no-print">Print Invoice</button>
+					<a href="?page=an-invoices" class="button no-print">Back</a>
+				</div>
+				<style>@media print { .no-print { display:none; } }</style>
+			</div>
+			<?php
+			return;
+		}
+
+		if ($action === 'edit' || $action === 'add') {
+			$invoice = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $invoices_table WHERE id = %d", $id)) : null;
+			$projects = $wpdb->get_results("SELECT id, title, client_id FROM $projects_table");
+			$clients = $wpdb->get_results("SELECT id, name FROM $clients_table");
+			?>
+			<div class="wrap">
+				<h1><?php echo $id ? __('Edit Invoice', 'agency-nexus') : __('Create New Invoice', 'agency-nexus'); ?></h1>
+				<form method="post">
+					<?php wp_nonce_field('an_save_invoice_nonce'); ?>
+					<table class="form-table">
+						<tr><th>Invoice Number</th><td><input type="text" name="number" value="<?php echo $invoice ? esc_attr($invoice->number) : 'INV-' . time(); ?>" required></td></tr>
+						<tr><th>Project</th><td>
+							<select name="project_id" required>
+								<?php foreach ($projects as $p) : ?>
+									<option value="<?php echo $p->id; ?>" <?php selected($invoice ? $invoice->project_id : 0, $p->id); ?>><?php echo esc_html($p->title); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</td></tr>
+						<tr><th>Client</th><td>
+							<select name="client_id" required>
+								<?php foreach ($clients as $c) : ?>
+									<option value="<?php echo $c->id; ?>" <?php selected($invoice ? $invoice->client_id : 0, $c->id); ?>><?php echo esc_html($c->name); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</td></tr>
+						<tr><th>Amount ($)</th><td><input type="number" step="0.01" name="amount" value="<?php echo $invoice ? esc_attr($invoice->amount) : ''; ?>" required></td></tr>
+						<tr><th>Due Date</th><td><input type="date" name="due_date" value="<?php echo $invoice ? esc_attr($invoice->due_date) : ''; ?>" required></td></tr>
+						<tr><th>Status</th><td>
+							<select name="status">
+								<option value="draft" <?php selected($invoice ? $invoice->status : '', 'draft'); ?>>Draft</option>
+								<option value="sent" <?php selected($invoice ? $invoice->status : '', 'sent'); ?>>Sent</option>
+								<option value="paid" <?php selected($invoice ? $invoice->status : '', 'paid'); ?>>Paid</option>
+								<option value="overdue" <?php selected($invoice ? $invoice->status : '', 'overdue'); ?>>Overdue</option>
+							</select>
+						</td></tr>
+					</table>
+					<input type="submit" name="an_save_invoice" class="button button-primary" value="Save Invoice">
+				</form>
+			</div>
+			<?php
+			return;
+		}
+
+		$invoices = $wpdb->get_results("SELECT i.*, c.name as client_name, p.title as project_title FROM $invoices_table i JOIN $clients_table c ON i.client_id = c.id JOIN $projects_table p ON i.project_id = p.id ORDER BY i.created_at DESC");
+		?>
+		<div class="wrap">
+			<h1 class="wp-heading-inline"><?php _e('Invoices', 'agency-nexus'); ?></h1>
+			<a href="?page=an-invoices&action=add" class="page-title-action">Add New</a>
+			<hr class="wp-header-end">
+
+			<table class="wp-list-table widefat fixed striped">
+				<thead><tr><th>Number</th><th>Project</th><th>Client</th><th>Amount</th><th>Status</th><th>Due</th><th>Actions</th></tr></thead>
+				<tbody>
+					<?php foreach ($invoices as $inv) :
+						$total_paid = $wpdb->get_var($wpdb->prepare("SELECT SUM(amount) FROM $payments_table WHERE invoice_id = %d", $inv->id));
+					?>
+						<tr>
+							<td><strong><?php echo esc_html($inv->number); ?></strong></td>
+							<td><?php echo esc_html($inv->project_title); ?></td>
+							<td><?php echo esc_html($inv->client_name); ?></td>
+							<td>$<?php echo number_format($inv->amount, 2); ?> <br><small>Paid: $<?php echo number_format($total_paid, 2); ?></small></td>
+							<td><span class="badge status-<?php echo $inv->status; ?>"><?php echo ucfirst($inv->status); ?></span></td>
+							<td><?php echo esc_html($inv->due_date); ?></td>
+							<td>
+								<a href="?page=an-invoices&action=print&id=<?php echo $inv->id; ?>">Print</a> |
+								<a href="?page=an-invoices&action=edit&id=<?php echo $inv->id; ?>">Edit</a> |
+								<a href="<?php echo wp_nonce_url('?page=an-invoices&action=delete&id=' . $inv->id, 'an_delete_invoice_' . $inv->id); ?>" style="color:red;">Delete</a>
+								<br>
+								<form method="post" style="display:inline-block; margin-top:5px;">
+									<?php wp_nonce_field('an_add_payment_nonce'); ?>
+									<input type="hidden" name="id" value="<?php echo $inv->id; ?>">
+									<input type="number" step="0.01" name="pay_amount" placeholder="Amt" style="width:60px;">
+									<input type="submit" name="an_add_payment" value="Pay" class="button button-small">
+								</form>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
 		<?php
 	}
 

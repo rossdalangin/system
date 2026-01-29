@@ -39,57 +39,83 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 	public function render_leads() {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_leads';
+		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-		if ( isset( $_POST['an_add_lead'] ) && check_admin_referer( 'an_add_lead_nonce' ) ) {
-			$wpdb->insert(
-				$table_name,
-				[
-					'name'             => sanitize_text_field( $_POST['name'] ),
-					'email'            => sanitize_email( $_POST['email'] ),
-					'source'           => sanitize_text_field( $_POST['source'] ),
-					'status'           => sanitize_text_field( $_POST['status'] ),
-					'conversion_value' => floatval( $_POST['conversion_value'] )
-				]
-			);
-			echo '<div class="updated"><p>Lead recorded!</p></div>';
+		if ($action === 'delete' && $id) {
+			check_admin_referer('an_delete_lead_' . $id);
+			$wpdb->delete($table_name, ['id' => $id]);
+			echo '<div class="updated"><p>Lead deleted!</p></div>';
+			$action = 'list';
+		}
+
+		if ( isset( $_POST['an_save_lead'] ) && check_admin_referer( 'an_save_lead_nonce' ) ) {
+			$data = [
+				'name'             => sanitize_text_field( $_POST['name'] ),
+				'email'            => sanitize_email( $_POST['email'] ),
+				'source'           => sanitize_text_field( $_POST['source'] ),
+				'status'           => sanitize_text_field( $_POST['status'] ),
+				'conversion_value' => floatval( $_POST['conversion_value'] )
+			];
+			if ($id) {
+				$wpdb->update($table_name, $data, ['id' => $id]);
+				echo '<div class="updated"><p>Lead updated!</p></div>';
+			} else {
+				$wpdb->insert($table_name, $data);
+				echo '<div class="updated"><p>Lead recorded!</p></div>';
+			}
+			$action = 'list';
+		}
+
+		if ($action === 'edit' || $action === 'add') {
+			$lead = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
+			?>
+			<div class="wrap">
+				<h1><?php echo $id ? __('Edit Lead', 'agency-nexus') : __('Add New Lead', 'agency-nexus'); ?></h1>
+				<form method="post">
+					<?php wp_nonce_field( 'an_save_lead_nonce' ); ?>
+					<table class="form-table">
+						<tr><th>Name</th><td><input type="text" name="name" value="<?php echo $lead ? esc_attr($lead->name) : ''; ?>" required class="regular-text"></td></tr>
+						<tr><th>Email</th><td><input type="email" name="email" value="<?php echo $lead ? esc_attr($lead->email) : ''; ?>" required class="regular-text"></td></tr>
+						<tr><th>Source</th><td><input type="text" name="source" value="<?php echo $lead ? esc_attr($lead->source) : ''; ?>" class="regular-text"></td></tr>
+						<tr><th>Status</th><td>
+							<select name="status">
+								<option value="new" <?php selected($lead ? $lead->status : '', 'new'); ?>>New</option>
+								<option value="qualified" <?php selected($lead ? $lead->status : '', 'qualified'); ?>>Qualified</option>
+								<option value="converted" <?php selected($lead ? $lead->status : '', 'converted'); ?>>Converted</option>
+								<option value="lost" <?php selected($lead ? $lead->status : '', 'lost'); ?>>Lost</option>
+							</select>
+						</td></tr>
+						<tr><th>Potential Value ($)</th><td><input type="number" step="0.01" name="conversion_value" value="<?php echo $lead ? esc_attr($lead->conversion_value) : ''; ?>" class="regular-text"></td></tr>
+					</table>
+					<input type="submit" name="an_save_lead" class="button button-primary" value="Save Lead">
+					<a href="?page=an-leads" class="button">Cancel</a>
+				</form>
+			</div>
+			<?php
+			return;
 		}
 
 		$leads = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC" );
 		?>
 		<div class="wrap">
-			<h1><?php _e( 'Lead Intelligence System', 'agency-nexus' ); ?></h1>
-			<div class="postbox" style="padding: 20px; margin-top: 20px;">
-				<h2>Add New Lead</h2>
-				<form method="post">
-					<?php wp_nonce_field( 'an_add_lead_nonce' ); ?>
-					<table class="form-table">
-						<tr><th>Name</th><td><input type="text" name="name" required class="regular-text"></td></tr>
-						<tr><th>Email</th><td><input type="email" name="email" required class="regular-text"></td></tr>
-						<tr><th>Source</th><td><input type="text" name="source" placeholder="e.g. LinkedIn, Referral" class="regular-text"></td></tr>
-						<tr><th>Status</th><td>
-							<select name="status">
-								<option value="new">New</option>
-								<option value="qualified">Qualified</option>
-								<option value="converted">Converted</option>
-								<option value="lost">Lost</option>
-							</select>
-						</td></tr>
-						<tr><th>Potential Value ($)</th><td><input type="number" step="0.01" name="conversion_value" class="regular-text"></td></tr>
-					</table>
-					<input type="submit" name="an_add_lead" class="button button-primary" value="Record Lead">
-				</form>
-			</div>
+			<h1 class="wp-heading-inline"><?php _e( 'Lead Intelligence System', 'agency-nexus' ); ?></h1>
+			<a href="?page=an-leads&action=add" class="page-title-action">Add New</a>
+			<hr class="wp-header-end">
 			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>Name</th><th>Email</th><th>Source</th><th>Status</th><th>Value</th><th>Date</th></tr></thead>
+				<thead><tr><th>Name</th><th>Email</th><th>Source</th><th>Status</th><th>Value</th><th>Actions</th></tr></thead>
 				<tbody>
 					<?php foreach ($leads as $lead) : ?>
 						<tr>
-							<td><?php echo esc_html($lead->name); ?></td>
+							<td><strong><?php echo esc_html($lead->name); ?></strong></td>
 							<td><?php echo esc_html($lead->email); ?></td>
 							<td><?php echo esc_html($lead->source); ?></td>
-							<td><?php echo esc_html(ucfirst($lead->status)); ?></td>
+							<td><span class="badge status-<?php echo $lead->status; ?>"><?php echo ucfirst($lead->status); ?></span></td>
 							<td>$<?php echo number_format($lead->conversion_value, 2); ?></td>
-							<td><?php echo $lead->created_at; ?></td>
+							<td>
+								<a href="?page=an-leads&action=edit&id=<?php echo $lead->id; ?>">Edit</a> |
+								<a href="<?php echo wp_nonce_url('?page=an-leads&action=delete&id=' . $lead->id, 'an_delete_lead_' . $lead->id); ?>" style="color:red;" onclick="return confirm('Delete lead?')">Delete</a>
+							</td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>
