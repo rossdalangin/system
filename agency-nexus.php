@@ -1,0 +1,123 @@
+<?php
+/**
+ * Plugin Name: Agency Nexus
+ * Description: A comprehensive WordPress plugin for freelancers and agency owners.
+ * Version: 1.0.0
+ * Author: Jules
+ * Text Domain: agency-nexus
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+// Define constants
+define( 'AGENCY_NEXUS_VERSION', '1.0.0' );
+define( 'AGENCY_NEXUS_PATH', plugin_dir_path( __FILE__ ) );
+define( 'AGENCY_NEXUS_URL', plugin_dir_url( __FILE__ ) );
+
+/**
+ * Main Agency Nexus Class
+ */
+class Agency_Nexus {
+
+	/**
+	 * Instance of this class.
+	 * @var Agency_Nexus
+	 */
+	private static $instance = null;
+
+	/**
+	 * Loaded modules.
+	 * @var array
+	 */
+	public $modules = [];
+
+	/**
+	 * Return an instance of this class.
+	 */
+	public static function get_instance() {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
+
+	/**
+	 * Constructor.
+	 */
+	private function __construct() {
+		$this->includes();
+		$this->init_hooks();
+		$this->load_modules();
+	}
+
+	/**
+	 * Include required files.
+	 */
+	private function includes() {
+		require_once AGENCY_NEXUS_PATH . 'includes/class-db-manager.php';
+		require_once AGENCY_NEXUS_PATH . 'includes/class-base-module.php';
+		require_once AGENCY_NEXUS_PATH . 'includes/class-api-handler.php';
+
+		if ( is_admin() ) {
+			require_once AGENCY_NEXUS_PATH . 'admin/class-admin-dashboard.php';
+		}
+	}
+
+	/**
+	 * Initialize hooks.
+	 */
+	private function init_hooks() {
+		register_activation_hook( __FILE__, [ 'Agency_Nexus_DB_Manager', 'create_tables' ] );
+		add_action( 'plugins_loaded', [ $this, 'init_plugin' ] );
+	}
+
+	/**
+	 * Initialize plugin components.
+	 */
+	public function init_plugin() {
+		// Initialize DB Manager
+		Agency_Nexus_DB_Manager::get_instance();
+
+		// Initialize Admin Dashboard
+		if ( is_admin() ) {
+			Agency_Nexus_Admin_Dashboard::get_instance();
+		}
+
+		// Initialize API Handler
+		Agency_Nexus_API_Handler::get_instance();
+	}
+
+	/**
+	 * Load modules from the modules directory.
+	 */
+	private function load_modules() {
+		$modules_path = AGENCY_NEXUS_PATH . 'modules/';
+		$module_dirs = array_filter( glob( $modules_path . '*' ), 'is_dir' );
+
+		foreach ( $module_dirs as $dir ) {
+			$module_name = basename( $dir );
+			$module_file = $dir . '/' . $module_name . '.php';
+
+			if ( file_exists( $module_file ) ) {
+				require_once $module_file;
+
+				// Assuming class name is Agency_Nexus_Module_{Name}
+				$class_name = 'Agency_Nexus_Module_' . str_replace( ' ', '_', ucwords( str_replace( '-', ' ', $module_name ) ) );
+				if ( class_exists( $class_name ) ) {
+					$this->modules[ $module_name ] = new $class_name();
+				}
+			}
+		}
+	}
+}
+
+/**
+ * Initialize the plugin.
+ */
+function Agency_Nexus() {
+	return Agency_Nexus::get_instance();
+}
+
+Agency_Nexus();
