@@ -30,7 +30,12 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 
 	public function render_approvals() {
 		global $wpdb;
-		$pending_items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_content WHERE status = 'pending_approval'" );
+		$pending_items = $wpdb->get_results( "
+			SELECT c.*, p.title as project_title
+			FROM {$wpdb->prefix}an_content c
+			JOIN {$wpdb->prefix}an_projects p ON c.project_id = p.id
+			WHERE c.status = 'pending_approval'
+		" );
 		$this->get_template( 'approvals', [ 'pending_items' => $pending_items ] );
 	}
 

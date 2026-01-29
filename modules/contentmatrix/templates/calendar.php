@@ -4,6 +4,25 @@
 
 	<?php wp_nonce_field( 'an_calendar_nonce', 'security' ); ?>
 
+	<div id="an-content-creation" style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; margin-bottom: 20px;">
+		<h3>Create New Content</h3>
+		<form id="an-create-content-form" style="display: flex; gap: 10px; align-items: flex-end;">
+			<div>
+				<label>Project</label><br>
+				<select name="project_id" required>
+					<?php foreach ( $projects as $project ) : ?>
+						<option value="<?php echo $project->id; ?>"><?php echo esc_html( $project->title ); ?></option>
+					<?php endforeach; ?>
+				</select>
+			</div>
+			<div>
+				<label>Title</label><br>
+				<input type="text" name="title" required>
+			</div>
+			<button type="submit" class="button button-primary">Add to Unscheduled</button>
+		</form>
+	</div>
+
 	<div id="an-calendar-container" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 20px;">
 		<?php
 		$days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -53,6 +72,20 @@
 </div>
 
 <script>
+jQuery(document).ready(function($) {
+	$('#an-create-content-form').on('submit', function(e) {
+		e.preventDefault();
+		const data = $(this).serialize() + '&action=an_create_content&security=' + $('#security').val();
+		$.post(ajaxurl, data, function(response) {
+			if (response.success) {
+				const newItem = $('<div class="content-item" draggable="true" ondragstart="drag(event)" id="content-' + response.data.id + '" data-id="' + response.data.id + '" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 5px; cursor: move; font-size: 12px;">' + response.data.title + '</div>');
+				$('#unscheduled-content .calendar-day').append(newItem);
+				$('#an-create-content-form')[0].reset();
+			}
+		});
+	});
+});
+
 function allowDrop(ev) {
 	ev.preventDefault();
 }

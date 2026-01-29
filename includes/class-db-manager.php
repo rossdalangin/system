@@ -130,5 +130,19 @@ class Agency_Nexus_DB_Manager {
 			PRIMARY KEY (id)
 		) $charset_collate;";
 		dbDelta( $sql_messages );
+
+		// Leads Table (EngageTrack)
+		$table_leads = $wpdb->prefix . 'an_leads';
+		$sql_leads = "CREATE TABLE $table_leads (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			name varchar(255) NOT NULL,
+			email varchar(255) NOT NULL,
+			source varchar(255) DEFAULT 'direct',
+			status varchar(50) DEFAULT 'new',
+			conversion_value decimal(10,2) DEFAULT 0.00,
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+		dbDelta( $sql_leads );
 	}
 }

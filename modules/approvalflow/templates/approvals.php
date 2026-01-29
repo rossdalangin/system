@@ -6,7 +6,7 @@
 		<?php if ($pending_items) : foreach ($pending_items as $item) : ?>
 			<div class="approval-card" style="background: #fff; border: 1px solid #ccd0d4; padding: 20px; margin-bottom: 20px;">
 				<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
-					<h3 style="margin: 0;"><?php echo esc_html($item->title); ?></h3>
+					<h3 style="margin: 0;"><?php echo esc_html($item->title); ?> <small style="color: #666; font-weight: normal;">(Project: <?php echo esc_html($item->project_title); ?>)</small></h3>
 					<span class="badge" style="background: #ffb900; padding: 4px 10px; border-radius: 15px; font-size: 12px;"><?php _e( 'Pending Approval', 'agency-nexus' ); ?></span>
 				</div>
 

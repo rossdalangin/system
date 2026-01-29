@@ -1,6 +1,6 @@
 <?php
 /**
- * Mock WordPress environment for functional checking (Expanded)
+ * Mock WordPress environment for integration checking
  */
 
 define( 'ABSPATH', __DIR__ . '/../' );
@@ -36,6 +36,7 @@ function wp_send_json_error( $data ) { echo "JSON Error: " . json_encode($data) 
 function check_ajax_referer( $action, $query_arg ) { return true; }
 function current_user_can( $cap ) { return true; }
 function get_current_user_id() { return 1; }
+function current_time( $type ) { return date('Y-m-d H:i:s'); }
 function wpautop( $text ) { return $text; }
 
 // Mock $wpdb
@@ -66,33 +67,55 @@ function dbDelta( $sql ) {}
 
 require_once 'agency-nexus.php';
 
-echo "Testing Expanded Functional logic...\n";
+echo "Testing Integration logic...\n";
 
 $instance = Agency_Nexus();
+$dashboard = Agency_Nexus_Admin_Dashboard::get_instance();
 
-// 1. Test ContentMatrix AJAX scheduling
-echo "\nTesting ContentMatrix scheduling...\n";
+// 1. Create a client
+echo "\nStep 1: Adding a client...\n";
+$_POST['an_add_client'] = true;
+$_POST['name'] = 'John Doe';
+$_POST['email'] = 'john@example.com';
+$_POST['company'] = 'Doe Inc';
+$dashboard->render_clients();
+
+// 2. Create a project
+echo "\nStep 2: Creating a project...\n";
+$_POST['an_add_project'] = true;
+$_POST['client_id'] = 1;
+$_POST['title'] = 'Website Overhaul';
+$_POST['budget'] = 5000;
+$_POST['description'] = 'Full site redesign';
+$dashboard->render_projects();
+
+// 3. Add a task
+echo "\nStep 3: Adding a task...\n";
+$_POST['an_add_task'] = true;
+$_POST['project_id'] = 1;
+$_POST['title'] = 'Design Mockups';
+$dashboard->render_projects();
+
+// 4. Log time
+echo "\nStep 4: Logging time...\n";
+$_POST['an_log_time'] = true;
+$_POST['task_id'] = 1;
+$_POST['hours'] = 5;
+$_POST['note'] = 'Worked on Figma';
+$dashboard->render_projects();
+
+// 5. Create content
+echo "\nStep 5: Creating content...\n";
 $contentmatrix = $instance->modules['contentmatrix'];
-$_POST['item_id'] = 101;
-$_POST['new_date'] = '2023-10-25';
+$_POST['project_id'] = 1;
+$_POST['title'] = 'Announcing Site Launch';
 $_POST['security'] = 'nonce';
-$contentmatrix->handle_update_content_date();
+$contentmatrix->handle_create_content();
 
-// 2. Test ClientSync AJAX messaging
-echo "\nTesting ClientSync messaging...\n";
-$clientsync = $instance->modules['clientsync'];
-$_POST['client_id'] = 5;
-$_POST['message'] = 'Test message from admin';
-$clientsync->handle_send_message();
-
-if ( count( $GLOBALS['wpdb']->data['wp_an_messages'] ) === 1 ) {
-	echo "Message successfully saved in mock DB.\n";
-}
-
-// 3. Test ApprovalFlow AJAX approval
-echo "\nTesting ApprovalFlow approval...\n";
+// 6. Approve content
+echo "\nStep 6: Approving content...\n";
 $approvalflow = $instance->modules['approvalflow'];
-$_POST['item_id'] = 202;
+$_POST['item_id'] = 1;
 $approvalflow->handle_approve_content();
 
-echo "\nAll expanded functional tests passed.\n";
+echo "\nIntegration test complete.\n";

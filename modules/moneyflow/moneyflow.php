@@ -58,16 +58,31 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 
 	public function render_dashboard_widget() {
 		global $wpdb;
-		$total_budget = $wpdb->get_var( "SELECT SUM(budget) FROM {$wpdb->prefix}an_projects" );
-		$total_budget = $total_budget ? $total_budget : 0;
+		$projects = $wpdb->get_results( "SELECT id, budget FROM {$wpdb->prefix}an_projects" );
+
+		$total_budget = 0;
+		$total_labor  = 0;
+
+		foreach ( $projects as $project ) {
+			$profit = $this->calculate_project_profitability( $project->id );
+			$total_budget += $profit['budget'];
+			$total_labor  += $profit['labor_cost'];
+		}
+
+		$total_profit = $total_budget - $total_labor;
+		$color = $total_profit >= 0 ? '#46b450' : '#dc3232';
+
 		?>
 		<div class="postbox" style="padding: 20px;">
 			<h2><?php _e( 'MoneyFlow', 'agency-nexus' ); ?></h2>
-			<p><?php _e( 'Projected revenue based on planned projects.', 'agency-nexus' ); ?></p>
-			<div style="font-size: 24px; font-weight: bold; color: #46b450;">
-				$<?php echo number_format( $total_budget, 2 ); ?> <span style="font-size: 14px; font-weight: normal; color: #666;"><?php _e( 'Total Pipeline Value', 'agency-nexus' ); ?></span>
+			<p><?php _e( 'Real-time Profitability (All Projects):', 'agency-nexus' ); ?></p>
+			<div style="font-size: 24px; font-weight: bold; color: <?php echo $color; ?>;">
+				$<?php echo number_format( $total_profit, 2 ); ?>
 			</div>
-			<p><a href="#"><?php _e( 'View full financial report', 'agency-nexus' ); ?></a></p>
+			<p><small>
+				<?php echo sprintf( __( 'Revenue: $%.2f | Labor Cost: $%.2f', 'agency-nexus' ), $total_budget, $total_labor ); ?>
+			</small></p>
+			<p><a href="<?php echo admin_url('admin.php?page=an-projects'); ?>"><?php _e( 'Manage Projects', 'agency-nexus' ); ?></a></p>
 		</div>
 		<?php
 	}
