@@ -16,6 +16,16 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
 		add_action( 'wp_ajax_an_send_message', [ $this, 'handle_send_message' ] );
 		add_action( 'wp_ajax_an_get_messages', [ $this, 'handle_get_messages' ] );
+		add_action( 'wp_ajax_an_share_file', [ $this, 'handle_share_file' ] );
+		add_action( 'wp_ajax_an_get_files', [ $this, 'handle_get_files' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+	}
+
+	public function enqueue_scripts( $hook ) {
+		if ( 'agency-nexus_page_an-messages' !== $hook ) {
+			return;
+		}
+		wp_enqueue_media();
 	}
 
 	public function register_submenu() {
@@ -55,6 +65,56 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 		", $client_id ) );
 
 		wp_send_json_success( $messages );
+	}
+
+	/**
+	 * AJAX handler for sharing files.
+	 */
+	public function handle_share_file() {
+		check_ajax_referer( 'an_message_nonce', 'security' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		global $wpdb;
+		$client_id = intval( $_POST['client_id'] );
+		$file_url  = esc_url_raw( $_POST['file_url'] );
+		$file_name = sanitize_text_field( $_POST['file_name'] );
+
+		$wpdb->insert(
+			$wpdb->prefix . 'an_shared_files',
+			[
+				'client_id' => $client_id,
+				'user_id'   => get_current_user_id(),
+				'file_url'  => $file_url,
+				'file_name' => $file_name
+			]
+		);
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * AJAX handler for fetching shared files.
+	 */
+	public function handle_get_files() {
+		check_ajax_referer( 'an_message_nonce', 'security' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		global $wpdb;
+		$client_id = intval( $_POST['client_id'] );
+
+		$files = $wpdb->get_results( $wpdb->prepare( "
+			SELECT * FROM {$wpdb->prefix}an_shared_files
+			WHERE client_id = %d
+			ORDER BY created_at DESC
+		", $client_id ) );
+
+		wp_send_json_success( $files );
 	}
 
 	/**

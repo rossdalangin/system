@@ -25,6 +25,7 @@ function is_admin() { return true; }
 function admin_url( $path ) { return 'http://example.com/wp-admin/' . $path; }
 function wp_nonce_field( $action, $name = '_wpnonce' ) { echo "Nonce field: $action, $name\n"; }
 function check_admin_referer( $action ) { return true; }
+function esc_url_raw( $url ) { return $url; }
 function sanitize_text_field( $str ) { return $str; }
 function sanitize_email( $str ) { return $str; }
 function sanitize_textarea_field( $str ) { return $str; }
@@ -76,6 +77,7 @@ echo "\nTesting ContentMatrix scheduling...\n";
 $contentmatrix = $instance->modules['contentmatrix'];
 $_POST['item_id'] = 101;
 $_POST['new_date'] = '2023-10-25';
+$_POST['media_url'] = '';
 $_POST['security'] = 'nonce';
 $contentmatrix->handle_update_content_date();
 

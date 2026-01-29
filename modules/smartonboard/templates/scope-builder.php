@@ -23,6 +23,9 @@
 					<option value="seo"><?php _e( 'SEO Strategy', 'agency-nexus' ); ?></option>
 					<option value="web_design"><?php _e( 'Web Design & Development', 'agency-nexus' ); ?></option>
 					<option value="social_media"><?php _e( 'Social Media Management', 'agency-nexus' ); ?></option>
+					<option value="branding"><?php _e( 'Brand Identity & Design', 'agency-nexus' ); ?></option>
+					<option value="content_marketing"><?php _e( 'Content Marketing', 'agency-nexus' ); ?></option>
+					<option value="ppc"><?php _e( 'PPC & Ad Management', 'agency-nexus' ); ?></option>
 				</select>
 			</div>
 
@@ -43,7 +46,16 @@
 				<h3><?php _e( '3. Deliverables', 'agency-nexus' ); ?></h3>
 				<label><input type="checkbox" name="deliverables[]" value="audit"> <?php _e( 'Initial Audit', 'agency-nexus' ); ?></label><br>
 				<label><input type="checkbox" name="deliverables[]" value="strategy"> <?php _e( 'Content Strategy', 'agency-nexus' ); ?></label><br>
-				<label><input type="checkbox" name="deliverables[]" value="implementation"> <?php _e( 'Implementation', 'agency-nexus' ); ?></label>
+				<label><input type="checkbox" name="deliverables[]" value="implementation"> <?php _e( 'Implementation', 'agency-nexus' ); ?></label><br>
+				<label><input type="checkbox" name="deliverables[]" value="support"> <?php _e( 'Ongoing Support', 'agency-nexus' ); ?></label>
+			</div>
+
+			<div class="scope-section" style="margin-top: 20px;">
+				<h3><?php _e( '4. Custom Proposal Fields', 'agency-nexus' ); ?></h3>
+				<label>Proposal Expiry Date</label><br>
+				<input type="date" name="expiry_date" class="regular-text"><br><br>
+				<label>Special Terms / Discounts</label><br>
+				<textarea name="special_terms" class="regular-text" rows="2"></textarea>
 			</div>
 
 			<div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">

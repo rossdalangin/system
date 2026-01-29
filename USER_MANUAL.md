@@ -51,11 +51,11 @@ Before using the advanced modules, you must set up your core data.
 
 ## 4. Communication & Collaboration
 
-### 💬 ClientSync (Messaging Hub)
+### 💬 ClientSync (Messaging Hub & File Sharing)
 - Navigate to **Agency Nexus > Messages**.
 - Select a client from the sidebar to open the chat window.
-- Send end-to-end encrypted messages directly through the dashboard.
-- The main **Dashboard** widget will notify you of unread messages.
+- **Messages**: Chat in real-time with your clients.
+- **Shared Files**: Use the "Shared Files" tab in the chat window to upload assets, deliverables, or contracts for your clients to download.
 
 ---
 
@@ -66,27 +66,26 @@ Before using the advanced modules, you must set up your core data.
 - View your daily schedule divided into **Deep Work** and **Shallow Work** blocks.
 - Check the **AI Suggestion** box for tips on optimizing your focus based on your cognitive load patterns.
 
-### 🛡️ BurnoutGuard (Workload Monitoring)
-- View the widget on the main **Agency Nexus Dashboard**.
-- It calculates your **Workload Capacity** based on hours logged in the last 7 days.
-- **Green (<50%)**: Healthy workload.
-- **Yellow (50-80%)**: Moderate workload.
-- **Red (>80%)**: High workload warning—consider delegating or postponing tasks.
+### 🛡️ BurnoutGuard (Workload Monitoring & Health Check)
+- View the widget on the main **Agency Nexus Dashboard** to monitor your **Workload Capacity**.
+- **Health Check**: Navigate to **Agency Nexus > Health Check** to log your daily stress levels and mental well-being notes.
+- Use the history table to track your burnout risk over time.
 
 ---
 
 ## 6. Financials & Growth
 
-### 💰 MoneyFlow (Financial Dashboard)
-- View the widget on the main **Agency Nexus Dashboard**.
-- It provides a real-time **Profitability** overview of all projects.
-- **Calculation**: Revenue (Budgets) - Labor Cost (Logged Hours x $50/hr).
-- Use this to identify which projects are most profitable and where time leakage is occurring.
+### 💰 MoneyFlow (Financial Dashboard & Expenses)
+- View the widget on the main **Agency Nexus Dashboard** for a real-time **Profitability** overview.
+- **Calculation**: Revenue (Budgets) - Labor Cost (Logged Hours x $50/hr) - Recorded Expenses.
+- **Expenses**: Navigate to **Agency Nexus > Expenses** to record costs like software, marketing, or travel.
+- **Receipt Scanning**: Upload files directly to each expense record for tax compliance.
 
 ### 📈 EngageTrack (Leads & Sentiment)
 - View the widget on the main **Agency Nexus Dashboard**.
-- **Lead Conversion**: Tracks total leads and your conversion rate.
-- **Sentiment Analysis**: Aggregated sentiment (Positive/Neutral/Negative) from connected social platforms to gauge brand health.
+- **Lead Management**: Navigate to **Agency Nexus > Leads** to track names, emails, sources, and potential values.
+- **Canned Responses**: Navigate to **Agency Nexus > Canned Responses** to save frequently used DM or email templates.
+- **Sentiment Analysis**: Gauge brand health based on social interaction data.
 
 ---
 
@@ -99,7 +98,8 @@ Before using the advanced modules, you must set up your core data.
 
 ### 📚 FreebieFactory (Resource Library)
 - Navigate to **Agency Nexus > Resource Library**.
-- Access your agency's swipe files, contract templates, and brand voice documentation in one central place.
+- **Manage Assets**: Add your own contract templates, SOWs, and marketing swipe files.
+- **File Support**: Upload PDFs, Docs, or Images directly to the library for easy access.
 
 ---
 

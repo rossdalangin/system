@@ -30,26 +30,76 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 	public function render_automations() {
 		?>
 		<div class="wrap">
-			<h1><?php _e( 'Automation Center', 'agency-nexus' ); ?></h1>
-			<div class="card" style="max-width: 600px; margin-top: 20px; padding: 20px;">
-				<h3><?php _e( 'Zapier/Make Integration', 'agency-nexus' ); ?></h3>
-				<p><?php _e( 'Connect your agency workflow to 5000+ apps.', 'agency-nexus' ); ?></p>
-				<table class="form-table">
-					<tr>
-						<th>Webhook URL</th>
-						<td><input type="text" value="https://hooks.zapier.com/v1/..." class="large-text" readonly></td>
-					</tr>
-					<tr>
-						<th>Events to Trigger</th>
-						<td>
-							<label><input type="checkbox" checked> Project Created</label><br>
-							<label><input type="checkbox" checked> Payment Received</label><br>
-							<label><input type="checkbox"> Lead Interaction</label>
-						</td>
-					</tr>
-				</table>
-				<button class="button button-primary"><?php _e( 'Save Integration', 'agency-nexus' ); ?></button>
+			<h1><?php _e( 'Automation Center (AutoPilot)', 'agency-nexus' ); ?></h1>
+
+			<div style="display: flex; gap: 20px; margin-top: 20px;">
+				<div style="flex: 1;">
+					<div class="postbox" style="padding: 20px;">
+						<h3><?php _e( 'Custom Automation Builder (IFTTT)', 'agency-nexus' ); ?></h3>
+						<form>
+							<table class="form-table">
+								<tr>
+									<th>IF This Happens:</th>
+									<td>
+										<select class="regular-text">
+											<option>Project status changes to 'Completed'</option>
+											<option>New lead recorded in EngageTrack</option>
+											<option>Content item approved in ApprovalFlow</option>
+											<option>Invoice becomes overdue</option>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<th>THEN Do This:</th>
+									<td>
+										<select class="regular-text">
+											<option>Send email to Client</option>
+											<option>Post message to Slack channel</option>
+											<option>Trigger Zapier Webhook</option>
+											<option>Create new task in 'Follow-up' project</option>
+										</select>
+									</td>
+								</tr>
+							</table>
+							<button type="button" class="button button-primary" onclick="alert('Rule saved!')"><?php _e( 'Activate Rule', 'agency-nexus' ); ?></button>
+						</form>
+					</div>
+				</div>
+
+				<div style="flex: 1;">
+					<div class="card" style="padding: 20px; background: #fff; border: 1px solid #ddd;">
+						<h3><?php _e( 'Zapier/Make.com Integration', 'agency-nexus' ); ?></h3>
+						<p><?php _e( 'Connect your agency workflow to 5000+ apps.', 'agency-nexus' ); ?></p>
+						<table class="form-table">
+							<tr>
+								<th>Webhook URL</th>
+								<td><input type="text" value="https://hooks.zapier.com/v1/..." class="large-text" readonly></td>
+							</tr>
+						</table>
+						<p><label><input type="checkbox" checked> Enable Global Webhooks</label></p>
+						<button class="button"><?php _e( 'Save Settings', 'agency-nexus' ); ?></button>
+					</div>
+				</div>
 			</div>
+
+			<h2 style="margin-top: 30px;">Active Workflows</h2>
+			<table class="wp-list-table widefat fixed striped">
+				<thead><tr><th>Workflow Name</th><th>Trigger</th><th>Action</th><th>Status</th></tr></thead>
+				<tbody>
+					<tr>
+						<td>Client Welcome Sequence</td>
+						<td>Project Created</td>
+						<td>Email Client</td>
+						<td><span style="color: green;">Active</span></td>
+					</tr>
+					<tr>
+						<td>Slack Notifications</td>
+						<td>Content Approved</td>
+						<td>Slack Message</td>
+						<td><span style="color: green;">Active</span></td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 		<?php
 	}

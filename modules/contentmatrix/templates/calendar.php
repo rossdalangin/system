@@ -19,6 +19,12 @@
 				<label>Title</label><br>
 				<input type="text" name="title" required>
 			</div>
+			<div>
+				<label>Media</label><br>
+				<input type="hidden" name="media_url" id="content_media_url">
+				<button type="button" id="upload_content_media_btn" class="button">Attach Media</button>
+				<span id="media_preview_name" style="font-size: 11px; color: #666;"></span>
+			</div>
 			<button type="submit" class="button button-primary">Add to Unscheduled</button>
 		</form>
 	</div>
@@ -76,6 +82,19 @@
 
 <script>
 jQuery(document).ready(function($) {
+	$('#upload_content_media_btn').on('click', function(e) {
+		e.preventDefault();
+		var frame = wp.media({
+			title: 'Select Content Media',
+			multiple: false
+		}).open()
+		.on('select', function(e){
+			var attachment = frame.state().get('selection').first().toJSON();
+			$('#content_media_url').val(attachment.url);
+			$('#media_preview_name').text(attachment.filename);
+		});
+	});
+
 	$('#an-create-content-form').on('submit', function(e) {
 		e.preventDefault();
 		const data = $(this).serialize() + '&action=an_create_content&security=' + $('#security').val();
@@ -84,6 +103,7 @@ jQuery(document).ready(function($) {
 				const newItem = $('<div class="content-item" draggable="true" ondragstart="drag(event)" id="content-' + response.data.id + '" data-id="' + response.data.id + '" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 5px; cursor: move; font-size: 12px;">' + response.data.title + '</div>');
 				$('#unscheduled-content .calendar-day').append(newItem);
 				$('#an-create-content-form')[0].reset();
+				$('#media_preview_name').text('');
 			}
 		});
 	});

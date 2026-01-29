@@ -96,6 +96,7 @@ class Agency_Nexus_DB_Manager {
 			project_id bigint(20) NOT NULL,
 			title varchar(255) NOT NULL,
 			content longtext,
+			media_url varchar(255),
 			status varchar(50) DEFAULT 'draft',
 			scheduled_date datetime,
 			platform varchar(50) DEFAULT 'wordpress',
@@ -144,5 +145,68 @@ class Agency_Nexus_DB_Manager {
 			PRIMARY KEY (id)
 		) $charset_collate;";
 		dbDelta( $sql_leads );
+
+		// Expenses Table (MoneyFlow)
+		$table_expenses = $wpdb->prefix . 'an_expenses';
+		$sql_expenses = "CREATE TABLE $table_expenses (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			project_id bigint(20),
+			amount decimal(10,2) NOT NULL,
+			category varchar(255) DEFAULT 'general',
+			note text,
+			receipt_url varchar(255),
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+		dbDelta( $sql_expenses );
+
+		// Shared Files Table (ClientSync)
+		$table_files = $wpdb->prefix . 'an_shared_files';
+		$sql_files = "CREATE TABLE $table_files (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			client_id bigint(20) NOT NULL,
+			user_id bigint(20) NOT NULL,
+			file_url varchar(255) NOT NULL,
+			file_name varchar(255) NOT NULL,
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+		dbDelta( $sql_files );
+
+		// Canned Responses Table (EngageTrack)
+		$table_responses = $wpdb->prefix . 'an_canned_responses';
+		$sql_responses = "CREATE TABLE $table_responses (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			title varchar(255) NOT NULL,
+			content text NOT NULL,
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+		dbDelta( $sql_responses );
+
+		// Resources Table (FreebieFactory)
+		$table_resources = $wpdb->prefix . 'an_resources';
+		$sql_resources = "CREATE TABLE $table_resources (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			title varchar(255) NOT NULL,
+			type varchar(50) DEFAULT 'template',
+			file_url varchar(255),
+			content text,
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+		dbDelta( $sql_resources );
+
+		// Burnout Logs Table (BurnoutGuard)
+		$table_burnout = $wpdb->prefix . 'an_burnout_logs';
+		$sql_burnout = "CREATE TABLE $table_burnout (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			user_id bigint(20) NOT NULL,
+			stress_level int NOT NULL,
+			note text,
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+		dbDelta( $sql_burnout );
 	}
 }

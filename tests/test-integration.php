@@ -25,6 +25,7 @@ function is_admin() { return true; }
 function admin_url( $path ) { return 'http://example.com/wp-admin/' . $path; }
 function wp_nonce_field( $action, $name = '_wpnonce' ) { echo "Nonce field: $action, $name\n"; }
 function check_admin_referer( $action ) { return true; }
+function esc_url_raw( $url ) { return $url; }
 function sanitize_text_field( $str ) { return $str; }
 function sanitize_email( $str ) { return $str; }
 function sanitize_textarea_field( $str ) { return $str; }
@@ -110,6 +111,7 @@ echo "\nStep 5: Creating content...\n";
 $contentmatrix = $instance->modules['contentmatrix'];
 $_POST['project_id'] = 1;
 $_POST['title'] = 'Announcing Site Launch';
+$_POST['media_url'] = 'http://example.com/image.png';
 $_POST['security'] = 'nonce';
 $contentmatrix->handle_create_content();
 

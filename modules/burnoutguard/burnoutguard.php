@@ -12,7 +12,80 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 	protected $name = 'BurnoutGuard';
 
 	public function init() {
+		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
+	}
+
+	public function register_submenu() {
+		add_submenu_page(
+			'agency-nexus',
+			__( 'Health Check', 'agency-nexus' ),
+			__( 'Health Check', 'agency-nexus' ),
+			'manage_options',
+			'an-health-check',
+			[ $this, 'render_health_check' ]
+		);
+	}
+
+	public function render_health_check() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_burnout_logs';
+
+		if ( isset( $_POST['an_add_check'] ) && check_admin_referer( 'an_add_check_nonce' ) ) {
+			$wpdb->insert(
+				$table_name,
+				[
+					'user_id'      => get_current_user_id(),
+					'stress_level' => intval( $_POST['stress_level'] ),
+					'note'         => sanitize_textarea_field( $_POST['note'] ),
+					'created_at'   => current_time( 'mysql' )
+				]
+			);
+			echo '<div class="updated"><p>Log recorded. Remember to take breaks!</p></div>';
+		}
+
+		$logs = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC LIMIT 10" );
+		?>
+		<div class="wrap">
+			<h1><?php _e( 'Health & Sustainability System', 'agency-nexus' ); ?></h1>
+			<div class="postbox" style="padding: 20px; margin-top: 20px;">
+				<h2><?php _e( 'Daily Stress Self-Check', 'agency-nexus' ); ?></h2>
+				<form method="post">
+					<?php wp_nonce_field( 'an_add_check_nonce' ); ?>
+					<table class="form-table">
+						<tr>
+							<th><label>Stress Level (1-10)</label></th>
+							<td>
+								<input type="range" name="stress_level" min="1" max="10" value="5" class="regular-text" oninput="this.nextElementSibling.value = this.value">
+								<output>5</output>
+							</td>
+						</tr>
+						<tr>
+							<th><label>Notes / How are you feeling?</label></th>
+							<td><textarea name="note" class="regular-text" rows="3"></textarea></td>
+						</tr>
+					</table>
+					<input type="submit" name="an_add_check" class="button button-primary" value="Log Check-in">
+				</form>
+			</div>
+
+			<h2>Recent Check-ins</h2>
+			<table class="wp-list-table widefat fixed striped">
+				<thead><tr><th>Date</th><th>Stress Level</th><th>Note</th></tr></thead>
+				<tbody>
+					<?php foreach ($logs as $log) :
+						$color = $log->stress_level > 7 ? 'red' : ($log->stress_level > 4 ? 'orange' : 'green');
+					?>
+						<tr>
+							<td><?php echo $log->created_at; ?></td>
+							<td style="color: <?php echo $color; ?>; font-weight: bold;"><?php echo $log->stress_level; ?> / 10</td>
+							<td><?php echo esc_html($log->note); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
+		<?php
 	}
 
 	public function render_dashboard_widget() {
