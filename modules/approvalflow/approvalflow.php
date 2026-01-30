@@ -15,6 +15,7 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
 		add_action( 'wp_ajax_an_approve_content', [ $this, 'handle_approve_content' ] );
+		add_action( 'wp_ajax_an_disapprove_content', [ $this, 'handle_disapprove_content' ] );
 	}
 
 	public function register_submenu() {
@@ -59,6 +60,25 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 		$wpdb->update(
 			$wpdb->prefix . 'an_content',
 			[ 'status' => 'approved' ],
+			[ 'id' => $item_id ]
+		);
+
+		wp_send_json_success();
+	}
+
+	public function handle_disapprove_content() {
+		check_ajax_referer( 'an_approval_nonce', 'security' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		global $wpdb;
+		$item_id = intval( $_POST['item_id'] );
+
+		$wpdb->update(
+			$wpdb->prefix . 'an_content',
+			[ 'status' => 'pending_approval' ],
 			[ 'id' => $item_id ]
 		);
 

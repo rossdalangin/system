@@ -70,15 +70,15 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		if ($action === 'delete' && $id) {
 			check_admin_referer('an_delete_content_' . $id);
 			$wpdb->delete($table_name, ['id' => $id]);
-			echo '<div class="updated"><p>Content item deleted!</p></div>';
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-content-list&msg=deleted'));
+			exit;
 		}
 
 		if (isset($_POST['an_save_content']) && check_admin_referer('an_save_content_nonce')) {
 			$data = [
 				'project_id'     => intval($_POST['project_id']),
 				'title'          => sanitize_text_field($_POST['title']),
-				'content'        => sanitize_textarea_field($_POST['content']),
+				'content'        => wp_kses_post($_POST['content']),
 				'media_url'      => esc_url_raw($_POST['media_url']),
 				'status'         => sanitize_text_field($_POST['status']),
 				'scheduled_date' => sanitize_text_field($_POST['scheduled_date']),
@@ -86,12 +86,23 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			];
 			if ($id) {
 				$wpdb->update($table_name, $data, ['id' => $id]);
-				echo '<div class="updated"><p>Content updated!</p></div>';
+				$msg = 'updated';
 			} else {
 				$wpdb->insert($table_name, $data);
-				echo '<div class="updated"><p>Content added!</p></div>';
+				$msg = 'added';
 			}
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-content-list&msg=' . $msg));
+			exit;
+		}
+
+		if (isset($_GET['msg'])) {
+			$m = '';
+			switch($_GET['msg']) {
+				case 'added': $m = 'Content added!'; break;
+				case 'updated': $m = 'Content updated!'; break;
+				case 'deleted': $m = 'Content item deleted!'; break;
+			}
+			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
 		}
 
 		if ($action === 'edit' || $action === 'add') {

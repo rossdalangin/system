@@ -58,8 +58,10 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 		] );
 		?>
 		<div class="wrap">
-			<h1><?php _e( 'Interactive Scope Builder', 'agency-nexus' ); ?></h1>
-			<p><?php _e( 'Guidance: Use this tool to quickly generate project scopes for new clients. Select a service and scale to see estimated budgets and deliverables.', 'agency-nexus' ); ?></p>
+			<h1 class="wp-heading-inline"><?php _e( 'Interactive Scope Builder', 'agency-nexus' ); ?></h1>
+			<a href="<?php echo admin_url('admin.php?page=an-scope-settings'); ?>" class="page-title-action"><?php _e('Configure Services & Scales', 'agency-nexus'); ?></a>
+			<hr class="wp-header-end">
+			<p><?php _e( 'Guidance: Use this tool to quickly generate project scopes for new clients. Select a service and scale to see estimated budgets and deliverables. You can manage the available options in the "Configure" page.', 'agency-nexus' ); ?></p>
 		</div>
 		<?php
 		$this->get_template( 'scope-builder', [

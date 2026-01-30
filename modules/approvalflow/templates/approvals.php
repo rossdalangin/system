@@ -29,14 +29,17 @@
 
 	<h2 style="margin-top: 40px;">Approval History</h2>
 	<table class="wp-list-table widefat fixed striped">
-		<thead><tr><th>Title</th><th>Project</th><th>Status</th><th>Date</th></tr></thead>
+		<thead><tr><th>Title</th><th>Project</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
 		<tbody>
 			<?php foreach ($history as $item) : ?>
-				<tr>
+				<tr id="history-row-<?php echo $item->id; ?>">
 					<td><?php echo esc_html($item->title); ?></td>
 					<td><?php echo esc_html($item->project_title); ?></td>
 					<td><span class="badge status-<?php echo $item->status; ?>"><?php echo ucfirst($item->status); ?></span></td>
 					<td><?php echo $item->created_at; ?></td>
+					<td>
+						<button class="button disapprove-btn" data-id="<?php echo $item->id; ?>"><?php _e( 'Undo / Disapprove', 'agency-nexus' ); ?></button>
+					</td>
 				</tr>
 			<?php endforeach; ?>
 		</tbody>
@@ -47,6 +50,27 @@
 
 <script>
 jQuery(document).ready(function($) {
+	$('.disapprove-btn').on('click', function() {
+		const btn = $(this);
+		const id = btn.data('id');
+		btn.prop('disabled', true);
+
+		const data = {
+			action: 'an_disapprove_content',
+			item_id: id,
+			security: $('#security').val()
+		};
+
+		$.post(ajaxurl, data, function(response) {
+			if (response.success) {
+				location.reload(); // Simplest to reload to move item back to pending
+			} else {
+				alert('Action failed');
+				btn.prop('disabled', false);
+			}
+		});
+	});
+
 	$('.approve-btn').on('click', function() {
 		const btn = $(this);
 		const id = btn.data('id');

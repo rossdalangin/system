@@ -89,8 +89,8 @@ class Agency_Nexus_Admin_Dashboard {
 		if ($action === 'delete' && $id) {
 			check_admin_referer('an_delete_client_' . $id);
 			$wpdb->delete($table_name, ['id' => $id]);
-			echo '<div class="updated"><p>Client deleted!</p></div>';
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-clients&msg=deleted'));
+			exit;
 		}
 
 		// Handle Save (Add/Edit)
@@ -102,12 +102,23 @@ class Agency_Nexus_Admin_Dashboard {
 			];
 			if ($id) {
 				$wpdb->update($table_name, $data, ['id' => $id]);
-				echo '<div class="updated"><p>Client updated!</p></div>';
+				$msg = 'updated';
 			} else {
 				$wpdb->insert($table_name, $data);
-				echo '<div class="updated"><p>Client added!</p></div>';
+				$msg = 'added';
 			}
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-clients&msg=' . $msg));
+			exit;
+		}
+
+		if (isset($_GET['msg'])) {
+			$m = '';
+			switch($_GET['msg']) {
+				case 'added': $m = 'Client added!'; break;
+				case 'updated': $m = 'Client updated!'; break;
+				case 'deleted': $m = 'Client deleted!'; break;
+			}
+			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
 		}
 
 		if ($action === 'edit' || $action === 'add') {
@@ -202,6 +213,7 @@ class Agency_Nexus_Admin_Dashboard {
 			<hr class="wp-header-end">
 
 			<p><?php _e('Guidance: Manage your team members and monitor their workload and productivity. Agency Nexus uses standard WordPress users for team members. Click "Add New Team Member" to create a new WordPress user for your team.', 'agency-nexus'); ?></p>
+			<p><strong><?php _e('How to assign tasks:', 'agency-nexus'); ?></strong> <?php _e('Navigate to a specific Project, and use the "Add Task" form to create and assign tasks to any of the team members listed below. Any WordPress user role (Subscriber to Administrator) can be assigned tasks.', 'agency-nexus'); ?></p>
 
 			<table class="wp-list-table widefat fixed striped">
 				<thead><tr><th>User</th><th>Email</th><th>WP Role</th><th>Productivity</th></tr></thead>
@@ -290,8 +302,8 @@ class Agency_Nexus_Admin_Dashboard {
 		if ($action === 'delete' && $id) {
 			check_admin_referer('an_delete_project_' . $id);
 			$wpdb->delete($projects_table, ['id' => $id]);
-			echo '<div class="updated"><p>Project deleted!</p></div>';
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-projects&msg=deleted'));
+			exit;
 		}
 
 		// Handle Save (Add/Edit)
@@ -305,12 +317,25 @@ class Agency_Nexus_Admin_Dashboard {
 			];
 			if ($id) {
 				$wpdb->update($projects_table, $data, ['id' => $id]);
-				echo '<div class="updated"><p>Project updated!</p></div>';
+				$msg = 'updated';
 			} else {
 				$wpdb->insert($projects_table, $data);
-				echo '<div class="updated"><p>Project created!</p></div>';
+				$msg = 'created';
 			}
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-projects&msg=' . $msg));
+			exit;
+		}
+
+		if (isset($_GET['msg'])) {
+			$m = '';
+			switch($_GET['msg']) {
+				case 'created': $m = 'Project created!'; break;
+				case 'updated': $m = 'Project updated!'; break;
+				case 'deleted': $m = 'Project deleted!'; break;
+				case 'task_added': $m = 'Task added!'; break;
+				case 'time_logged': $m = 'Time logged!'; break;
+			}
+			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
 		}
 
 		// Handle Task Creation
@@ -322,7 +347,8 @@ class Agency_Nexus_Admin_Dashboard {
 				'status'      => 'todo',
 				'priority'    => 'medium'
 			]);
-			echo '<div class="updated"><p>Task added!</p></div>';
+			wp_redirect(admin_url('admin.php?page=an-projects&action=view&id='.intval($_POST['project_id']).'&msg=task_added'));
+			exit;
 		}
 
 		// Handle Time Logging
@@ -334,7 +360,8 @@ class Agency_Nexus_Admin_Dashboard {
 				'date'     => current_time('mysql'),
 				'note'     => sanitize_textarea_field($_POST['note'])
 			]);
-			echo '<div class="updated"><p>Time logged!</p></div>';
+			wp_redirect(admin_url('admin.php?page=an-projects&action=view&id='.intval($_GET['id']).'&msg=time_logged'));
+			exit;
 		}
 
 		if ($action === 'view' && $id) {

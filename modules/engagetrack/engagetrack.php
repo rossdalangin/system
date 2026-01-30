@@ -134,23 +134,34 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		if ($action === 'delete' && $id) {
 			check_admin_referer('an_delete_response_' . $id);
 			$wpdb->delete($table_name, ['id' => $id]);
-			echo '<div class="updated"><p>Response deleted!</p></div>';
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-canned-responses&msg=deleted'));
+			exit;
 		}
 
 		if ( isset( $_POST['an_save_response'] ) && check_admin_referer( 'an_save_response_nonce' ) ) {
 			$data = [
 				'title'   => sanitize_text_field( $_POST['title'] ),
-				'content' => sanitize_textarea_field( $_POST['content'] )
+				'content' => wp_kses_post( $_POST['content'] )
 			];
 			if ($id) {
 				$wpdb->update($table_name, $data, ['id' => $id]);
-				echo '<div class="updated"><p>Response updated!</p></div>';
+				$msg = 'updated';
 			} else {
 				$wpdb->insert($table_name, $data);
-				echo '<div class="updated"><p>Response saved!</p></div>';
+				$msg = 'saved';
 			}
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-canned-responses&msg=' . $msg));
+			exit;
+		}
+
+		if (isset($_GET['msg'])) {
+			$m = '';
+			switch($_GET['msg']) {
+				case 'saved': $m = 'Response saved!'; break;
+				case 'updated': $m = 'Response updated!'; break;
+				case 'deleted': $m = 'Response deleted!'; break;
+			}
+			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
 		}
 
 		if ($action === 'edit' || $action === 'add') {

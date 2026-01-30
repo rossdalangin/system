@@ -36,8 +36,8 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 		if ($action === 'delete' && $id) {
 			check_admin_referer('an_delete_check_' . $id);
 			$wpdb->delete($table_name, ['id' => $id]);
-			echo '<div class="updated"><p>Log entry deleted!</p></div>';
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-health-check&msg=deleted'));
+			exit;
 		}
 
 		if ( isset( $_POST['an_save_check'] ) && check_admin_referer( 'an_save_check_nonce' ) ) {
@@ -59,8 +59,13 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 		}
 
 		if (isset($_GET['msg'])) {
-			$m = $_GET['msg'] === 'updated' ? 'Log updated!' : 'Log recorded. Remember to take breaks!';
-			echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
+			$m = '';
+			switch($_GET['msg']) {
+				case 'recorded': $m = 'Log recorded. Remember to take breaks!'; break;
+				case 'updated': $m = 'Log updated!'; break;
+				case 'deleted': $m = 'Log entry deleted!'; break;
+			}
+			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
 		}
 
 		if ($action === 'edit' || $action === 'add') {

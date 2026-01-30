@@ -58,8 +58,8 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		if ( $action === 'delete' && $id ) {
 			check_admin_referer( 'an_delete_expense_' . $id );
 			$wpdb->delete( $expenses_table, [ 'id' => $id ] );
-			echo '<div class="updated"><p>Expense deleted!</p></div>';
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-expenses&msg=deleted'));
+			exit;
 		}
 
 		// Handle Save (Add/Edit)
@@ -73,13 +73,24 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			];
 			if ( $id ) {
 				$wpdb->update( $expenses_table, $data, [ 'id' => $id ] );
-				echo '<div class="updated"><p>Expense updated!</p></div>';
+				$msg = 'updated';
 			} else {
 				$data['created_at'] = current_time( 'mysql' );
 				$wpdb->insert( $expenses_table, $data );
-				echo '<div class="updated"><p>Expense recorded!</p></div>';
+				$msg = 'recorded';
 			}
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-expenses&msg=' . $msg));
+			exit;
+		}
+
+		if (isset($_GET['msg'])) {
+			$m = '';
+			switch($_GET['msg']) {
+				case 'recorded': $m = 'Expense recorded!'; break;
+				case 'updated': $m = 'Expense updated!'; break;
+				case 'deleted': $m = 'Expense deleted!'; break;
+			}
+			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
 		}
 
 		if ( $action === 'edit' || $action === 'add' ) {
@@ -230,8 +241,8 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		if ($action === 'delete' && $id) {
 			check_admin_referer('an_delete_invoice_' . $id);
 			$wpdb->delete($invoices_table, ['id' => $id]);
-			echo '<div class="updated"><p>Invoice deleted!</p></div>';
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-invoices&msg=deleted'));
+			exit;
 		}
 
 		// Handle Save (Add/Edit)
@@ -243,34 +254,48 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 				'amount'     => floatval($_POST['amount']),
 				'status'     => sanitize_text_field($_POST['status']),
 				'due_date'   => sanitize_text_field($_POST['due_date']),
-				'created_at' => current_time('mysql')
 			];
 			if ($id) {
 				$wpdb->update($invoices_table, $data, ['id' => $id]);
-				echo '<div class="updated"><p>Invoice updated!</p></div>';
+				$msg = 'updated';
 			} else {
+				$data['created_at'] = current_time('mysql');
 				$wpdb->insert($invoices_table, $data);
-				echo '<div class="updated"><p>Invoice created!</p></div>';
+				$msg = 'created';
 			}
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-invoices&msg=' . $msg));
+			exit;
+		}
+
+		if (isset($_GET['msg'])) {
+			$m = '';
+			switch($_GET['msg']) {
+				case 'created': $m = 'Invoice created!'; break;
+				case 'updated': $m = 'Invoice updated!'; break;
+				case 'deleted': $m = 'Invoice deleted!'; break;
+				case 'paid':    $m = 'Payment recorded!'; break;
+			}
+			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
 		}
 
 		// Handle Payment
 		if (isset($_POST['an_add_payment']) && check_admin_referer('an_add_payment_nonce')) {
+			$inv_id = intval($_POST['id']);
 			$wpdb->insert($payments_table, [
-				'invoice_id'     => $id,
+				'invoice_id'     => $inv_id,
 				'amount'         => floatval($_POST['pay_amount']),
-				'method'         => sanitize_text_field($_POST['method']),
-				'transaction_id' => sanitize_text_field($_POST['transaction_id']),
+				'method'         => 'other',
+				'transaction_id' => '',
 				'created_at'     => current_time('mysql')
 			]);
 			// Update status if fully paid
-			$total_paid = $wpdb->get_var($wpdb->prepare("SELECT SUM(amount) FROM $payments_table WHERE invoice_id = %d", $id));
-			$inv_amount = $wpdb->get_var($wpdb->prepare("SELECT amount FROM $invoices_table WHERE id = %d", $id));
+			$total_paid = $wpdb->get_var($wpdb->prepare("SELECT SUM(amount) FROM $payments_table WHERE invoice_id = %d", $inv_id));
+			$inv_amount = $wpdb->get_var($wpdb->prepare("SELECT amount FROM $invoices_table WHERE id = %d", $inv_id));
 			if ($total_paid >= $inv_amount) {
-				$wpdb->update($invoices_table, ['status' => 'paid'], ['id' => $id]);
+				$wpdb->update($invoices_table, ['status' => 'paid'], ['id' => $inv_id]);
 			}
-			echo '<div class="updated"><p>Payment recorded!</p></div>';
+			wp_redirect(admin_url('admin.php?page=an-invoices&msg=paid'));
+			exit;
 		}
 
 		if ($action === 'print' && $id) {

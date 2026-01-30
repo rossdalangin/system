@@ -45,8 +45,8 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 		if ( $action === 'delete' && $id ) {
 			check_admin_referer( 'an_delete_resource_' . $id );
 			$wpdb->delete( $table_name, [ 'id' => $id ] );
-			echo '<div class="updated"><p>Resource deleted!</p></div>';
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-resources&msg=deleted'));
+			exit;
 		}
 
 		// Handle saving
@@ -55,17 +55,28 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 				'title'      => sanitize_text_field( $_POST['title'] ),
 				'type'       => sanitize_text_field( $_POST['type'] ),
 				'file_url'   => esc_url_raw( $_POST['file_url'] ),
-				'content'    => sanitize_textarea_field( $_POST['content'] ),
+				'content'    => wp_kses_post( $_POST['content'] ),
 				'created_at' => current_time( 'mysql' )
 			];
 			if ($id) {
 				$wpdb->update($table_name, $data, ['id' => $id]);
-				echo '<div class="updated"><p>Resource updated!</p></div>';
+				$msg = 'updated';
 			} else {
 				$wpdb->insert($table_name, $data);
-				echo '<div class="updated"><p>Resource added!</p></div>';
+				$msg = 'added';
 			}
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-resources&msg=' . $msg));
+			exit;
+		}
+
+		if (isset($_GET['msg'])) {
+			$m = '';
+			switch($_GET['msg']) {
+				case 'added': $m = 'Resource added!'; break;
+				case 'updated': $m = 'Resource updated!'; break;
+				case 'deleted': $m = 'Resource deleted!'; break;
+			}
+			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
 		}
 
 		if ($action === 'edit' || $action === 'add') {
