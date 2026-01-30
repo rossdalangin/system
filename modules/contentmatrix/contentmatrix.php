@@ -155,11 +155,12 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			<hr class="wp-header-end">
 
 			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>Title</th><th>Project</th><th>Platform</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+				<thead><tr><th>Title</th><th>Content</th><th>Project</th><th>Platform</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
 				<tbody>
 					<?php foreach ($items as $item) : ?>
 						<tr>
 							<td><strong><?php echo esc_html($item->title); ?></strong></td>
+							<td><small><?php echo esc_html(wp_trim_words($item->content, 10)); ?></small></td>
 							<td><?php echo esc_html($item->project_title); ?></td>
 							<td><?php echo esc_html(ucfirst($item->platform)); ?></td>
 							<td><span class="badge status-<?php echo $item->status; ?>"><?php echo ucfirst(str_replace('_', ' ', $item->status)); ?></span></td>
@@ -189,6 +190,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		global $wpdb;
 		$project_id = intval( $_POST['project_id'] );
 		$title      = sanitize_text_field( $_POST['title'] );
+		$content    = isset($_POST['content']) ? sanitize_textarea_field( $_POST['content'] ) : '';
 		$media_url  = esc_url_raw( $_POST['media_url'] );
 
 		$wpdb->insert(
@@ -196,6 +198,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			[
 				'project_id' => $project_id,
 				'title'      => $title,
+				'content'    => $content,
 				'media_url'  => $media_url,
 				'status'     => 'pending_approval'
 			]

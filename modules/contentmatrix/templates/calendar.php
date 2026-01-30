@@ -21,6 +21,10 @@
 				<input type="text" name="title" required>
 			</div>
 			<div>
+				<label>Content Snippet</label><br>
+				<input type="text" name="content">
+			</div>
+			<div>
 				<label>Media</label><br>
 				<input type="hidden" name="media_url" id="content_media_url">
 				<button type="button" id="upload_content_media_btn" class="button">Attach Media</button>

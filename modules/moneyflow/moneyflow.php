@@ -51,35 +51,45 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		global $wpdb;
 		$projects_table = $wpdb->prefix . 'an_projects';
 		$expenses_table = $wpdb->prefix . 'an_expenses';
+		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-		// Handle form submission
-		if ( isset( $_POST['an_add_expense'] ) && check_admin_referer( 'an_add_expense_nonce' ) ) {
-			$wpdb->insert(
-				$expenses_table,
-				[
-					'project_id'  => intval( $_POST['project_id'] ),
-					'amount'      => floatval( $_POST['amount'] ),
-					'category'    => sanitize_text_field( $_POST['category'] ),
-					'note'        => sanitize_textarea_field( $_POST['note'] ),
-					'receipt_url' => esc_url_raw( $_POST['receipt_url'] ),
-					'created_at'  => current_time( 'mysql' )
-				]
-			);
-			echo '<div class="updated"><p>Expense recorded!</p></div>';
+		// Handle Delete
+		if ( $action === 'delete' && $id ) {
+			check_admin_referer( 'an_delete_expense_' . $id );
+			$wpdb->delete( $expenses_table, [ 'id' => $id ] );
+			echo '<div class="updated"><p>Expense deleted!</p></div>';
+			$action = 'list';
 		}
 
-		$projects = $wpdb->get_results( "SELECT id, title FROM $projects_table" );
-		$expenses = $wpdb->get_results( "SELECT e.*, p.title as project_title FROM $expenses_table e LEFT JOIN $projects_table p ON e.project_id = p.id ORDER BY e.created_at DESC" );
+		// Handle Save (Add/Edit)
+		if ( isset( $_POST['an_save_expense'] ) && check_admin_referer( 'an_save_expense_nonce' ) ) {
+			$data = [
+				'project_id'  => intval( $_POST['project_id'] ),
+				'amount'      => floatval( $_POST['amount'] ),
+				'category'    => sanitize_text_field( $_POST['category'] ),
+				'note'        => sanitize_textarea_field( $_POST['note'] ),
+				'receipt_url' => esc_url_raw( $_POST['receipt_url'] ),
+			];
+			if ( $id ) {
+				$wpdb->update( $expenses_table, $data, [ 'id' => $id ] );
+				echo '<div class="updated"><p>Expense updated!</p></div>';
+			} else {
+				$data['created_at'] = current_time( 'mysql' );
+				$wpdb->insert( $expenses_table, $data );
+				echo '<div class="updated"><p>Expense recorded!</p></div>';
+			}
+			$action = 'list';
+		}
 
-		?>
-		<div class="wrap">
-			<h1><?php _e( 'Expense Management', 'agency-nexus' ); ?></h1>
-			<p><?php _e( 'Guidance: Track your agency and project-specific expenses here. You can upload receipts to keep your records organized for tax season.', 'agency-nexus' ); ?></p>
-
-			<div class="postbox" style="padding: 20px; margin-top: 20px;">
-				<h2><?php _e( 'Add New Expense', 'agency-nexus' ); ?></h2>
+		if ( $action === 'edit' || $action === 'add' ) {
+			$expense = $id ? $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $expenses_table WHERE id = %d", $id ) ) : null;
+			$projects = $wpdb->get_results( "SELECT id, title FROM $projects_table" );
+			?>
+			<div class="wrap">
+				<h1><?php echo $id ? __( 'Edit Expense', 'agency-nexus' ) : __( 'Add New Expense', 'agency-nexus' ); ?></h1>
 				<form method="post">
-					<?php wp_nonce_field( 'an_add_expense_nonce' ); ?>
+					<?php wp_nonce_field( 'an_save_expense_nonce' ); ?>
 					<table class="form-table">
 						<tr>
 							<th><label for="project_id">Project</label></th>
@@ -87,44 +97,68 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 								<select name="project_id" id="project_id">
 									<option value="0"><?php _e( 'General / No Project', 'agency-nexus' ); ?></option>
 									<?php foreach ( $projects as $project ) : ?>
-										<option value="<?php echo $project->id; ?>"><?php echo esc_html( $project->title ); ?></option>
+										<option value="<?php echo $project->id; ?>" <?php selected( $expense ? $expense->project_id : 0, $project->id ); ?>><?php echo esc_html( $project->title ); ?></option>
 									<?php endforeach; ?>
 								</select>
 							</td>
 						</tr>
 						<tr>
 							<th><label for="amount">Amount ($)</label></th>
-							<td><input type="number" step="0.01" name="amount" id="amount" class="regular-text" required></td>
+							<td><input type="number" step="0.01" name="amount" id="amount" value="<?php echo $expense ? esc_attr($expense->amount) : ''; ?>" class="regular-text" required></td>
 						</tr>
 						<tr>
 							<th><label for="category">Category</label></th>
 							<td>
 								<select name="category" id="category">
-									<option value="software"><?php _e( 'Software / Tools', 'agency-nexus' ); ?></option>
-									<option value="outsourcing"><?php _e( 'Outsourcing', 'agency-nexus' ); ?></option>
-									<option value="marketing"><?php _e( 'Marketing', 'agency-nexus' ); ?></option>
-									<option value="travel"><?php _e( 'Travel', 'agency-nexus' ); ?></option>
-									<option value="other"><?php _e( 'Other', 'agency-nexus' ); ?></option>
+									<option value="software" <?php selected( $expense ? $expense->category : '', 'software' ); ?>><?php _e( 'Software / Tools', 'agency-nexus' ); ?></option>
+									<option value="outsourcing" <?php selected( $expense ? $expense->category : '', 'outsourcing' ); ?>><?php _e( 'Outsourcing', 'agency-nexus' ); ?></option>
+									<option value="marketing" <?php selected( $expense ? $expense->category : '', 'marketing' ); ?>><?php _e( 'Marketing', 'agency-nexus' ); ?></option>
+									<option value="travel" <?php selected( $expense ? $expense->category : '', 'travel' ); ?>><?php _e( 'Travel', 'agency-nexus' ); ?></option>
+									<option value="other" <?php selected( $expense ? $expense->category : '', 'other' ); ?>><?php _e( 'Other', 'agency-nexus' ); ?></option>
 								</select>
 							</td>
 						</tr>
 						<tr>
 							<th><label for="receipt_url">Receipt (URL or Upload)</label></th>
 							<td>
-								<input type="text" name="receipt_url" id="receipt_url" class="regular-text">
+								<input type="text" name="receipt_url" id="receipt_url" value="<?php echo $expense ? esc_attr($expense->receipt_url) : ''; ?>" class="regular-text">
 								<button type="button" id="upload_receipt_button" class="button"><?php _e( 'Upload Receipt', 'agency-nexus' ); ?></button>
 							</td>
 						</tr>
 						<tr>
 							<th><label for="note">Note</label></th>
-							<td><textarea name="note" id="note" class="regular-text"></textarea></td>
+							<td><textarea name="note" id="note" class="regular-text"><?php echo $expense ? esc_textarea($expense->note) : ''; ?></textarea></td>
 						</tr>
 					</table>
 					<p class="submit">
-						<input type="submit" name="an_add_expense" class="button button-primary" value="Add Expense">
+						<input type="submit" name="an_save_expense" class="button button-primary" value="<?php _e('Save Expense', 'agency-nexus'); ?>">
+						<a href="?page=an-expenses" class="button"><?php _e('Cancel', 'agency-nexus'); ?></a>
 					</p>
 				</form>
 			</div>
+			<script>
+			jQuery(document).ready(function($){
+				$('#upload_receipt_button').click(function(e) {
+					e.preventDefault();
+					var frame = wp.media({ title: 'Upload Receipt', multiple: false }).open().on('select', function(e){
+						var uploaded_image = frame.state().get('selection').first().toJSON();
+						$('#receipt_url').val(uploaded_image.url);
+					});
+				});
+			});
+			</script>
+			<?php
+			return;
+		}
+
+		$expenses = $wpdb->get_results( "SELECT e.*, p.title as project_title FROM $expenses_table e LEFT JOIN $projects_table p ON e.project_id = p.id ORDER BY e.created_at DESC" );
+
+		?>
+		<div class="wrap">
+			<h1 class="wp-heading-inline"><?php _e( 'Expense Management', 'agency-nexus' ); ?></h1>
+			<a href="?page=an-expenses&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
+			<hr class="wp-header-end">
+			<p><?php _e( 'Guidance: Track your agency and project-specific expenses here. You can upload receipts to keep your records organized for tax season.', 'agency-nexus' ); ?></p>
 
 			<h2><?php _e( 'Expense History', 'agency-nexus' ); ?></h2>
 			<table class="wp-list-table widefat fixed striped">
@@ -136,6 +170,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 						<th>Amount</th>
 						<th>Receipt</th>
 						<th>Note</th>
+						<th>Actions</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -147,6 +182,10 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 							<td>$<?php echo number_format( $expense->amount, 2 ); ?></td>
 							<td><?php if ( $expense->receipt_url ) : ?><a href="<?php echo esc_url( $expense->receipt_url ); ?>" target="_blank">View Receipt</a><?php endif; ?></td>
 							<td><?php echo esc_html( $expense->note ); ?></td>
+							<td>
+								<a href="?page=an-expenses&action=edit&id=<?php echo $expense->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a> |
+								<a href="<?php echo wp_nonce_url('?page=an-expenses&action=delete&id=' . $expense->id, 'an_delete_expense_' . $expense->id); ?>" style="color:red;" onclick="return confirm('Delete this expense?')"><?php _e('Delete', 'agency-nexus'); ?></a>
+							</td>
 						</tr>
 					<?php endforeach; else : ?>
 						<tr><td colspan="6">No expenses found.</td></tr>

@@ -19,7 +19,7 @@
 
 			<div class="scope-section" style="margin-top: 20px;">
 				<h3><?php _e( '1. Service Type', 'agency-nexus' ); ?></h3>
-				<select name="service_type">
+				<select name="service_type" id="an-service-type">
 					<?php foreach ( $services as $key => $label ) : ?>
 						<option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></option>
 					<?php endforeach; ?>
@@ -41,10 +41,10 @@
 
 			<div class="scope-section" style="margin-top: 20px;">
 				<h3><?php _e( '3. Deliverables', 'agency-nexus' ); ?></h3>
-				<label><input type="checkbox" name="deliverables[]" value="audit"> <?php _e( 'Initial Audit', 'agency-nexus' ); ?></label><br>
-				<label><input type="checkbox" name="deliverables[]" value="strategy"> <?php _e( 'Content Strategy', 'agency-nexus' ); ?></label><br>
-				<label><input type="checkbox" name="deliverables[]" value="implementation"> <?php _e( 'Implementation', 'agency-nexus' ); ?></label><br>
-				<label><input type="checkbox" name="deliverables[]" value="support"> <?php _e( 'Ongoing Support', 'agency-nexus' ); ?></label>
+				<div id="an-deliverables-container">
+					<!-- Deliverables will be populated via JS -->
+					<p style="color:#999;"><?php _e('Select a service type to see deliverables.', 'agency-nexus'); ?></p>
+				</div>
 			</div>
 
 			<div class="scope-section" style="margin-top: 20px;">
@@ -65,6 +65,22 @@
 
 <script>
 jQuery(document).ready(function($) {
+	const deliverables = <?php echo json_encode($deliverables); ?>;
+
+	$('#an-service-type').on('change', function() {
+		const service = $(this).val();
+		const container = $('#an-deliverables-container');
+		container.empty();
+
+		if (deliverables[service]) {
+			deliverables[service].forEach(function(item) {
+				container.append('<label><input type="checkbox" name="deliverables[]" value="' + item + '" checked> ' + item + '</label><br>');
+			});
+		} else {
+			container.html('<p style="color:#999;"><?php _e('No preset deliverables for this service.', 'agency-nexus'); ?></p>');
+		}
+	}).trigger('change');
+
 	$('#an-scope-form').on('submit', function(e) {
 		e.preventDefault();
 		const btn = $('#an-generate-proposal');

@@ -129,42 +129,34 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Agency Resource Library', 'agency-nexus' ); ?></h1>
-			<p><?php _e( 'Guidance: Store and organize your agency assets here. Keep contract templates and marketing swipe files easily accessible for your team.', 'agency-nexus' ); ?></p>
-			<a href="?page=an-resources&action=add" class="page-title-action">Add New</a>
+			<a href="?page=an-resources&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
 			<hr class="wp-header-end">
+			<p><?php _e( 'Guidance: Store and organize your agency assets here. Keep contract templates and marketing swipe files easily accessible for your team.', 'agency-nexus' ); ?></p>
 
-			<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
-				<div class="card" style="padding: 15px; background: #fff; border: 1px solid #ddd;">
-					<h3>📄 <?php _e( 'Contract & Proposal Templates', 'agency-nexus' ); ?></h3>
-					<ul>
-						<?php foreach ( $templates as $resource ) : ?>
-							<li style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-								<span><?php echo esc_html( $resource->title ); ?></span>
-								<div>
-									<?php if ($resource->file_url) : ?><a href="<?php echo esc_url($resource->file_url); ?>" target="_blank">View</a> | <?php endif; ?>
-									<a href="?page=an-resources&action=edit&id=<?php echo $resource->id; ?>">Edit</a> |
-									<a href="<?php echo wp_nonce_url( admin_url('admin.php?page=an-resources&action=delete&id=' . $resource->id), 'an_delete_resource_' . $resource->id ); ?>" style="color:red;" onclick="return confirm('Are you sure?')">Delete</a>
-								</div>
-							</li>
-						<?php endforeach; ?>
-					</ul>
-				</div>
-				<div class="card" style="padding: 15px; background: #fff; border: 1px solid #ddd;">
-					<h3>💡 <?php _e( 'Swipe Files & Assets', 'agency-nexus' ); ?></h3>
-					<ul>
-						<?php foreach ( $swipes as $resource ) : ?>
-							<li style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-								<span><?php echo esc_html( $resource->title ); ?></span>
-								<div>
-									<?php if ($resource->file_url) : ?><a href="<?php echo esc_url($resource->file_url); ?>" target="_blank">View</a> | <?php endif; ?>
-									<a href="?page=an-resources&action=edit&id=<?php echo $resource->id; ?>">Edit</a> |
-									<a href="<?php echo wp_nonce_url( admin_url('admin.php?page=an-resources&action=delete&id=' . $resource->id), 'an_delete_resource_' . $resource->id ); ?>" style="color:red;" onclick="return confirm('Are you sure?')">Delete</a>
-								</div>
-							</li>
-						<?php endforeach; ?>
-					</ul>
-				</div>
-			</div>
+			<table class="wp-list-table widefat fixed striped">
+				<thead>
+					<tr>
+						<th><?php _e('Type', 'agency-nexus'); ?></th>
+						<th><?php _e('Title', 'agency-nexus'); ?></th>
+						<th><?php _e('Actions', 'agency-nexus'); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php if ($resources) : foreach ($resources as $res) : ?>
+						<tr>
+							<td><span class="badge"><?php echo esc_html(ucfirst($res->type)); ?></span></td>
+							<td><strong><?php echo esc_html($res->title); ?></strong></td>
+							<td>
+								<?php if ($res->file_url) : ?><a href="<?php echo esc_url($res->file_url); ?>" target="_blank"><?php _e('View', 'agency-nexus'); ?></a> | <?php endif; ?>
+								<a href="?page=an-resources&action=edit&id=<?php echo $res->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a> |
+								<a href="<?php echo wp_nonce_url( admin_url('admin.php?page=an-resources&action=delete&id=' . $res->id), 'an_delete_resource_' . $res->id ); ?>" style="color:red;" onclick="return confirm('Are you sure?')"><?php _e('Delete', 'agency-nexus'); ?></a>
+							</td>
+						</tr>
+					<?php endforeach; else : ?>
+						<tr><td colspan="3"><?php _e('No resources found.', 'agency-nexus'); ?></td></tr>
+					<?php endif; ?>
+				</tbody>
+			</table>
 		</div>
 
 		<?php

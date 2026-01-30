@@ -176,21 +176,33 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Canned Responses', 'agency-nexus' ); ?></h1>
-			<p><?php _e( 'Guidance: Store reusable message templates here. These can be quickly accessed and used within the Messaging Hub.', 'agency-nexus' ); ?></p>
-			<a href="?page=an-canned-responses&action=add" class="page-title-action">Add New</a>
+			<a href="?page=an-canned-responses&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
 			<hr class="wp-header-end">
-			<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top:20px;">
-				<?php foreach ($responses as $resp) : ?>
-					<div class="card" style="padding: 15px; background: #fff; border: 1px solid #ddd; position: relative;">
-						<h3><?php echo esc_html($resp->title); ?></h3>
-						<p><?php echo nl2br(esc_html($resp->content)); ?></p>
-						<div style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px;">
-							<a href="?page=an-canned-responses&action=edit&id=<?php echo $resp->id; ?>">Edit</a> |
-							<a href="<?php echo wp_nonce_url('?page=an-canned-responses&action=delete&id=' . $resp->id, 'an_delete_response_' . $resp->id); ?>" style="color:red;" onclick="return confirm('Delete response?')">Delete</a>
-						</div>
-					</div>
-				<?php endforeach; ?>
-			</div>
+			<p><?php _e( 'Guidance: Store reusable message templates here. These can be quickly accessed and used within the Messaging Hub.', 'agency-nexus' ); ?></p>
+
+			<table class="wp-list-table widefat fixed striped">
+				<thead>
+					<tr>
+						<th><?php _e('Title', 'agency-nexus'); ?></th>
+						<th><?php _e('Content Snippet', 'agency-nexus'); ?></th>
+						<th><?php _e('Actions', 'agency-nexus'); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php if ($responses) : foreach ($responses as $resp) : ?>
+						<tr>
+							<td><strong><?php echo esc_html($resp->title); ?></strong></td>
+							<td><?php echo esc_html(wp_trim_words($resp->content, 15)); ?></td>
+							<td>
+								<a href="?page=an-canned-responses&action=edit&id=<?php echo $resp->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a> |
+								<a href="<?php echo wp_nonce_url('?page=an-canned-responses&action=delete&id=' . $resp->id, 'an_delete_response_' . $resp->id); ?>" style="color:red;" onclick="return confirm('Delete response?')"><?php _e('Delete', 'agency-nexus'); ?></a>
+							</td>
+						</tr>
+					<?php endforeach; else : ?>
+						<tr><td colspan="3"><?php _e('No canned responses found.', 'agency-nexus'); ?></td></tr>
+					<?php endif; ?>
+				</tbody>
+			</table>
 		</div>
 		<?php
 	}

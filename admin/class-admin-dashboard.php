@@ -147,6 +147,7 @@ class Agency_Nexus_Admin_Dashboard {
 			<h1 class="wp-heading-inline"><?php _e( 'Client Management', 'agency-nexus' ); ?></h1>
 			<a href="?page=an-clients&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
 			<hr class="wp-header-end">
+			<p><?php _e('Guidance: These records are for internal project management. If you want a client to be able to log in, create a WordPress user for them and ensure their email matches here.', 'agency-nexus'); ?></p>
 
 			<table class="wp-list-table widefat fixed striped">
 				<thead>
@@ -196,8 +197,11 @@ class Agency_Nexus_Admin_Dashboard {
 
 		?>
 		<div class="wrap">
-			<h1><?php _e('Agency Team Management', 'agency-nexus'); ?></h1>
-			<p><?php _e('Guidance: Manage your team members and monitor their workload and productivity. Click "View Performance" to see detailed metrics for a specific member.', 'agency-nexus'); ?></p>
+			<h1 class="wp-heading-inline"><?php _e('Agency Team Management', 'agency-nexus'); ?></h1>
+			<a href="<?php echo admin_url('user-new.php'); ?>" class="page-title-action"><?php _e('Add New Team Member', 'agency-nexus'); ?></a>
+			<hr class="wp-header-end">
+
+			<p><?php _e('Guidance: Manage your team members and monitor their workload and productivity. Agency Nexus uses standard WordPress users for team members. Click "Add New Team Member" to create a new WordPress user for your team.', 'agency-nexus'); ?></p>
 
 			<table class="wp-list-table widefat fixed striped">
 				<thead><tr><th>User</th><th>Email</th><th>WP Role</th><th>Productivity</th></tr></thead>
