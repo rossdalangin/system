@@ -74,6 +74,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		?>
 		<div class="wrap">
 			<h1><?php _e( 'Expense Management', 'agency-nexus' ); ?></h1>
+			<p><?php _e( 'Guidance: Track your agency and project-specific expenses here. You can upload receipts to keep your records organized for tax season.', 'agency-nexus' ); ?></p>
 
 			<div class="postbox" style="padding: 20px; margin-top: 20px;">
 				<h2><?php _e( 'Add New Expense', 'agency-nexus' ); ?></h2>
@@ -320,6 +321,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e('Invoices', 'agency-nexus'); ?></h1>
+			<p><?php _e( 'Guidance: Create and manage client invoices. You can track payments against each invoice and print professional reports for your clients.', 'agency-nexus' ); ?></p>
 			<a href="?page=an-invoices&action=add" class="page-title-action">Add New</a>
 			<hr class="wp-header-end">
 

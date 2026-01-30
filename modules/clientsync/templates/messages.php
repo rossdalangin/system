@@ -1,6 +1,6 @@
 <div class="wrap">
 	<h1><?php _e( 'Unified Communication Hub', 'agency-nexus' ); ?></h1>
-	<p><?php _e( 'Communicate with your clients via Email, Slack, or Dashboard.', 'agency-nexus' ); ?></p>
+	<p><?php _e( 'Guidance: Select a client from the left to start a conversation. You can share files or use canned responses to speed up your communication.', 'agency-nexus' ); ?></p>
 
 	<div style="display: flex; height: 600px; border: 1px solid #ccd0d4; background: #fff; margin-top: 20px;">
 		<div id="client-list" style="width: 250px; border-right: 1px solid #eee; overflow-y: auto;">
@@ -38,6 +38,14 @@
 			</div>
 
 			<div id="chat-input" style="padding: 15px; border-top: 1px solid #eee; display: none;">
+				<div style="margin-bottom: 10px;">
+					<select id="canned-response-select" style="width: 200px;">
+						<option value=""><?php _e( 'Insert Canned Response...', 'agency-nexus' ); ?></option>
+						<?php foreach ($responses as $resp) : ?>
+							<option value="<?php echo esc_attr($resp->content); ?>"><?php echo esc_html($resp->title); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</div>
 				<form id="an-message-form">
 					<?php wp_nonce_field( 'an_message_nonce', 'security' ); ?>
 					<input type="hidden" name="client_id" id="chat-client-id">
@@ -140,6 +148,14 @@ function loadFiles(id) {
 }
 
 jQuery(document).ready(function($) {
+	$('#canned-response-select').on('change', function() {
+		var content = $(this).val();
+		if (content) {
+			$('#chat-message-text').val($('#chat-message-text').val() + content);
+			$(this).val('');
+		}
+	});
+
 	$('.chat-tab-btn').on('click', function() {
 		$('.chat-tab-btn').removeClass('active');
 		$(this).addClass('active');

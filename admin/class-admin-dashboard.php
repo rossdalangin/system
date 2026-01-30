@@ -186,10 +186,18 @@ class Agency_Nexus_Admin_Dashboard {
 	 */
 	public function render_team() {
 		$users = get_users();
+		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+		$user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
+
+		if ($action === 'performance' && $user_id) {
+			$this->render_performance_view($user_id);
+			return;
+		}
+
 		?>
 		<div class="wrap">
 			<h1><?php _e('Agency Team Management', 'agency-nexus'); ?></h1>
-			<p><?php _e('Assign roles and track productivity of your team members.', 'agency-nexus'); ?></p>
+			<p><?php _e('Guidance: Manage your team members and monitor their workload and productivity. Click "View Performance" to see detailed metrics for a specific member.', 'agency-nexus'); ?></p>
 
 			<table class="wp-list-table widefat fixed striped">
 				<thead><tr><th>User</th><th>Email</th><th>WP Role</th><th>Productivity</th></tr></thead>
@@ -200,12 +208,64 @@ class Agency_Nexus_Admin_Dashboard {
 							<td><?php echo esc_html($user->user_email); ?></td>
 							<td><?php echo implode(', ', $user->roles); ?></td>
 							<td>
-								<a href="#" class="button button-small"><?php _e('View Performance', 'agency-nexus'); ?></a>
+								<a href="?page=an-team&action=performance&user_id=<?php echo $user->ID; ?>" class="button button-small"><?php _e('View Performance', 'agency-nexus'); ?></a>
 							</td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>
 			</table>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render detailed performance for a user.
+	 */
+	private function render_performance_view($user_id) {
+		global $wpdb;
+		$user = get_userdata($user_id);
+		$time_table = $wpdb->prefix . 'an_time_entries';
+		$tasks_table = $wpdb->prefix . 'an_tasks';
+
+		$total_seconds = $wpdb->get_var($wpdb->prepare("SELECT SUM(duration) FROM $time_table WHERE user_id = %d", $user_id));
+		$total_hours = round($total_seconds / 3600, 2);
+
+		$assigned_tasks = $wpdb->get_results($wpdb->prepare("SELECT * FROM $tasks_table WHERE assigned_to = %d", $user_id));
+
+		?>
+		<div class="wrap">
+			<h1><?php echo sprintf(__('Performance Report: %s', 'agency-nexus'), esc_html($user->display_name)); ?></h1>
+			<div class="postbox" style="padding: 20px; margin-top: 20px;">
+				<h3>Overview</h3>
+				<div style="display: flex; gap: 40px;">
+					<div>
+						<span style="font-size: 14px; color: #666;"><?php _e('Total Hours Logged', 'agency-nexus'); ?></span>
+						<div style="font-size: 24px; font-weight: bold;"><?php echo $total_hours; ?> hrs</div>
+					</div>
+					<div>
+						<span style="font-size: 14px; color: #666;"><?php _e('Active Tasks', 'agency-nexus'); ?></span>
+						<div style="font-size: 24px; font-weight: bold;"><?php echo count($assigned_tasks); ?></div>
+					</div>
+				</div>
+
+				<hr>
+				<h3>Assigned Tasks</h3>
+				<table class="wp-list-table widefat fixed striped">
+					<thead><tr><th>Task</th><th>Project</th><th>Status</th></tr></thead>
+					<tbody>
+						<?php foreach ($assigned_tasks as $task) :
+							$project_title = $wpdb->get_var($wpdb->prepare("SELECT title FROM {$wpdb->prefix}an_projects WHERE id = %d", $task->project_id));
+						?>
+							<tr>
+								<td><?php echo esc_html($task->title); ?></td>
+								<td><?php echo esc_html($project_title); ?></td>
+								<td><?php echo esc_html($task->status); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			</div>
+			<a href="?page=an-team" class="button"><?php _e('Back to Team', 'agency-nexus'); ?></a>
 		</div>
 		<?php
 	}
@@ -254,7 +314,7 @@ class Agency_Nexus_Admin_Dashboard {
 			$wpdb->insert($tasks_table, [
 				'project_id'  => intval($_POST['project_id']),
 				'title'       => sanitize_text_field($_POST['title']),
-				'assigned_to' => intval($_POST['assigned_to']),
+				'assigned_to' => isset($_POST['assigned_to']) ? intval($_POST['assigned_to']) : 0,
 				'status'      => 'todo',
 				'priority'    => 'medium'
 			]);
@@ -292,7 +352,8 @@ class Agency_Nexus_Admin_Dashboard {
 						<tbody>
 							<?php foreach ($tasks as $task) :
 								$total_time = $wpdb->get_var($wpdb->prepare("SELECT SUM(duration) FROM $time_table WHERE task_id = %d", $task->id));
-								$assigned = $task->assigned_to ? get_userdata($task->assigned_to)->display_name : 'Unassigned';
+								$user = $task->assigned_to ? get_userdata($task->assigned_to) : null;
+								$assigned = $user ? $user->display_name : 'Unassigned';
 							?>
 								<tr>
 									<td><?php echo esc_html($task->title); ?></td>

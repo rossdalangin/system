@@ -1,6 +1,7 @@
 <div class="wrap">
 	<h1><?php _e( 'Smart Content Calendar', 'agency-nexus' ); ?></h1>
-	<p><?php _e( 'Drag and drop content items to schedule them.', 'agency-nexus' ); ?></p>
+	<p><?php _e( 'Guidance: Plan and schedule your content by dragging items onto the calendar. Items are color-coded by project.', 'agency-nexus' ); ?></p>
+	<p><a href="<?php echo admin_url('admin.php?page=an-content-list'); ?>" class="button"><?php _e('View Content List for Editing', 'agency-nexus'); ?></a></p>
 
 	<?php wp_nonce_field( 'an_calendar_nonce', 'security' ); ?>
 
@@ -51,8 +52,10 @@
 				foreach ($content_items as $item) {
 					if (substr($item->scheduled_date, 0, 10) === $current_date) {
 						?>
-						<div class="content-item" draggable="true" ondragstart="drag(event)" id="content-<?php echo $item->id; ?>" data-id="<?php echo $item->id; ?>" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 5px; margin-bottom: 5px; cursor: move; font-size: 12px;">
+						<div class="content-item" draggable="true" ondragstart="drag(event)" id="content-<?php echo $item->id; ?>" data-id="<?php echo $item->id; ?>" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 5px; margin-bottom: 5px; cursor: move; font-size: 12px; position: relative;">
 							<?php echo esc_html($item->title); ?>
+							<span class="delete-item" onclick="deleteContent(<?php echo $item->id; ?>)" style="position: absolute; right: 2px; top: 2px; cursor: pointer; color: red; font-weight: bold;">×</span>
+							<a href="?page=an-content-list&action=edit&id=<?php echo $item->id; ?>" style="font-size: 10px; text-decoration: none; color: #999; display: block;"><?php _e('edit', 'agency-nexus'); ?></a>
 						</div>
 						<?php
 					}
@@ -69,8 +72,10 @@
 			foreach ($content_items as $item) {
 				if (empty($item->scheduled_date)) {
 					?>
-					<div class="content-item" draggable="true" ondragstart="drag(event)" id="content-<?php echo $item->id; ?>" data-id="<?php echo $item->id; ?>" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 5px; cursor: move; font-size: 12px;">
+					<div class="content-item" draggable="true" ondragstart="drag(event)" id="content-<?php echo $item->id; ?>" data-id="<?php echo $item->id; ?>" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 5px; cursor: move; font-size: 12px; position: relative;">
 						<?php echo esc_html($item->title); ?>
+						<span class="delete-item" onclick="deleteContent(<?php echo $item->id; ?>)" style="position: absolute; right: 2px; top: 2px; cursor: pointer; color: red; font-weight: bold;">×</span>
+						<a href="?page=an-content-list&action=edit&id=<?php echo $item->id; ?>" style="font-size: 10px; text-decoration: none; color: #999; display: block;"><?php _e('edit', 'agency-nexus'); ?></a>
 					</div>
 					<?php
 				}
@@ -100,7 +105,7 @@ jQuery(document).ready(function($) {
 		const data = $(this).serialize() + '&action=an_create_content&security=' + $('#security').val();
 		$.post(ajaxurl, data, function(response) {
 			if (response.success) {
-				const newItem = $('<div class="content-item" draggable="true" ondragstart="drag(event)" id="content-' + response.data.id + '" data-id="' + response.data.id + '" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 5px; cursor: move; font-size: 12px;">' + response.data.title + '</div>');
+				const newItem = $('<div class="content-item" draggable="true" ondragstart="drag(event)" id="content-' + response.data.id + '" data-id="' + response.data.id + '" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 5px; cursor: move; font-size: 12px; position: relative;">' + response.data.title + '<span class="delete-item" onclick="deleteContent(' + response.data.id + ')" style="position: absolute; right: 2px; top: 2px; cursor: pointer; color: red; font-weight: bold;">×</span><a href="?page=an-content-list&action=edit&id=' + response.data.id + '" style="font-size: 10px; text-decoration: none; color: #999; display: block;">edit</a></div>');
 				$('#unscheduled-content .calendar-day').append(newItem);
 				$('#an-create-content-form')[0].reset();
 				$('#media_preview_name').text('');
@@ -108,6 +113,21 @@ jQuery(document).ready(function($) {
 		});
 	});
 });
+
+function deleteContent(id) {
+	if (!confirm('Delete this content?')) return;
+	var jQuery = window.jQuery;
+	var data = {
+		action: 'an_delete_content',
+		item_id: id,
+		security: jQuery('#security').val()
+	};
+	jQuery.post(ajaxurl, data, function(response) {
+		if (response.success) {
+			jQuery('#content-' + id).fadeOut();
+		}
+	});
+}
 
 function allowDrop(ev) {
 	ev.preventDefault();

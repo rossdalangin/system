@@ -96,6 +96,7 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Automation Center (AutoPilot)', 'agency-nexus' ); ?></h1>
+			<p><?php _e( 'Guidance: Create "If-This-Then-That" rules to automate repetitive agency tasks. You can also connect to Zapier via the Global Settings.', 'agency-nexus' ); ?></p>
 			<a href="?page=an-automations&action=add" class="page-title-action">Add New Rule</a>
 			<hr class="wp-header-end">
 

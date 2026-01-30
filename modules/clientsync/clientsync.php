@@ -44,7 +44,8 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	public function render_messages() {
 		global $wpdb;
 		$clients = $wpdb->get_results( "SELECT id, name FROM {$wpdb->prefix}an_clients" );
-		$this->get_template( 'messages', [ 'clients' => $clients ] );
+		$responses = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_canned_responses" );
+		$this->get_template( 'messages', [ 'clients' => $clients, 'responses' => $responses ] );
 	}
 
 	/**

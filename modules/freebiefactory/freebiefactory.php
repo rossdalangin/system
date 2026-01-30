@@ -129,6 +129,7 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Agency Resource Library', 'agency-nexus' ); ?></h1>
+			<p><?php _e( 'Guidance: Store and organize your agency assets here. Keep contract templates and marketing swipe files easily accessible for your team.', 'agency-nexus' ); ?></p>
 			<a href="?page=an-resources&action=add" class="page-title-action">Add New</a>
 			<hr class="wp-header-end">
 

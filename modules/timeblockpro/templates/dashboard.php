@@ -1,6 +1,6 @@
 <div class="wrap">
 	<h1><?php _e( 'Intelligent Time Blocking', 'agency-nexus' ); ?></h1>
-	<p><?php _e( 'Organize your day into deep work and shallow work blocks.', 'agency-nexus' ); ?></p>
+	<p><?php _e( 'Guidance: Use time blocks to protect your focus. Schedule "Deep Work" for intensive tasks and "Shallow Work" for administrative duties like emails.', 'agency-nexus' ); ?></p>
 
 	<div style="display: flex; gap: 20px; margin-top: 20px;">
 		<div id="time-blocks-list" style="flex: 2; background: #fff; padding: 20px; border: 1px solid #ccd0d4;">

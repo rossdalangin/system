@@ -100,6 +100,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Lead Intelligence System', 'agency-nexus' ); ?></h1>
+			<p><?php _e( 'Guidance: Track your sales pipeline here. Assign potential values to leads to help calculate your agency\'s projected revenue.', 'agency-nexus' ); ?></p>
 			<a href="?page=an-leads&action=add" class="page-title-action">Add New</a>
 			<hr class="wp-header-end">
 			<table class="wp-list-table widefat fixed striped">
@@ -175,6 +176,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Canned Responses', 'agency-nexus' ); ?></h1>
+			<p><?php _e( 'Guidance: Store reusable message templates here. These can be quickly accessed and used within the Messaging Hub.', 'agency-nexus' ); ?></p>
 			<a href="?page=an-canned-responses&action=add" class="page-title-action">Add New</a>
 			<hr class="wp-header-end">
 			<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top:20px;">

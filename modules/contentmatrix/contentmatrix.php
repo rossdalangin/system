@@ -16,6 +16,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
 		add_action( 'wp_ajax_an_update_content_date', [ $this, 'handle_update_content_date' ] );
 		add_action( 'wp_ajax_an_create_content', [ $this, 'handle_create_content' ] );
+		add_action( 'wp_ajax_an_delete_content', [ $this, 'handle_delete_content' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
@@ -50,6 +51,12 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		global $wpdb;
 		$content_items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_content" );
 		$projects      = $wpdb->get_results( "SELECT id, title FROM {$wpdb->prefix}an_projects" );
+		?>
+		<div class="wrap">
+			<h1><?php _e( 'Content Calendar', 'agency-nexus' ); ?></h1>
+			<p><?php _e( 'Guidance: Drag and drop items to reschedule. Click on a date to create new content placeholders.', 'agency-nexus' ); ?></p>
+		</div>
+		<?php
 		$this->get_template( 'calendar', [ 'content_items' => $content_items, 'projects' => $projects ] );
 	}
 
@@ -118,7 +125,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 								<option value="published" <?php selected($content ? $content->status : '', 'published'); ?>>Published</option>
 							</select>
 						</td></tr>
-						<tr><th>Scheduled Date</th><td><input type="datetime-local" name="scheduled_date" value="<?php echo $content ? date('Y-m-d\TH:i', strtotime($content->scheduled_date)) : ''; ?>"></td></tr>
+						<tr><th>Scheduled Date</th><td><input type="datetime-local" name="scheduled_date" value="<?php echo ($content && $content->scheduled_date) ? date('Y-m-d\TH:i', strtotime($content->scheduled_date)) : ''; ?>"></td></tr>
 					</table>
 					<input type="submit" name="an_save_content" class="button button-primary" value="Save Content">
 					<a href="?page=an-content-list" class="button">Cancel</a>
@@ -143,6 +150,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e('Content Management', 'agency-nexus'); ?></h1>
+			<p><?php _e( 'Guidance: Manage all your content assets here. Use the "Content Calendar" for a visual overview of your publishing schedule.', 'agency-nexus' ); ?></p>
 			<a href="?page=an-content-list&action=add" class="page-title-action">Add New</a>
 			<hr class="wp-header-end">
 
@@ -194,6 +202,22 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		);
 
 		wp_send_json_success( [ 'id' => $wpdb->insert_id, 'title' => $title ] );
+	}
+
+	/**
+	 * AJAX handler for deleting content.
+	 */
+	public function handle_delete_content() {
+		check_ajax_referer( 'an_calendar_nonce', 'security' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		global $wpdb;
+		$item_id = intval( $_POST['item_id'] );
+		$wpdb->delete( $wpdb->prefix . 'an_content', [ 'id' => $item_id ] );
+		wp_send_json_success();
 	}
 
 	/**

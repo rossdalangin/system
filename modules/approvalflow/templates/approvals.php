@@ -1,6 +1,6 @@
 <div class="wrap">
 	<h1><?php _e( 'Client Sign-off Portal', 'agency-nexus' ); ?></h1>
-	<p><?php _e( 'Review and approve content drafts before they go live.', 'agency-nexus' ); ?></p>
+	<p><?php _e( 'Guidance: Use this portal to finalize content with your team or clients. Approved items are marked as ready for publishing in the Content Calendar.', 'agency-nexus' ); ?></p>
 
 	<div style="margin-top: 20px;">
 		<?php if ($pending_items) : foreach ($pending_items as $item) : ?>

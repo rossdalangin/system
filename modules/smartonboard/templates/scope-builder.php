@@ -1,6 +1,6 @@
 <div class="wrap">
 	<h1><?php _e( 'Interactive Scope Builder', 'agency-nexus' ); ?></h1>
-	<p><?php _e( 'Define the scope of your project by selecting services and parameters.', 'agency-nexus' ); ?></p>
+	<p><?php _e( 'Guidance: Use this tool to quickly define a project scope and create a corresponding project record. Select a client, service type, and project scale to auto-calculate the budget.', 'agency-nexus' ); ?></p>
 
 	<div id="an-scope-builder-app" style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; margin-top: 20px;">
 		<form id="an-scope-form">
@@ -20,26 +20,23 @@
 			<div class="scope-section" style="margin-top: 20px;">
 				<h3><?php _e( '1. Service Type', 'agency-nexus' ); ?></h3>
 				<select name="service_type">
-					<option value="seo"><?php _e( 'SEO Strategy', 'agency-nexus' ); ?></option>
-					<option value="web_design"><?php _e( 'Web Design & Development', 'agency-nexus' ); ?></option>
-					<option value="social_media"><?php _e( 'Social Media Management', 'agency-nexus' ); ?></option>
-					<option value="branding"><?php _e( 'Brand Identity & Design', 'agency-nexus' ); ?></option>
-					<option value="content_marketing"><?php _e( 'Content Marketing', 'agency-nexus' ); ?></option>
-					<option value="ppc"><?php _e( 'PPC & Ad Management', 'agency-nexus' ); ?></option>
+					<?php foreach ( $services as $key => $label ) : ?>
+						<option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></option>
+					<?php endforeach; ?>
 				</select>
 			</div>
 
 			<div class="scope-section" style="margin-top: 20px;">
 				<h3><?php _e( '2. Project Scale', 'agency-nexus' ); ?></h3>
-				<label>
-					<input type="radio" name="scale" value="small" checked> <?php _e( 'Small (1-2 weeks)', 'agency-nexus' ); ?>
-				</label><br>
-				<label>
-					<input type="radio" name="scale" value="medium"> <?php _e( 'Medium (1 month)', 'agency-nexus' ); ?>
-				</label><br>
-				<label>
-					<input type="radio" name="scale" value="large"> <?php _e( 'Large (3+ months)', 'agency-nexus' ); ?>
-				</label>
+				<?php
+				$first = true;
+				foreach ( $scales as $key => $data ) : ?>
+					<label>
+						<input type="radio" name="scale" value="<?php echo esc_attr($key); ?>" <?php checked($first); ?>> <?php echo esc_html($data['label']); ?> ($<?php echo number_format($data['budget']); ?>)
+					</label><br>
+				<?php
+				$first = false;
+				endforeach; ?>
 			</div>
 
 			<div class="scope-section" style="margin-top: 20px;">

@@ -49,12 +49,18 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 			];
 			if ($id) {
 				$wpdb->update($table_name, $data, ['id' => $id]);
-				echo '<div class="updated"><p>Log updated!</p></div>';
+				$msg = 'updated';
 			} else {
 				$wpdb->insert($table_name, $data);
-				echo '<div class="updated"><p>Log recorded. Remember to take breaks!</p></div>';
+				$msg = 'recorded';
 			}
-			$action = 'list';
+			wp_redirect(admin_url('admin.php?page=an-health-check&msg=' . $msg));
+			exit;
+		}
+
+		if (isset($_GET['msg'])) {
+			$m = $_GET['msg'] === 'updated' ? 'Log updated!' : 'Log recorded. Remember to take breaks!';
+			echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
 		}
 
 		if ($action === 'edit' || $action === 'add') {
@@ -89,6 +95,7 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Health & Sustainability System', 'agency-nexus' ); ?></h1>
+			<p><?php _e( 'Guidance: Use this system to monitor your mental well-being and agency capacity. Regular check-ins help identify burnout risks early.', 'agency-nexus' ); ?></p>
 			<a href="?page=an-health-check&action=add" class="page-title-action">New Check-in</a>
 			<hr class="wp-header-end">
 

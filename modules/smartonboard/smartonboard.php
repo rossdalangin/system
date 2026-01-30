@@ -26,13 +26,87 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 			'an-scope-builder',
 			[ $this, 'render_scope_builder' ]
 		);
+
+		add_submenu_page(
+			'agency-nexus',
+			__( 'Scope Settings', 'agency-nexus' ),
+			__( 'Scope Settings', 'agency-nexus' ),
+			'manage_options',
+			'an-scope-settings',
+			[ $this, 'render_settings' ]
+		);
 	}
 
 	public function render_scope_builder() {
 		// Ensure we have some clients for the dropdown
 		global $wpdb;
 		$clients = $wpdb->get_results( "SELECT id, name FROM {$wpdb->prefix}an_clients" );
-		$this->get_template( 'scope-builder', [ 'clients' => $clients ] );
+		$services = get_option( 'an_scope_services', [
+			'seo' => 'SEO Strategy',
+			'web_design' => 'Web Design',
+			'social_media' => 'Social Media'
+		] );
+		$scales = get_option( 'an_scope_scales', [
+			'small' => [ 'label' => 'Small', 'budget' => 1000 ],
+			'medium' => [ 'label' => 'Medium', 'budget' => 5000 ],
+			'large' => [ 'label' => 'Large', 'budget' => 15000 ]
+		] );
+		?>
+		<div class="wrap">
+			<h1><?php _e( 'Interactive Scope Builder', 'agency-nexus' ); ?></h1>
+			<p><?php _e( 'Guidance: Use this tool to quickly generate project scopes for new clients. Select a service and scale to see estimated budgets and deliverables.', 'agency-nexus' ); ?></p>
+		</div>
+		<?php
+		$this->get_template( 'scope-builder', [
+			'clients' => $clients,
+			'services' => $services,
+			'scales' => $scales
+		] );
+	}
+
+	public function render_settings() {
+		if ( isset( $_POST['an_save_scope_settings'] ) && check_admin_referer( 'an_scope_settings_nonce' ) ) {
+			$services_json = json_decode( stripslashes( $_POST['services_json'] ), true );
+			$scales_json   = json_decode( stripslashes( $_POST['scales_json'] ), true );
+
+			if ( is_array( $services_json ) && is_array( $scales_json ) ) {
+				update_option( 'an_scope_services', $services_json );
+				update_option( 'an_scope_scales', $scales_json );
+				echo '<div class="updated"><p>Settings saved!</p></div>';
+			} else {
+				echo '<div class="error"><p>Invalid JSON format. Please check your settings.</p></div>';
+			}
+		}
+
+		$services = get_option( 'an_scope_services', [
+			'seo' => 'SEO Strategy',
+			'web_design' => 'Web Design',
+			'social_media' => 'Social Media'
+		] );
+		$scales = get_option( 'an_scope_scales', [
+			'small' => [ 'label' => 'Small', 'budget' => 1000 ],
+			'medium' => [ 'label' => 'Medium', 'budget' => 5000 ],
+			'large' => [ 'label' => 'Large', 'budget' => 15000 ]
+		] );
+
+		?>
+		<div class="wrap">
+			<h1><?php _e( 'Scope Builder Settings', 'agency-nexus' ); ?></h1>
+			<p><?php _e( 'Manage the available services, project scales, and their default budgets here.', 'agency-nexus' ); ?></p>
+			<form method="post">
+				<?php wp_nonce_field( 'an_scope_settings_nonce' ); ?>
+				<h3>Services (JSON format: "key": "Label")</h3>
+				<textarea name="services_json" rows="5" class="large-text"><?php echo esc_textarea( json_encode( $services, JSON_PRETTY_PRINT ) ); ?></textarea>
+
+				<h3>Scales (JSON format)</h3>
+				<textarea name="scales_json" rows="10" class="large-text"><?php echo esc_textarea( json_encode( $scales, JSON_PRETTY_PRINT ) ); ?></textarea>
+
+				<p class="submit">
+					<input type="submit" name="an_save_scope_settings" class="button button-primary" value="Save Settings">
+				</p>
+			</form>
+		</div>
+		<?php
 	}
 
 	/**
@@ -48,20 +122,15 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 		global $wpdb;
 		$client_id    = intval( $_POST['client_id'] );
 		$service_type = sanitize_text_field( $_POST['service_type'] );
-		$scale        = sanitize_text_field( $_POST['scale'] );
-		$budget       = 0;
-
-		switch ( $scale ) {
-			case 'small': $budget = 1000; break;
-			case 'medium': $budget = 5000; break;
-			case 'large': $budget = 15000; break;
-		}
+		$scale_key    = sanitize_text_field( $_POST['scale'] );
+		$scales       = get_option( 'an_scope_scales', [] );
+		$budget       = isset( $scales[ $scale_key ]['budget'] ) ? $scales[ $scale_key ]['budget'] : 0;
 
 		$wpdb->insert(
 			$wpdb->prefix . 'an_projects',
 			[
 				'client_id'   => $client_id,
-				'title'       => sprintf( '%s Project (%s)', ucfirst( $service_type ), ucfirst( $scale ) ),
+				'title'       => sprintf( '%s Project (%s)', ucfirst( $service_type ), ucfirst( $scale_key ) ),
 				'description' => 'Generated from Scope Builder',
 				'budget'      => $budget,
 				'status'      => 'planned'
