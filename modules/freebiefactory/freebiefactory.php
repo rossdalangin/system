@@ -32,7 +32,7 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 			if ( 'delete' === $action && $id ) {
 				check_admin_referer( 'an_delete_resource_' . $id );
 				$wpdb->delete( $table_name, [ 'id' => $id ] );
-				wp_safe_redirect( admin_url( 'admin.php?page=an-resources&msg=deleted' ) );
+				wp_redirect( admin_url( 'admin.php?page=an-resources&msg=deleted' ) );
 				exit;
 			}
 
@@ -51,7 +51,7 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 					$wpdb->insert( $table_name, $data );
 					$msg = 'added';
 				}
-				wp_safe_redirect( admin_url( 'admin.php?page=an-resources&msg=' . $msg ) );
+				wp_redirect( admin_url( 'admin.php?page=an-resources&msg=' . $msg ) );
 				exit;
 			}
 		}

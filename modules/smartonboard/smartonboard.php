@@ -33,10 +33,10 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 					update_option( 'an_scope_services', $services_json );
 					update_option( 'an_scope_scales', $scales_json );
 					update_option( 'an_scope_deliverables', $deliverables_json );
-					wp_safe_redirect( admin_url( 'admin.php?page=an-scope-settings&msg=saved' ) );
+					wp_redirect( admin_url( 'admin.php?page=an-scope-settings&msg=saved' ) );
 					exit;
 				} else {
-					wp_safe_redirect( admin_url( 'admin.php?page=an-scope-settings&msg=error' ) );
+					wp_redirect( admin_url( 'admin.php?page=an-scope-settings&msg=error' ) );
 					exit;
 				}
 			}

@@ -19,7 +19,21 @@ class Agency_Nexus_DB_Manager {
 	}
 
 	public function __construct() {
-		// Initialization if needed
+		// Ensure tables exist on every load during development
+		if ( is_admin() ) {
+			$this->maybe_create_tables();
+		}
+	}
+
+	/**
+	 * Check if a core table exists, if not, run creation.
+	 */
+	private function maybe_create_tables() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_clients';
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) !== $table_name ) {
+			self::create_tables();
+		}
 	}
 
 	/**
@@ -39,7 +53,7 @@ class Agency_Nexus_DB_Manager {
 			company varchar(255) DEFAULT '',
 			status varchar(50) DEFAULT 'active',
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_clients );
 
@@ -55,7 +69,7 @@ class Agency_Nexus_DB_Manager {
 			start_date date,
 			end_date date,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_projects );
 
@@ -71,7 +85,7 @@ class Agency_Nexus_DB_Manager {
 			status varchar(50) DEFAULT 'todo',
 			due_date date,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_tasks );
 
@@ -85,7 +99,7 @@ class Agency_Nexus_DB_Manager {
 			note text,
 			date date,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_time );
 
@@ -101,7 +115,7 @@ class Agency_Nexus_DB_Manager {
 			scheduled_date datetime,
 			platform varchar(50) DEFAULT 'wordpress',
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_content );
 
@@ -115,7 +129,7 @@ class Agency_Nexus_DB_Manager {
 			end_time datetime NOT NULL,
 			type varchar(50) DEFAULT 'work',
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_blocks );
 
@@ -128,7 +142,7 @@ class Agency_Nexus_DB_Manager {
 			message text NOT NULL,
 			is_read tinyint(1) DEFAULT 0,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_messages );
 
@@ -142,7 +156,7 @@ class Agency_Nexus_DB_Manager {
 			status varchar(50) DEFAULT 'new',
 			conversion_value decimal(10,2) DEFAULT 0.00,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_leads );
 
@@ -156,7 +170,7 @@ class Agency_Nexus_DB_Manager {
 			note text,
 			receipt_url varchar(255),
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_expenses );
 
@@ -169,7 +183,7 @@ class Agency_Nexus_DB_Manager {
 			file_url varchar(255) NOT NULL,
 			file_name varchar(255) NOT NULL,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_files );
 
@@ -180,7 +194,7 @@ class Agency_Nexus_DB_Manager {
 			title varchar(255) NOT NULL,
 			content text NOT NULL,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_responses );
 
@@ -193,7 +207,7 @@ class Agency_Nexus_DB_Manager {
 			file_url varchar(255),
 			content text,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_resources );
 
@@ -205,7 +219,7 @@ class Agency_Nexus_DB_Manager {
 			stress_level int NOT NULL,
 			note text,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_burnout );
 
@@ -220,7 +234,7 @@ class Agency_Nexus_DB_Manager {
 			status varchar(50) DEFAULT 'draft',
 			due_date date,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_invoices );
 
@@ -233,7 +247,7 @@ class Agency_Nexus_DB_Manager {
 			method varchar(50) DEFAULT 'stripe',
 			transaction_id varchar(255),
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_payments );
 
@@ -246,7 +260,7 @@ class Agency_Nexus_DB_Manager {
 			action_evt varchar(100) NOT NULL,
 			is_active tinyint(1) DEFAULT 1,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 		dbDelta( $sql_rules );
 	}

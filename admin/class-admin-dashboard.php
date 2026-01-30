@@ -54,7 +54,7 @@ class Agency_Nexus_Admin_Dashboard {
 		if ( 'delete' === $action && $id ) {
 			check_admin_referer( 'an_delete_client_' . $id );
 			$wpdb->delete( $table_name, [ 'id' => $id ] );
-			wp_safe_redirect( admin_url( 'admin.php?page=an-clients&msg=deleted' ) );
+			wp_redirect( admin_url( 'admin.php?page=an-clients&msg=deleted' ) );
 			exit;
 		}
 
@@ -72,7 +72,7 @@ class Agency_Nexus_Admin_Dashboard {
 				$wpdb->insert( $table_name, $data );
 				$msg = 'added';
 			}
-			wp_safe_redirect( admin_url( 'admin.php?page=an-clients&msg=' . $msg ) );
+			wp_redirect( admin_url( 'admin.php?page=an-clients&msg=' . $msg ) );
 			exit;
 		}
 	}
@@ -92,7 +92,7 @@ class Agency_Nexus_Admin_Dashboard {
 		if ( 'delete' === $action && $id ) {
 			check_admin_referer( 'an_delete_project_' . $id );
 			$wpdb->delete( $projects_table, [ 'id' => $id ] );
-			wp_safe_redirect( admin_url( 'admin.php?page=an-projects&msg=deleted' ) );
+			wp_redirect( admin_url( 'admin.php?page=an-projects&msg=deleted' ) );
 			exit;
 		}
 
@@ -112,7 +112,7 @@ class Agency_Nexus_Admin_Dashboard {
 				$wpdb->insert( $projects_table, $data );
 				$msg = 'created';
 			}
-			wp_safe_redirect( admin_url( 'admin.php?page=an-projects&msg=' . $msg ) );
+			wp_redirect( admin_url( 'admin.php?page=an-projects&msg=' . $msg ) );
 			exit;
 		}
 
@@ -125,7 +125,7 @@ class Agency_Nexus_Admin_Dashboard {
 				'status'      => 'todo',
 				'priority'    => 'medium'
 			] );
-			wp_safe_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . intval( $_POST['project_id'] ) . '&msg=task_added' ) );
+			wp_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . intval( $_POST['project_id'] ) . '&msg=task_added' ) );
 			exit;
 		}
 
@@ -138,7 +138,7 @@ class Agency_Nexus_Admin_Dashboard {
 				'date'     => current_time( 'mysql' ),
 				'note'     => sanitize_textarea_field( $_POST['note'] )
 			] );
-			wp_safe_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . $id . '&msg=time_logged' ) );
+			wp_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . $id . '&msg=time_logged' ) );
 			exit;
 		}
 	}

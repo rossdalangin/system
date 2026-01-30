@@ -31,7 +31,7 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 			if ( 'delete' === $action && $id ) {
 				check_admin_referer( 'an_delete_block_' . $id );
 				$wpdb->delete( $table_name, [ 'id' => $id ] );
-				wp_safe_redirect( admin_url( 'admin.php?page=an-time-blocking&msg=deleted' ) );
+				wp_redirect( admin_url( 'admin.php?page=an-time-blocking&msg=deleted' ) );
 				exit;
 			}
 
@@ -39,8 +39,8 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 				$data = [
 					'user_id'    => get_current_user_id(),
 					'title'      => sanitize_text_field( $_POST['title'] ),
-					'start_time' => sanitize_text_field( $_POST['start_time'] ),
-					'end_time'   => sanitize_text_field( $_POST['end_time'] ),
+					'start_time' => ! empty( $_POST['start_time'] ) ? date( 'Y-m-d H:i:s', strtotime( $_POST['start_time'] ) ) : current_time( 'mysql' ),
+					'end_time'   => ! empty( $_POST['end_time'] ) ? date( 'Y-m-d H:i:s', strtotime( $_POST['end_time'] ) ) : current_time( 'mysql' ),
 					'type'       => sanitize_text_field( $_POST['type'] )
 				];
 				if ( $id ) {
@@ -50,7 +50,7 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 					$wpdb->insert( $table_name, $data );
 					$msg = 'added';
 				}
-				wp_safe_redirect( admin_url( 'admin.php?page=an-time-blocking&msg=' . $msg ) );
+				wp_redirect( admin_url( 'admin.php?page=an-time-blocking&msg=' . $msg ) );
 				exit;
 			}
 		}

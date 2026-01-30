@@ -41,7 +41,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		if ( 'delete' === $action && $id ) {
 			check_admin_referer( 'an_delete_expense_' . $id );
 			$wpdb->delete( $expenses_table, [ 'id' => $id ] );
-			wp_safe_redirect( admin_url( 'admin.php?page=an-expenses&msg=deleted' ) );
+			wp_redirect( admin_url( 'admin.php?page=an-expenses&msg=deleted' ) );
 			exit;
 		}
 
@@ -61,7 +61,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 				$wpdb->insert( $expenses_table, $data );
 				$msg = 'recorded';
 			}
-			wp_safe_redirect( admin_url( 'admin.php?page=an-expenses&msg=' . $msg ) );
+			wp_redirect( admin_url( 'admin.php?page=an-expenses&msg=' . $msg ) );
 			exit;
 		}
 	}
@@ -76,7 +76,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		if ( 'delete' === $action && $id ) {
 			check_admin_referer( 'an_delete_invoice_' . $id );
 			$wpdb->delete( $invoices_table, [ 'id' => $id ] );
-			wp_safe_redirect( admin_url( 'admin.php?page=an-invoices&msg=deleted' ) );
+			wp_redirect( admin_url( 'admin.php?page=an-invoices&msg=deleted' ) );
 			exit;
 		}
 
@@ -97,7 +97,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 				$wpdb->insert( $invoices_table, $data );
 				$msg = 'created';
 			}
-			wp_safe_redirect( admin_url( 'admin.php?page=an-invoices&msg=' . $msg ) );
+			wp_redirect( admin_url( 'admin.php?page=an-invoices&msg=' . $msg ) );
 			exit;
 		}
 
@@ -115,7 +115,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			if ( $total_paid >= $inv_amount ) {
 				$wpdb->update( $invoices_table, [ 'status' => 'paid' ], [ 'id' => $inv_id ] );
 			}
-			wp_safe_redirect( admin_url( 'admin.php?page=an-invoices&msg=paid' ) );
+			wp_redirect( admin_url( 'admin.php?page=an-invoices&msg=paid' ) );
 			exit;
 		}
 	}

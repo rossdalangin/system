@@ -35,7 +35,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			if ( 'delete' === $action && $id ) {
 				check_admin_referer( 'an_delete_content_' . $id );
 				$wpdb->delete( $table_name, [ 'id' => $id ] );
-				wp_safe_redirect( admin_url( 'admin.php?page=an-content-list&msg=deleted' ) );
+				wp_redirect( admin_url( 'admin.php?page=an-content-list&msg=deleted' ) );
 				exit;
 			}
 
@@ -46,7 +46,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 					'content'        => wp_kses_post( $_POST['content'] ),
 					'media_url'      => esc_url_raw( $_POST['media_url'] ),
 					'status'         => sanitize_text_field( $_POST['status'] ),
-					'scheduled_date' => sanitize_text_field( $_POST['scheduled_date'] ),
+					'scheduled_date' => ! empty( $_POST['scheduled_date'] ) ? date( 'Y-m-d H:i:s', strtotime( $_POST['scheduled_date'] ) ) : null,
 					'platform'       => sanitize_text_field( $_POST['platform'] )
 				];
 				if ( $id ) {
@@ -56,7 +56,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 					$wpdb->insert( $table_name, $data );
 					$msg = 'added';
 				}
-				wp_safe_redirect( admin_url( 'admin.php?page=an-content-list&msg=' . $msg ) );
+				wp_redirect( admin_url( 'admin.php?page=an-content-list&msg=' . $msg ) );
 				exit;
 			}
 		}

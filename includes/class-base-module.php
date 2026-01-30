@@ -18,7 +18,6 @@ abstract class Agency_Nexus_Base_Module {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->init();
 		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
 	}
 

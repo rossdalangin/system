@@ -31,7 +31,7 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 			if ( 'delete' === $action && $id ) {
 				check_admin_referer( 'an_delete_check_' . $id );
 				$wpdb->delete( $table_name, [ 'id' => $id ] );
-				wp_safe_redirect( admin_url( 'admin.php?page=an-health-check&msg=deleted' ) );
+				wp_redirect( admin_url( 'admin.php?page=an-health-check&msg=deleted' ) );
 				exit;
 			}
 
@@ -49,7 +49,7 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 					$wpdb->insert( $table_name, $data );
 					$msg = 'recorded';
 				}
-				wp_safe_redirect( admin_url( 'admin.php?page=an-health-check&msg=' . $msg ) );
+				wp_redirect( admin_url( 'admin.php?page=an-health-check&msg=' . $msg ) );
 				exit;
 			}
 		}

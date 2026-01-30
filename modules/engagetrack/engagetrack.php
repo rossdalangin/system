@@ -40,7 +40,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		if ( 'delete' === $action && $id ) {
 			check_admin_referer( 'an_delete_lead_' . $id );
 			$wpdb->delete( $table_name, [ 'id' => $id ] );
-			wp_safe_redirect( admin_url( 'admin.php?page=an-leads&msg=deleted' ) );
+			wp_redirect( admin_url( 'admin.php?page=an-leads&msg=deleted' ) );
 			exit;
 		}
 
@@ -59,7 +59,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 				$wpdb->insert( $table_name, $data );
 				$msg = 'added';
 			}
-			wp_safe_redirect( admin_url( 'admin.php?page=an-leads&msg=' . $msg ) );
+			wp_redirect( admin_url( 'admin.php?page=an-leads&msg=' . $msg ) );
 			exit;
 		}
 	}
@@ -73,7 +73,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		if ( 'delete' === $action && $id ) {
 			check_admin_referer( 'an_delete_response_' . $id );
 			$wpdb->delete( $table_name, [ 'id' => $id ] );
-			wp_safe_redirect( admin_url( 'admin.php?page=an-canned-responses&msg=deleted' ) );
+			wp_redirect( admin_url( 'admin.php?page=an-canned-responses&msg=deleted' ) );
 			exit;
 		}
 
@@ -89,7 +89,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 				$wpdb->insert( $table_name, $data );
 				$msg = 'saved';
 			}
-			wp_safe_redirect( admin_url( 'admin.php?page=an-canned-responses&msg=' . $msg ) );
+			wp_redirect( admin_url( 'admin.php?page=an-canned-responses&msg=' . $msg ) );
 			exit;
 		}
 	}
