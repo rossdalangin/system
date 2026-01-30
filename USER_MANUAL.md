@@ -4,6 +4,17 @@ Welcome to **Agency Nexus**, the all-in-one WordPress plugin designed for freela
 
 ---
 
+## 🛠️ Quick Start: Sample Data
+If you are new to the plugin, you can quickly explore its features by seeding it with sample data.
+1. Navigate to **Agency Nexus > Dashboard**.
+2. Click the **Seed Sample Data** button in the welcome panel.
+3. This will create:
+    - A **Sample Client** account (WP User + Client Record).
+    - A **Sample Team Member** account (WP User).
+    - A **Sample Project** with pre-populated tasks and history.
+
+---
+
 ## 1. Getting Started: Core Data Management
 
 Before using the advanced modules, you must set up your core data.

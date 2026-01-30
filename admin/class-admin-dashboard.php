@@ -34,6 +34,12 @@ class Agency_Nexus_Admin_Dashboard {
 
 		$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
 
+		if ( isset( $_POST['an_seed_data'] ) && check_admin_referer( 'an_seed_data_nonce' ) ) {
+			Agency_Nexus_Seeder::seed();
+			wp_redirect( admin_url( 'admin.php?page=agency-nexus&msg=seeded' ) );
+			exit;
+		}
+
 		if ( 'an-clients' === $page ) {
 			$this->process_client_actions();
 		} elseif ( 'an-projects' === $page ) {
@@ -126,6 +132,15 @@ class Agency_Nexus_Admin_Dashboard {
 				'priority'    => 'medium'
 			] );
 			wp_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . intval( $_POST['project_id'] ) . '&msg=task_added' ) );
+			exit;
+		}
+
+		// Handle Task Assignment Update
+		if ( isset( $_POST['an_assign_task'] ) && check_admin_referer( 'an_assign_task_nonce' ) ) {
+			$wpdb->update( $tasks_table, [
+				'assigned_to' => intval( $_POST['assigned_to'] )
+			], [ 'id' => intval( $_POST['task_id'] ) ] );
+			wp_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . $id . '&msg=task_updated' ) );
 			exit;
 		}
 
@@ -399,6 +414,7 @@ class Agency_Nexus_Admin_Dashboard {
 				case 'updated': $m = 'Project updated!'; break;
 				case 'deleted': $m = 'Project deleted!'; break;
 				case 'task_added': $m = 'Task added!'; break;
+				case 'task_updated': $m = 'Task updated!'; break;
 				case 'time_logged': $m = 'Time logged!'; break;
 			}
 			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
@@ -428,7 +444,19 @@ class Agency_Nexus_Admin_Dashboard {
 							?>
 								<tr>
 									<td><?php echo esc_html($task->title); ?></td>
-									<td><?php echo esc_html($assigned); ?></td>
+									<td>
+										<form method="post" style="display:inline-block;">
+											<?php wp_nonce_field('an_assign_task_nonce'); ?>
+											<input type="hidden" name="task_id" value="<?php echo $task->id; ?>">
+											<select name="assigned_to" onchange="this.form.submit()">
+												<option value="0"><?php _e('Unassigned', 'agency-nexus'); ?></option>
+												<?php foreach (get_users() as $u) : ?>
+													<option value="<?php echo $u->ID; ?>" <?php selected($task->assigned_to, $u->ID); ?>><?php echo esc_html($u->display_name); ?></option>
+												<?php endforeach; ?>
+											</select>
+											<input type="hidden" name="an_assign_task" value="1">
+										</form>
+									</td>
 									<td><?php echo esc_html($task->status); ?></td>
 									<td><?php echo round($total_time / 3600, 2); ?> hrs</td>
 									<td>
@@ -561,10 +589,24 @@ class Agency_Nexus_Admin_Dashboard {
 	 * Render the main dashboard page.
 	 */
 	public function render_dashboard() {
+		if ( isset( $_GET['msg'] ) && 'seeded' === $_GET['msg'] ) {
+			echo '<div class="updated"><p>Sample data seeded successfully! Created "Sample Client" and "Sample Team Member" accounts.</p></div>';
+		}
 		?>
 		<div class="wrap">
 			<h1><?php _e( 'Agency Nexus Dashboard', 'agency-nexus' ); ?></h1>
 			<p><?php _e( 'Welcome to your comprehensive agency management dashboard.', 'agency-nexus' ); ?></p>
+
+			<div class="welcome-panel" style="padding: 20px; margin-top: 20px;">
+				<div class="welcome-panel-content">
+					<h2>Getting Started</h2>
+					<p>To help you explore the features, you can seed the dashboard with sample accounts and data.</p>
+					<form method="post">
+						<?php wp_nonce_field('an_seed_data_nonce'); ?>
+						<input type="submit" name="an_seed_data" class="button button-primary button-hero" value="Seed Sample Data">
+					</form>
+				</div>
+			</div>
 
 			<div class="agency-nexus-widgets" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
 				<?php do_action( 'agency_nexus_dashboard_widgets' ); ?>
