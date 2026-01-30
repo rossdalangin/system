@@ -14,10 +14,52 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 	public function init() {
 		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
+		add_action( 'admin_init', [ $this, 'handle_post' ] );
 		add_action( 'wp_ajax_an_update_content_date', [ $this, 'handle_update_content_date' ] );
 		add_action( 'wp_ajax_an_create_content', [ $this, 'handle_create_content' ] );
 		add_action( 'wp_ajax_an_delete_content', [ $this, 'handle_delete_content' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+	}
+
+	public function handle_post() {
+		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		if ( isset( $_GET['page'] ) && 'an-content-list' === $_GET['page'] ) {
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'an_content';
+			$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+			$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+			if ( 'delete' === $action && $id ) {
+				check_admin_referer( 'an_delete_content_' . $id );
+				$wpdb->delete( $table_name, [ 'id' => $id ] );
+				wp_safe_redirect( admin_url( 'admin.php?page=an-content-list&msg=deleted' ) );
+				exit;
+			}
+
+			if ( isset( $_POST['an_save_content'] ) && check_admin_referer( 'an_save_content_nonce' ) ) {
+				$data = [
+					'project_id'     => intval( $_POST['project_id'] ),
+					'title'          => sanitize_text_field( $_POST['title'] ),
+					'content'        => wp_kses_post( $_POST['content'] ),
+					'media_url'      => esc_url_raw( $_POST['media_url'] ),
+					'status'         => sanitize_text_field( $_POST['status'] ),
+					'scheduled_date' => sanitize_text_field( $_POST['scheduled_date'] ),
+					'platform'       => sanitize_text_field( $_POST['platform'] )
+				];
+				if ( $id ) {
+					$wpdb->update( $table_name, $data, [ 'id' => $id ] );
+					$msg = 'updated';
+				} else {
+					$wpdb->insert( $table_name, $data );
+					$msg = 'added';
+				}
+				wp_safe_redirect( admin_url( 'admin.php?page=an-content-list&msg=' . $msg ) );
+				exit;
+			}
+		}
 	}
 
 	public function enqueue_scripts( $hook ) {
@@ -64,45 +106,17 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_content';
 		$projects_table = $wpdb->prefix . 'an_projects';
-		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
-		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		if ($action === 'delete' && $id) {
-			check_admin_referer('an_delete_content_' . $id);
-			$wpdb->delete($table_name, ['id' => $id]);
-			wp_redirect(admin_url('admin.php?page=an-content-list&msg=deleted'));
-			exit;
-		}
-
-		if (isset($_POST['an_save_content']) && check_admin_referer('an_save_content_nonce')) {
-			$data = [
-				'project_id'     => intval($_POST['project_id']),
-				'title'          => sanitize_text_field($_POST['title']),
-				'content'        => wp_kses_post($_POST['content']),
-				'media_url'      => esc_url_raw($_POST['media_url']),
-				'status'         => sanitize_text_field($_POST['status']),
-				'scheduled_date' => sanitize_text_field($_POST['scheduled_date']),
-				'platform'       => sanitize_text_field($_POST['platform'])
-			];
-			if ($id) {
-				$wpdb->update($table_name, $data, ['id' => $id]);
-				$msg = 'updated';
-			} else {
-				$wpdb->insert($table_name, $data);
-				$msg = 'added';
-			}
-			wp_redirect(admin_url('admin.php?page=an-content-list&msg=' . $msg));
-			exit;
-		}
-
-		if (isset($_GET['msg'])) {
+		if ( isset( $_GET['msg'] ) ) {
 			$m = '';
-			switch($_GET['msg']) {
+			switch ( $_GET['msg'] ) {
 				case 'added': $m = 'Content added!'; break;
 				case 'updated': $m = 'Content updated!'; break;
 				case 'deleted': $m = 'Content item deleted!'; break;
 			}
-			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
+			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
 		}
 
 		if ($action === 'edit' || $action === 'add') {

@@ -14,6 +14,84 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 	public function init() {
 		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
+		add_action( 'admin_init', [ $this, 'handle_post' ] );
+	}
+
+	public function handle_post() {
+		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
+
+		if ( 'an-leads' === $page ) {
+			$this->process_lead_actions();
+		} elseif ( 'an-canned-responses' === $page ) {
+			$this->process_response_actions();
+		}
+	}
+
+	private function process_lead_actions() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_leads';
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		if ( 'delete' === $action && $id ) {
+			check_admin_referer( 'an_delete_lead_' . $id );
+			$wpdb->delete( $table_name, [ 'id' => $id ] );
+			wp_safe_redirect( admin_url( 'admin.php?page=an-leads&msg=deleted' ) );
+			exit;
+		}
+
+		if ( isset( $_POST['an_save_lead'] ) && check_admin_referer( 'an_save_lead_nonce' ) ) {
+			$data = [
+				'name'             => sanitize_text_field( $_POST['name'] ),
+				'email'            => sanitize_email( $_POST['email'] ),
+				'source'           => sanitize_text_field( $_POST['source'] ),
+				'status'           => sanitize_text_field( $_POST['status'] ),
+				'conversion_value' => floatval( $_POST['conversion_value'] )
+			];
+			if ( $id ) {
+				$wpdb->update( $table_name, $data, [ 'id' => $id ] );
+				$msg = 'updated';
+			} else {
+				$wpdb->insert( $table_name, $data );
+				$msg = 'added';
+			}
+			wp_safe_redirect( admin_url( 'admin.php?page=an-leads&msg=' . $msg ) );
+			exit;
+		}
+	}
+
+	private function process_response_actions() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_canned_responses';
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		if ( 'delete' === $action && $id ) {
+			check_admin_referer( 'an_delete_response_' . $id );
+			$wpdb->delete( $table_name, [ 'id' => $id ] );
+			wp_safe_redirect( admin_url( 'admin.php?page=an-canned-responses&msg=deleted' ) );
+			exit;
+		}
+
+		if ( isset( $_POST['an_save_response'] ) && check_admin_referer( 'an_save_response_nonce' ) ) {
+			$data = [
+				'title'   => sanitize_text_field( $_POST['title'] ),
+				'content' => wp_kses_post( $_POST['content'] )
+			];
+			if ( $id ) {
+				$wpdb->update( $table_name, $data, [ 'id' => $id ] );
+				$msg = 'updated';
+			} else {
+				$wpdb->insert( $table_name, $data );
+				$msg = 'saved';
+			}
+			wp_safe_redirect( admin_url( 'admin.php?page=an-canned-responses&msg=' . $msg ) );
+			exit;
+		}
 	}
 
 	public function register_submenu() {
@@ -39,32 +117,17 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 	public function render_leads() {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_leads';
-		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
-		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		if ($action === 'delete' && $id) {
-			check_admin_referer('an_delete_lead_' . $id);
-			$wpdb->delete($table_name, ['id' => $id]);
-			echo '<div class="updated"><p>Lead deleted!</p></div>';
-			$action = 'list';
-		}
-
-		if ( isset( $_POST['an_save_lead'] ) && check_admin_referer( 'an_save_lead_nonce' ) ) {
-			$data = [
-				'name'             => sanitize_text_field( $_POST['name'] ),
-				'email'            => sanitize_email( $_POST['email'] ),
-				'source'           => sanitize_text_field( $_POST['source'] ),
-				'status'           => sanitize_text_field( $_POST['status'] ),
-				'conversion_value' => floatval( $_POST['conversion_value'] )
-			];
-			if ($id) {
-				$wpdb->update($table_name, $data, ['id' => $id]);
-				echo '<div class="updated"><p>Lead updated!</p></div>';
-			} else {
-				$wpdb->insert($table_name, $data);
-				echo '<div class="updated"><p>Lead recorded!</p></div>';
+		if ( isset( $_GET['msg'] ) ) {
+			$m = '';
+			switch ( $_GET['msg'] ) {
+				case 'added':   $m = 'Lead recorded!'; break;
+				case 'updated': $m = 'Lead updated!'; break;
+				case 'deleted': $m = 'Lead deleted!'; break;
 			}
-			$action = 'list';
+			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
 		}
 
 		if ($action === 'edit' || $action === 'add') {
@@ -128,40 +191,17 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 	public function render_canned_responses() {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_canned_responses';
-		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
-		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		if ($action === 'delete' && $id) {
-			check_admin_referer('an_delete_response_' . $id);
-			$wpdb->delete($table_name, ['id' => $id]);
-			wp_redirect(admin_url('admin.php?page=an-canned-responses&msg=deleted'));
-			exit;
-		}
-
-		if ( isset( $_POST['an_save_response'] ) && check_admin_referer( 'an_save_response_nonce' ) ) {
-			$data = [
-				'title'   => sanitize_text_field( $_POST['title'] ),
-				'content' => wp_kses_post( $_POST['content'] )
-			];
-			if ($id) {
-				$wpdb->update($table_name, $data, ['id' => $id]);
-				$msg = 'updated';
-			} else {
-				$wpdb->insert($table_name, $data);
-				$msg = 'saved';
-			}
-			wp_redirect(admin_url('admin.php?page=an-canned-responses&msg=' . $msg));
-			exit;
-		}
-
-		if (isset($_GET['msg'])) {
+		if ( isset( $_GET['msg'] ) ) {
 			$m = '';
-			switch($_GET['msg']) {
-				case 'saved': $m = 'Response saved!'; break;
+			switch ( $_GET['msg'] ) {
+				case 'saved':   $m = 'Response saved!'; break;
 				case 'updated': $m = 'Response updated!'; break;
 				case 'deleted': $m = 'Response deleted!'; break;
 			}
-			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
+			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
 		}
 
 		if ($action === 'edit' || $action === 'add') {

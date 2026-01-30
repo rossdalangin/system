@@ -14,6 +14,46 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 	public function init() {
 		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
+		add_action( 'admin_init', [ $this, 'handle_post' ] );
+	}
+
+	public function handle_post() {
+		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		if ( isset( $_GET['page'] ) && 'an-time-blocking' === $_GET['page'] ) {
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'an_time_blocks';
+			$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+			$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+			if ( 'delete' === $action && $id ) {
+				check_admin_referer( 'an_delete_block_' . $id );
+				$wpdb->delete( $table_name, [ 'id' => $id ] );
+				wp_safe_redirect( admin_url( 'admin.php?page=an-time-blocking&msg=deleted' ) );
+				exit;
+			}
+
+			if ( isset( $_POST['an_save_block'] ) && check_admin_referer( 'an_save_block_nonce' ) ) {
+				$data = [
+					'user_id'    => get_current_user_id(),
+					'title'      => sanitize_text_field( $_POST['title'] ),
+					'start_time' => sanitize_text_field( $_POST['start_time'] ),
+					'end_time'   => sanitize_text_field( $_POST['end_time'] ),
+					'type'       => sanitize_text_field( $_POST['type'] )
+				];
+				if ( $id ) {
+					$wpdb->update( $table_name, $data, [ 'id' => $id ] );
+					$msg = 'updated';
+				} else {
+					$wpdb->insert( $table_name, $data );
+					$msg = 'added';
+				}
+				wp_safe_redirect( admin_url( 'admin.php?page=an-time-blocking&msg=' . $msg ) );
+				exit;
+			}
+		}
 	}
 
 	public function register_submenu() {
@@ -31,32 +71,17 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_time_blocks';
 		$user_id = get_current_user_id();
-		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
-		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		if ($action === 'delete' && $id) {
-			check_admin_referer('an_delete_block_' . $id);
-			$wpdb->delete($table_name, ['id' => $id]);
-			echo '<div class="updated"><p>Block deleted!</p></div>';
-			$action = 'list';
-		}
-
-		if (isset($_POST['an_save_block']) && check_admin_referer('an_save_block_nonce')) {
-			$data = [
-				'user_id'    => $user_id,
-				'title'      => sanitize_text_field($_POST['title']),
-				'start_time' => sanitize_text_field($_POST['start_time']),
-				'end_time'   => sanitize_text_field($_POST['end_time']),
-				'type'       => sanitize_text_field($_POST['type'])
-			];
-			if ($id) {
-				$wpdb->update($table_name, $data, ['id' => $id]);
-				echo '<div class="updated"><p>Block updated!</p></div>';
-			} else {
-				$wpdb->insert($table_name, $data);
-				echo '<div class="updated"><p>Block added!</p></div>';
+		if ( isset( $_GET['msg'] ) ) {
+			$m = '';
+			switch ( $_GET['msg'] ) {
+				case 'added':   $m = 'Block added!'; break;
+				case 'updated': $m = 'Block updated!'; break;
+				case 'deleted': $m = 'Block deleted!'; break;
 			}
-			$action = 'list';
+			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
 		}
 
 		if ($action === 'edit' || $action === 'add') {

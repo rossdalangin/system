@@ -108,7 +108,9 @@ class Agency_Nexus {
 				// Assuming class name is Agency_Nexus_Module_{Name}
 				$class_name = 'Agency_Nexus_Module_' . str_replace( ' ', '_', ucwords( str_replace( '-', ' ', $module_name ) ) );
 				if ( class_exists( $class_name ) ) {
-					$this->modules[ $module_name ] = new $class_name();
+					$module = new $class_name();
+					$module->init();
+					$this->modules[ $module_name ] = $module;
 				}
 			}
 		}

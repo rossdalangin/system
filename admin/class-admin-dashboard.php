@@ -21,6 +21,126 @@ class Agency_Nexus_Admin_Dashboard {
 	public function __construct() {
 		// Use priority 5 to ensure this fires before modules (default 10)
 		add_action( 'admin_menu', [ $this, 'register_menu' ], 5 );
+		add_action( 'admin_init', [ $this, 'handle_admin_actions' ] );
+	}
+
+	/**
+	 * Handle POST and GET actions before output starts.
+	 */
+	public function handle_admin_actions() {
+		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
+
+		if ( 'an-clients' === $page ) {
+			$this->process_client_actions();
+		} elseif ( 'an-projects' === $page ) {
+			$this->process_project_actions();
+		}
+	}
+
+	/**
+	 * Process client-related actions.
+	 */
+	private function process_client_actions() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_clients';
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		// Handle Deletion
+		if ( 'delete' === $action && $id ) {
+			check_admin_referer( 'an_delete_client_' . $id );
+			$wpdb->delete( $table_name, [ 'id' => $id ] );
+			wp_safe_redirect( admin_url( 'admin.php?page=an-clients&msg=deleted' ) );
+			exit;
+		}
+
+		// Handle Save (Add/Edit)
+		if ( isset( $_POST['an_save_client'] ) && check_admin_referer( 'an_save_client_nonce' ) ) {
+			$data = [
+				'name'    => sanitize_text_field( $_POST['name'] ),
+				'email'   => sanitize_email( $_POST['email'] ),
+				'company' => isset( $_POST['company'] ) ? sanitize_text_field( $_POST['company'] ) : ''
+			];
+			if ( $id ) {
+				$wpdb->update( $table_name, $data, [ 'id' => $id ] );
+				$msg = 'updated';
+			} else {
+				$wpdb->insert( $table_name, $data );
+				$msg = 'added';
+			}
+			wp_safe_redirect( admin_url( 'admin.php?page=an-clients&msg=' . $msg ) );
+			exit;
+		}
+	}
+
+	/**
+	 * Process project-related actions.
+	 */
+	private function process_project_actions() {
+		global $wpdb;
+		$projects_table = $wpdb->prefix . 'an_projects';
+		$tasks_table    = $wpdb->prefix . 'an_tasks';
+		$time_table     = $wpdb->prefix . 'an_time_entries';
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		// Handle Deletion
+		if ( 'delete' === $action && $id ) {
+			check_admin_referer( 'an_delete_project_' . $id );
+			$wpdb->delete( $projects_table, [ 'id' => $id ] );
+			wp_safe_redirect( admin_url( 'admin.php?page=an-projects&msg=deleted' ) );
+			exit;
+		}
+
+		// Handle Save (Add/Edit)
+		if ( isset( $_POST['an_save_project'] ) && check_admin_referer( 'an_save_project_nonce' ) ) {
+			$data = [
+				'client_id'   => intval( $_POST['client_id'] ),
+				'title'       => sanitize_text_field( $_POST['title'] ),
+				'budget'      => floatval( $_POST['budget'] ),
+				'status'      => sanitize_text_field( $_POST['status'] ),
+				'description' => sanitize_textarea_field( $_POST['description'] )
+			];
+			if ( $id ) {
+				$wpdb->update( $projects_table, $data, [ 'id' => $id ] );
+				$msg = 'updated';
+			} else {
+				$wpdb->insert( $projects_table, $data );
+				$msg = 'created';
+			}
+			wp_safe_redirect( admin_url( 'admin.php?page=an-projects&msg=' . $msg ) );
+			exit;
+		}
+
+		// Handle Task Creation
+		if ( isset( $_POST['an_add_task'] ) && check_admin_referer( 'an_add_task_nonce' ) ) {
+			$wpdb->insert( $tasks_table, [
+				'project_id'  => intval( $_POST['project_id'] ),
+				'title'       => sanitize_text_field( $_POST['title'] ),
+				'assigned_to' => isset( $_POST['assigned_to'] ) ? intval( $_POST['assigned_to'] ) : 0,
+				'status'      => 'todo',
+				'priority'    => 'medium'
+			] );
+			wp_safe_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . intval( $_POST['project_id'] ) . '&msg=task_added' ) );
+			exit;
+		}
+
+		// Handle Time Logging
+		if ( isset( $_POST['an_log_time'] ) && check_admin_referer( 'an_log_time_nonce' ) ) {
+			$wpdb->insert( $time_table, [
+				'task_id'  => intval( $_POST['task_id'] ),
+				'user_id'  => get_current_user_id(),
+				'duration' => intval( $_POST['hours'] ) * 3600,
+				'date'     => current_time( 'mysql' ),
+				'note'     => sanitize_textarea_field( $_POST['note'] )
+			] );
+			wp_safe_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . $id . '&msg=time_logged' ) );
+			exit;
+		}
 	}
 
 	/**
@@ -82,36 +202,10 @@ class Agency_Nexus_Admin_Dashboard {
 	public function render_clients() {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_clients';
-		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
-		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		// Handle Deletion
-		if ($action === 'delete' && $id) {
-			check_admin_referer('an_delete_client_' . $id);
-			$wpdb->delete($table_name, ['id' => $id]);
-			wp_redirect(admin_url('admin.php?page=an-clients&msg=deleted'));
-			exit;
-		}
-
-		// Handle Save (Add/Edit)
-		if (isset($_POST['an_save_client']) && check_admin_referer('an_save_client_nonce')) {
-			$data = [
-				'name'    => sanitize_text_field($_POST['name']),
-				'email'   => sanitize_email($_POST['email']),
-				'company' => sanitize_text_field($_POST['company'])
-			];
-			if ($id) {
-				$wpdb->update($table_name, $data, ['id' => $id]);
-				$msg = 'updated';
-			} else {
-				$wpdb->insert($table_name, $data);
-				$msg = 'added';
-			}
-			wp_redirect(admin_url('admin.php?page=an-clients&msg=' . $msg));
-			exit;
-		}
-
-		if (isset($_GET['msg'])) {
+		if ( isset( $_GET['msg'] ) ) {
 			$m = '';
 			switch($_GET['msg']) {
 				case 'added': $m = 'Client added!'; break;
@@ -295,73 +389,19 @@ class Agency_Nexus_Admin_Dashboard {
 		$clients_table  = $wpdb->prefix . 'an_clients';
 		$tasks_table    = $wpdb->prefix . 'an_tasks';
 		$time_table     = $wpdb->prefix . 'an_time_entries';
-		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
-		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		// Handle Deletion
-		if ($action === 'delete' && $id) {
-			check_admin_referer('an_delete_project_' . $id);
-			$wpdb->delete($projects_table, ['id' => $id]);
-			wp_redirect(admin_url('admin.php?page=an-projects&msg=deleted'));
-			exit;
-		}
-
-		// Handle Save (Add/Edit)
-		if (isset($_POST['an_save_project']) && check_admin_referer('an_save_project_nonce')) {
-			$data = [
-				'client_id'   => intval($_POST['client_id']),
-				'title'       => sanitize_text_field($_POST['title']),
-				'budget'      => floatval($_POST['budget']),
-				'status'      => sanitize_text_field($_POST['status']),
-				'description' => sanitize_textarea_field($_POST['description'])
-			];
-			if ($id) {
-				$wpdb->update($projects_table, $data, ['id' => $id]);
-				$msg = 'updated';
-			} else {
-				$wpdb->insert($projects_table, $data);
-				$msg = 'created';
-			}
-			wp_redirect(admin_url('admin.php?page=an-projects&msg=' . $msg));
-			exit;
-		}
-
-		if (isset($_GET['msg'])) {
+		if ( isset( $_GET['msg'] ) ) {
 			$m = '';
-			switch($_GET['msg']) {
+			switch ( $_GET['msg'] ) {
 				case 'created': $m = 'Project created!'; break;
 				case 'updated': $m = 'Project updated!'; break;
 				case 'deleted': $m = 'Project deleted!'; break;
 				case 'task_added': $m = 'Task added!'; break;
 				case 'time_logged': $m = 'Time logged!'; break;
 			}
-			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
-		}
-
-		// Handle Task Creation
-		if (isset($_POST['an_add_task']) && check_admin_referer('an_add_task_nonce')) {
-			$wpdb->insert($tasks_table, [
-				'project_id'  => intval($_POST['project_id']),
-				'title'       => sanitize_text_field($_POST['title']),
-				'assigned_to' => isset($_POST['assigned_to']) ? intval($_POST['assigned_to']) : 0,
-				'status'      => 'todo',
-				'priority'    => 'medium'
-			]);
-			wp_redirect(admin_url('admin.php?page=an-projects&action=view&id='.intval($_POST['project_id']).'&msg=task_added'));
-			exit;
-		}
-
-		// Handle Time Logging
-		if (isset($_POST['an_log_time']) && check_admin_referer('an_log_time_nonce')) {
-			$wpdb->insert($time_table, [
-				'task_id'  => intval($_POST['task_id']),
-				'user_id'  => get_current_user_id(),
-				'duration' => intval($_POST['hours']) * 3600,
-				'date'     => current_time('mysql'),
-				'note'     => sanitize_textarea_field($_POST['note'])
-			]);
-			wp_redirect(admin_url('admin.php?page=an-projects&action=view&id='.intval($_GET['id']).'&msg=time_logged'));
-			exit;
+			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
 		}
 
 		if ($action === 'view' && $id) {

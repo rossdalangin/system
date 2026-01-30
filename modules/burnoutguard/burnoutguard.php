@@ -14,6 +14,45 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 	public function init() {
 		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
+		add_action( 'admin_init', [ $this, 'handle_post' ] );
+	}
+
+	public function handle_post() {
+		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		if ( isset( $_GET['page'] ) && 'an-health-check' === $_GET['page'] ) {
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'an_burnout_logs';
+			$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+			$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+			if ( 'delete' === $action && $id ) {
+				check_admin_referer( 'an_delete_check_' . $id );
+				$wpdb->delete( $table_name, [ 'id' => $id ] );
+				wp_safe_redirect( admin_url( 'admin.php?page=an-health-check&msg=deleted' ) );
+				exit;
+			}
+
+			if ( isset( $_POST['an_save_check'] ) && check_admin_referer( 'an_save_check_nonce' ) ) {
+				$data = [
+					'user_id'      => get_current_user_id(),
+					'stress_level' => intval( $_POST['stress_level'] ),
+					'note'         => sanitize_textarea_field( $_POST['note'] ),
+					'created_at'   => current_time( 'mysql' )
+				];
+				if ( $id ) {
+					$wpdb->update( $table_name, $data, [ 'id' => $id ] );
+					$msg = 'updated';
+				} else {
+					$wpdb->insert( $table_name, $data );
+					$msg = 'recorded';
+				}
+				wp_safe_redirect( admin_url( 'admin.php?page=an-health-check&msg=' . $msg ) );
+				exit;
+			}
+		}
 	}
 
 	public function register_submenu() {
@@ -30,42 +69,17 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 	public function render_health_check() {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_burnout_logs';
-		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
-		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		if ($action === 'delete' && $id) {
-			check_admin_referer('an_delete_check_' . $id);
-			$wpdb->delete($table_name, ['id' => $id]);
-			wp_redirect(admin_url('admin.php?page=an-health-check&msg=deleted'));
-			exit;
-		}
-
-		if ( isset( $_POST['an_save_check'] ) && check_admin_referer( 'an_save_check_nonce' ) ) {
-			$data = [
-				'user_id'      => get_current_user_id(),
-				'stress_level' => intval( $_POST['stress_level'] ),
-				'note'         => sanitize_textarea_field( $_POST['note'] ),
-				'created_at'   => current_time( 'mysql' )
-			];
-			if ($id) {
-				$wpdb->update($table_name, $data, ['id' => $id]);
-				$msg = 'updated';
-			} else {
-				$wpdb->insert($table_name, $data);
-				$msg = 'recorded';
-			}
-			wp_redirect(admin_url('admin.php?page=an-health-check&msg=' . $msg));
-			exit;
-		}
-
-		if (isset($_GET['msg'])) {
+		if ( isset( $_GET['msg'] ) ) {
 			$m = '';
-			switch($_GET['msg']) {
+			switch ( $_GET['msg'] ) {
 				case 'recorded': $m = 'Log recorded. Remember to take breaks!'; break;
 				case 'updated': $m = 'Log updated!'; break;
 				case 'deleted': $m = 'Log entry deleted!'; break;
 			}
-			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
+			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
 		}
 
 		if ($action === 'edit' || $action === 'add') {

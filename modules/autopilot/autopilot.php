@@ -14,6 +14,45 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 	public function init() {
 		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
+		add_action( 'admin_init', [ $this, 'handle_post' ] );
+	}
+
+	public function handle_post() {
+		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		if ( isset( $_GET['page'] ) && 'an-automations' === $_GET['page'] ) {
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'an_autopilot_rules';
+			$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+			$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+			if ( 'delete' === $action && $id ) {
+				check_admin_referer( 'an_delete_rule_' . $id );
+				$wpdb->delete( $table_name, [ 'id' => $id ] );
+				wp_safe_redirect( admin_url( 'admin.php?page=an-automations&msg=deleted' ) );
+				exit;
+			}
+
+			if ( isset( $_POST['an_save_rule'] ) && check_admin_referer( 'an_save_rule_nonce' ) ) {
+				$data = [
+					'title'       => sanitize_text_field( $_POST['title'] ),
+					'trigger_evt' => sanitize_text_field( $_POST['trigger_evt'] ),
+					'action_evt'  => sanitize_text_field( $_POST['action_evt'] ),
+					'is_active'   => isset( $_POST['is_active'] ) ? 1 : 0
+				];
+				if ( $id ) {
+					$wpdb->update( $table_name, $data, [ 'id' => $id ] );
+					$msg = 'updated';
+				} else {
+					$wpdb->insert( $table_name, $data );
+					$msg = 'activated';
+				}
+				wp_safe_redirect( admin_url( 'admin.php?page=an-automations&msg=' . $msg ) );
+				exit;
+			}
+		}
 	}
 
 	public function register_submenu() {
@@ -30,31 +69,17 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 	public function render_automations() {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_autopilot_rules';
-		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
-		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		if ($action === 'delete' && $id) {
-			check_admin_referer('an_delete_rule_' . $id);
-			$wpdb->delete($table_name, ['id' => $id]);
-			echo '<div class="updated"><p>Automation rule deleted!</p></div>';
-			$action = 'list';
-		}
-
-		if (isset($_POST['an_save_rule']) && check_admin_referer('an_save_rule_nonce')) {
-			$data = [
-				'title'       => sanitize_text_field($_POST['title']),
-				'trigger_evt' => sanitize_text_field($_POST['trigger_evt']),
-				'action_evt'  => sanitize_text_field($_POST['action_evt']),
-				'is_active'   => isset($_POST['is_active']) ? 1 : 0
-			];
-			if ($id) {
-				$wpdb->update($table_name, $data, ['id' => $id]);
-				echo '<div class="updated"><p>Rule updated!</p></div>';
-			} else {
-				$wpdb->insert($table_name, $data);
-				echo '<div class="updated"><p>Rule activated!</p></div>';
+		if ( isset( $_GET['msg'] ) ) {
+			$m = '';
+			switch ( $_GET['msg'] ) {
+				case 'activated': $m = 'Rule activated!'; break;
+				case 'updated':   $m = 'Rule updated!'; break;
+				case 'deleted':   $m = 'Automation rule deleted!'; break;
 			}
-			$action = 'list';
+			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
 		}
 
 		if ($action === 'edit' || $action === 'add') {

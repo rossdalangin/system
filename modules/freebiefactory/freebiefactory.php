@@ -14,7 +14,47 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 	public function init() {
 		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
+		add_action( 'admin_init', [ $this, 'handle_post' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+	}
+
+	public function handle_post() {
+		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		if ( isset( $_GET['page'] ) && 'an-resources' === $_GET['page'] ) {
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'an_resources';
+			$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+			$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+			if ( 'delete' === $action && $id ) {
+				check_admin_referer( 'an_delete_resource_' . $id );
+				$wpdb->delete( $table_name, [ 'id' => $id ] );
+				wp_safe_redirect( admin_url( 'admin.php?page=an-resources&msg=deleted' ) );
+				exit;
+			}
+
+			if ( isset( $_POST['an_save_resource'] ) && check_admin_referer( 'an_save_resource_nonce' ) ) {
+				$data = [
+					'title'      => sanitize_text_field( $_POST['title'] ),
+					'type'       => sanitize_text_field( $_POST['type'] ),
+					'file_url'   => esc_url_raw( $_POST['file_url'] ),
+					'content'    => wp_kses_post( $_POST['content'] ),
+				];
+				if ( $id ) {
+					$wpdb->update( $table_name, $data, [ 'id' => $id ] );
+					$msg = 'updated';
+				} else {
+					$data['created_at'] = current_time( 'mysql' );
+					$wpdb->insert( $table_name, $data );
+					$msg = 'added';
+				}
+				wp_safe_redirect( admin_url( 'admin.php?page=an-resources&msg=' . $msg ) );
+				exit;
+			}
+		}
 	}
 
 	public function enqueue_scripts( $hook ) {
@@ -38,45 +78,17 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 	public function render_resources() {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_resources';
-		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
-		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		// Handle deleting
-		if ( $action === 'delete' && $id ) {
-			check_admin_referer( 'an_delete_resource_' . $id );
-			$wpdb->delete( $table_name, [ 'id' => $id ] );
-			wp_redirect(admin_url('admin.php?page=an-resources&msg=deleted'));
-			exit;
-		}
-
-		// Handle saving
-		if ( isset( $_POST['an_save_resource'] ) && check_admin_referer( 'an_save_resource_nonce' ) ) {
-			$data = [
-				'title'      => sanitize_text_field( $_POST['title'] ),
-				'type'       => sanitize_text_field( $_POST['type'] ),
-				'file_url'   => esc_url_raw( $_POST['file_url'] ),
-				'content'    => wp_kses_post( $_POST['content'] ),
-				'created_at' => current_time( 'mysql' )
-			];
-			if ($id) {
-				$wpdb->update($table_name, $data, ['id' => $id]);
-				$msg = 'updated';
-			} else {
-				$wpdb->insert($table_name, $data);
-				$msg = 'added';
-			}
-			wp_redirect(admin_url('admin.php?page=an-resources&msg=' . $msg));
-			exit;
-		}
-
-		if (isset($_GET['msg'])) {
+		if ( isset( $_GET['msg'] ) ) {
 			$m = '';
-			switch($_GET['msg']) {
-				case 'added': $m = 'Resource added!'; break;
+			switch ( $_GET['msg'] ) {
+				case 'added':   $m = 'Resource added!'; break;
 				case 'updated': $m = 'Resource updated!'; break;
 				case 'deleted': $m = 'Resource deleted!'; break;
 			}
-			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
+			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
 		}
 
 		if ($action === 'edit' || $action === 'add') {

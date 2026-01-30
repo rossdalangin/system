@@ -14,7 +14,33 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 	public function init() {
 		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
+		add_action( 'admin_init', [ $this, 'handle_post' ] );
 		add_action( 'wp_ajax_an_save_scope', [ $this, 'handle_save_scope' ] );
+	}
+
+	public function handle_post() {
+		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		if ( isset( $_GET['page'] ) && 'an-scope-settings' === $_GET['page'] ) {
+			if ( isset( $_POST['an_save_scope_settings'] ) && check_admin_referer( 'an_scope_settings_nonce' ) ) {
+				$services_json     = json_decode( stripslashes( $_POST['services_json'] ), true );
+				$scales_json       = json_decode( stripslashes( $_POST['scales_json'] ), true );
+				$deliverables_json = json_decode( stripslashes( $_POST['deliverables_json'] ), true );
+
+				if ( is_array( $services_json ) && is_array( $scales_json ) && is_array( $deliverables_json ) ) {
+					update_option( 'an_scope_services', $services_json );
+					update_option( 'an_scope_scales', $scales_json );
+					update_option( 'an_scope_deliverables', $deliverables_json );
+					wp_safe_redirect( admin_url( 'admin.php?page=an-scope-settings&msg=saved' ) );
+					exit;
+				} else {
+					wp_safe_redirect( admin_url( 'admin.php?page=an-scope-settings&msg=error' ) );
+					exit;
+				}
+			}
+		}
 	}
 
 	public function register_submenu() {
@@ -73,18 +99,11 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_settings() {
-		if ( isset( $_POST['an_save_scope_settings'] ) && check_admin_referer( 'an_scope_settings_nonce' ) ) {
-			$services_json     = json_decode( stripslashes( $_POST['services_json'] ), true );
-			$scales_json       = json_decode( stripslashes( $_POST['scales_json'] ), true );
-			$deliverables_json = json_decode( stripslashes( $_POST['deliverables_json'] ), true );
-
-			if ( is_array( $services_json ) && is_array( $scales_json ) && is_array( $deliverables_json ) ) {
-				update_option( 'an_scope_services', $services_json );
-				update_option( 'an_scope_scales', $scales_json );
-				update_option( 'an_scope_deliverables', $deliverables_json );
-				echo '<div class="updated"><p>Settings saved!</p></div>';
-			} else {
-				echo '<div class="error"><p>Invalid JSON format. Please check your settings.</p></div>';
+		if ( isset( $_GET['msg'] ) ) {
+			if ( 'saved' === $_GET['msg'] ) {
+				echo '<div class="updated"><p>' . __( 'Settings saved!', 'agency-nexus' ) . '</p></div>';
+			} elseif ( 'error' === $_GET['msg'] ) {
+				echo '<div class="error"><p>' . __( 'Invalid JSON format. Please check your settings.', 'agency-nexus' ) . '</p></div>';
 			}
 		}
 
@@ -143,13 +162,19 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 		$scale_key    = sanitize_text_field( $_POST['scale'] );
 		$scales       = get_option( 'an_scope_scales', [] );
 		$budget       = isset( $scales[ $scale_key ]['budget'] ) ? $scales[ $scale_key ]['budget'] : 0;
+		$deliverables = isset( $_POST['deliverables'] ) ? (array) $_POST['deliverables'] : [];
+
+		$description = __( 'Generated from Scope Builder.', 'agency-nexus' ) . "\n\n";
+		if ( ! empty( $deliverables ) ) {
+			$description .= __( 'Selected Deliverables:', 'agency-nexus' ) . "\n- " . implode( "\n- ", array_map( 'sanitize_text_field', $deliverables ) );
+		}
 
 		$wpdb->insert(
 			$wpdb->prefix . 'an_projects',
 			[
 				'client_id'   => $client_id,
 				'title'       => sprintf( '%s Project (%s)', ucfirst( $service_type ), ucfirst( $scale_key ) ),
-				'description' => 'Generated from Scope Builder',
+				'description' => $description,
 				'budget'      => $budget,
 				'status'      => 'planned'
 			]

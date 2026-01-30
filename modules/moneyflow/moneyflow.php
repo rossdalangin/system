@@ -14,7 +14,110 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 	public function init() {
 		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
+		add_action( 'admin_init', [ $this, 'handle_post' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+	}
+
+	public function handle_post() {
+		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
+
+		if ( 'an-expenses' === $page ) {
+			$this->process_expense_actions();
+		} elseif ( 'an-invoices' === $page ) {
+			$this->process_invoice_actions();
+		}
+	}
+
+	private function process_expense_actions() {
+		global $wpdb;
+		$expenses_table = $wpdb->prefix . 'an_expenses';
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		if ( 'delete' === $action && $id ) {
+			check_admin_referer( 'an_delete_expense_' . $id );
+			$wpdb->delete( $expenses_table, [ 'id' => $id ] );
+			wp_safe_redirect( admin_url( 'admin.php?page=an-expenses&msg=deleted' ) );
+			exit;
+		}
+
+		if ( isset( $_POST['an_save_expense'] ) && check_admin_referer( 'an_save_expense_nonce' ) ) {
+			$data = [
+				'project_id'  => intval( $_POST['project_id'] ),
+				'amount'      => floatval( $_POST['amount'] ),
+				'category'    => sanitize_text_field( $_POST['category'] ),
+				'note'        => sanitize_textarea_field( $_POST['note'] ),
+				'receipt_url' => esc_url_raw( $_POST['receipt_url'] ),
+			];
+			if ( $id ) {
+				$wpdb->update( $expenses_table, $data, [ 'id' => $id ] );
+				$msg = 'updated';
+			} else {
+				$data['created_at'] = current_time( 'mysql' );
+				$wpdb->insert( $expenses_table, $data );
+				$msg = 'recorded';
+			}
+			wp_safe_redirect( admin_url( 'admin.php?page=an-expenses&msg=' . $msg ) );
+			exit;
+		}
+	}
+
+	private function process_invoice_actions() {
+		global $wpdb;
+		$invoices_table = $wpdb->prefix . 'an_invoices';
+		$payments_table = $wpdb->prefix . 'an_payments';
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		if ( 'delete' === $action && $id ) {
+			check_admin_referer( 'an_delete_invoice_' . $id );
+			$wpdb->delete( $invoices_table, [ 'id' => $id ] );
+			wp_safe_redirect( admin_url( 'admin.php?page=an-invoices&msg=deleted' ) );
+			exit;
+		}
+
+		if ( isset( $_POST['an_save_invoice'] ) && check_admin_referer( 'an_save_invoice_nonce' ) ) {
+			$data = [
+				'project_id' => intval( $_POST['project_id'] ),
+				'client_id'  => intval( $_POST['client_id'] ),
+				'number'     => sanitize_text_field( $_POST['number'] ),
+				'amount'     => floatval( $_POST['amount'] ),
+				'status'     => sanitize_text_field( $_POST['status'] ),
+				'due_date'   => sanitize_text_field( $_POST['due_date'] ),
+			];
+			if ( $id ) {
+				$wpdb->update( $invoices_table, $data, [ 'id' => $id ] );
+				$msg = 'updated';
+			} else {
+				$data['created_at'] = current_time( 'mysql' );
+				$wpdb->insert( $invoices_table, $data );
+				$msg = 'created';
+			}
+			wp_safe_redirect( admin_url( 'admin.php?page=an-invoices&msg=' . $msg ) );
+			exit;
+		}
+
+		if ( isset( $_POST['an_add_payment'] ) && check_admin_referer( 'an_add_payment_nonce' ) ) {
+			$inv_id = intval( $_POST['id'] );
+			$wpdb->insert( $payments_table, [
+				'invoice_id'     => $inv_id,
+				'amount'         => floatval( $_POST['pay_amount'] ),
+				'method'         => 'other',
+				'transaction_id' => '',
+				'created_at'     => current_time( 'mysql' )
+			] );
+			$total_paid = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(amount) FROM $payments_table WHERE invoice_id = %d", $inv_id ) );
+			$inv_amount = $wpdb->get_var( $wpdb->prepare( "SELECT amount FROM $invoices_table WHERE id = %d", $inv_id ) );
+			if ( $total_paid >= $inv_amount ) {
+				$wpdb->update( $invoices_table, [ 'status' => 'paid' ], [ 'id' => $inv_id ] );
+			}
+			wp_safe_redirect( admin_url( 'admin.php?page=an-invoices&msg=paid' ) );
+			exit;
+		}
 	}
 
 	public function register_submenu() {
@@ -51,46 +154,17 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		global $wpdb;
 		$projects_table = $wpdb->prefix . 'an_projects';
 		$expenses_table = $wpdb->prefix . 'an_expenses';
-		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
-		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		// Handle Delete
-		if ( $action === 'delete' && $id ) {
-			check_admin_referer( 'an_delete_expense_' . $id );
-			$wpdb->delete( $expenses_table, [ 'id' => $id ] );
-			wp_redirect(admin_url('admin.php?page=an-expenses&msg=deleted'));
-			exit;
-		}
-
-		// Handle Save (Add/Edit)
-		if ( isset( $_POST['an_save_expense'] ) && check_admin_referer( 'an_save_expense_nonce' ) ) {
-			$data = [
-				'project_id'  => intval( $_POST['project_id'] ),
-				'amount'      => floatval( $_POST['amount'] ),
-				'category'    => sanitize_text_field( $_POST['category'] ),
-				'note'        => sanitize_textarea_field( $_POST['note'] ),
-				'receipt_url' => esc_url_raw( $_POST['receipt_url'] ),
-			];
-			if ( $id ) {
-				$wpdb->update( $expenses_table, $data, [ 'id' => $id ] );
-				$msg = 'updated';
-			} else {
-				$data['created_at'] = current_time( 'mysql' );
-				$wpdb->insert( $expenses_table, $data );
-				$msg = 'recorded';
-			}
-			wp_redirect(admin_url('admin.php?page=an-expenses&msg=' . $msg));
-			exit;
-		}
-
-		if (isset($_GET['msg'])) {
+		if ( isset( $_GET['msg'] ) ) {
 			$m = '';
-			switch($_GET['msg']) {
+			switch ( $_GET['msg'] ) {
 				case 'recorded': $m = 'Expense recorded!'; break;
-				case 'updated': $m = 'Expense updated!'; break;
-				case 'deleted': $m = 'Expense deleted!'; break;
+				case 'updated':  $m = 'Expense updated!'; break;
+				case 'deleted':  $m = 'Expense deleted!'; break;
 			}
-			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
+			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
 		}
 
 		if ( $action === 'edit' || $action === 'add' ) {
@@ -234,68 +308,18 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		$clients_table  = $wpdb->prefix . 'an_clients';
 		$payments_table = $wpdb->prefix . 'an_payments';
 
-		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
-		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		// Handle Delete
-		if ($action === 'delete' && $id) {
-			check_admin_referer('an_delete_invoice_' . $id);
-			$wpdb->delete($invoices_table, ['id' => $id]);
-			wp_redirect(admin_url('admin.php?page=an-invoices&msg=deleted'));
-			exit;
-		}
-
-		// Handle Save (Add/Edit)
-		if (isset($_POST['an_save_invoice']) && check_admin_referer('an_save_invoice_nonce')) {
-			$data = [
-				'project_id' => intval($_POST['project_id']),
-				'client_id'  => intval($_POST['client_id']),
-				'number'     => sanitize_text_field($_POST['number']),
-				'amount'     => floatval($_POST['amount']),
-				'status'     => sanitize_text_field($_POST['status']),
-				'due_date'   => sanitize_text_field($_POST['due_date']),
-			];
-			if ($id) {
-				$wpdb->update($invoices_table, $data, ['id' => $id]);
-				$msg = 'updated';
-			} else {
-				$data['created_at'] = current_time('mysql');
-				$wpdb->insert($invoices_table, $data);
-				$msg = 'created';
-			}
-			wp_redirect(admin_url('admin.php?page=an-invoices&msg=' . $msg));
-			exit;
-		}
-
-		if (isset($_GET['msg'])) {
+		if ( isset( $_GET['msg'] ) ) {
 			$m = '';
-			switch($_GET['msg']) {
+			switch ( $_GET['msg'] ) {
 				case 'created': $m = 'Invoice created!'; break;
 				case 'updated': $m = 'Invoice updated!'; break;
 				case 'deleted': $m = 'Invoice deleted!'; break;
 				case 'paid':    $m = 'Payment recorded!'; break;
 			}
-			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
-		}
-
-		// Handle Payment
-		if (isset($_POST['an_add_payment']) && check_admin_referer('an_add_payment_nonce')) {
-			$inv_id = intval($_POST['id']);
-			$wpdb->insert($payments_table, [
-				'invoice_id'     => $inv_id,
-				'amount'         => floatval($_POST['pay_amount']),
-				'method'         => 'other',
-				'transaction_id' => '',
-				'created_at'     => current_time('mysql')
-			]);
-			// Update status if fully paid
-			$total_paid = $wpdb->get_var($wpdb->prepare("SELECT SUM(amount) FROM $payments_table WHERE invoice_id = %d", $inv_id));
-			$inv_amount = $wpdb->get_var($wpdb->prepare("SELECT amount FROM $invoices_table WHERE id = %d", $inv_id));
-			if ($total_paid >= $inv_amount) {
-				$wpdb->update($invoices_table, ['status' => 'paid'], ['id' => $inv_id]);
-			}
-			wp_redirect(admin_url('admin.php?page=an-invoices&msg=paid'));
-			exit;
+			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
 		}
 
 		if ($action === 'print' && $id) {
