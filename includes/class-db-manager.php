@@ -31,10 +31,10 @@ class Agency_Nexus_DB_Manager {
 	 */
 	private function maybe_update_db() {
 		$version = get_option( 'an_db_version', '0' );
-		// If version is less than 1.0.3 (where assigned_to was added/refined) or not set.
-		if ( version_compare( $version, '1.0.3', '<' ) ) {
+		// If version is less than 1.0.4 or not set.
+		if ( version_compare( $version, '1.0.4', '<' ) ) {
 			self::create_tables();
-			update_option( 'an_db_version', '1.0.3' );
+			update_option( 'an_db_version', '1.0.4' );
 		}
 	}
 
@@ -56,6 +56,10 @@ id bigint(20) NOT NULL AUTO_INCREMENT,
 name varchar(255) NOT NULL,
 email varchar(255) NOT NULL,
 company varchar(255) DEFAULT '' NOT NULL,
+phone varchar(50) DEFAULT '' NOT NULL,
+address text NOT NULL,
+website varchar(255) DEFAULT '' NOT NULL,
+notes text NOT NULL,
 status varchar(50) DEFAULT 'active' NOT NULL,
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)

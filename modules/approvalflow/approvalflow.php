@@ -15,6 +15,7 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
 		add_action( 'wp_ajax_an_approve_content', [ $this, 'handle_approve_content' ] );
+		add_action( 'wp_ajax_an_reject_content', [ $this, 'handle_reject_content' ] );
 		add_action( 'wp_ajax_an_disapprove_content', [ $this, 'handle_disapprove_content' ] );
 	}
 
@@ -88,6 +89,26 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 		wp_send_json_success();
 	}
 
+	public function handle_reject_content() {
+		check_ajax_referer( 'an_approval_nonce', 'security' );
+
+		global $wpdb;
+		$item_id = intval( $_POST['item_id'] );
+		$project_id = $wpdb->get_var( $wpdb->prepare( "SELECT project_id FROM {$wpdb->prefix}an_content WHERE id = %d", $item_id ) );
+
+		if ( ! Agency_Nexus_Permissions::can_view_project( $project_id ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		$wpdb->update(
+			$wpdb->prefix . 'an_content',
+			[ 'status' => 'draft' ],
+			[ 'id' => $item_id ]
+		);
+
+		wp_send_json_success();
+	}
+
 	public function handle_disapprove_content() {
 		check_ajax_referer( 'an_approval_nonce', 'security' );
 
@@ -112,10 +133,21 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 		if ( ! Agency_Nexus_Permissions::can_access_nexus() ) {
 			return;
 		}
+		global $wpdb;
+		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+		$where = "WHERE status = 'pending_approval'";
+		if ( is_array( $authorised_ids ) ) {
+			if ( empty( $authorised_ids ) ) {
+				$where .= " AND 1=0";
+			} else {
+				$where .= " AND project_id IN (" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")";
+			}
+		}
+		$pending_count = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}an_content $where" );
 		?>
 		<div class="postbox" style="padding: 20px;">
 			<h2><?php _e( 'ApprovalFlow', 'agency-nexus' ); ?></h2>
-			<p><?php _e( '2 content items are waiting for your final sign-off.', 'agency-nexus' ); ?></p>
+			<p><?php echo sprintf( _n( '%d content item is waiting for your final sign-off.', '%d content items are waiting for your final sign-off.', $pending_count, 'agency-nexus' ), $pending_count ); ?></p>
 			<a href="<?php echo admin_url( 'admin.php?page=an-approvals' ); ?>" class="button"><?php _e( 'Review Items', 'agency-nexus' ); ?></a>
 		</div>
 		<?php

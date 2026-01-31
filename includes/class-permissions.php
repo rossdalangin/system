@@ -132,6 +132,26 @@ class Agency_Nexus_Permissions {
 	}
 
 	/**
+	 * Check if user can view/manage a specific client.
+	 */
+	public static function can_view_client( $client_id ) {
+		$user_id = get_current_user_id();
+		if ( self::is_admin( $user_id ) ) return true;
+		if ( ! self::is_team_member( $user_id ) ) return false;
+
+		global $wpdb;
+		$authorised_projects = self::get_authorised_project_ids();
+		if ( empty( $authorised_projects ) ) return false;
+
+		$client_authorised = $wpdb->get_var( $wpdb->prepare(
+			"SELECT id FROM {$wpdb->prefix}an_projects WHERE client_id = %d AND id IN (" . implode( ',', array_map( 'intval', $authorised_projects ) ) . ") LIMIT 1",
+			$client_id
+		) );
+
+		return (bool) $client_authorised;
+	}
+
+	/**
 	 * Get authorized project IDs for the current user.
 	 * Returns null if the user is an admin (authorized for all).
 	 */

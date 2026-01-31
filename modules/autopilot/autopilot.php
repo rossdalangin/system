@@ -15,6 +15,7 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
 		add_action( 'admin_init', [ $this, 'handle_post' ] );
+		add_action( 'agency_nexus_project_status_updated', [ $this, 'maybe_trigger_project_automations' ], 10, 2 );
 	}
 
 	public function handle_post() {
@@ -186,6 +187,40 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Trigger automations based on project status changes.
+	 */
+	public function maybe_trigger_project_automations( $project_id, $new_status ) {
+		global $wpdb;
+		$trigger = ( 'completed' === $new_status ) ? 'project_completed' : '';
+		if ( ! $trigger ) return;
+
+		$rules = $wpdb->get_results( $wpdb->prepare(
+			"SELECT * FROM {$wpdb->prefix}an_autopilot_rules WHERE trigger_evt = %s AND is_active = 1",
+			$trigger
+		) );
+
+		foreach ( $rules as $rule ) {
+			$this->execute_action( $rule, $project_id );
+		}
+	}
+
+	/**
+	 * Execute the action defined in the rule.
+	 */
+	private function execute_action( $rule, $project_id ) {
+		// Simulation of action execution.
+		// In a real plugin, this would send emails, Slack messages, or hit Zapier.
+		error_log( sprintf( "[AutoPilot] Executing automation '%s' for Project ID %d", $rule->title, $project_id ) );
+
+		if ( 'zapier_hook' === $rule->action_evt ) {
+			$webhook = get_option( 'an_zapier_webhook' );
+			if ( $webhook ) {
+				wp_remote_post( $webhook, [ 'body' => [ 'project_id' => $project_id, 'event' => $rule->trigger_evt ] ] );
+			}
+		}
 	}
 
 	public function render_dashboard_widget() {

@@ -16,7 +16,7 @@
 
 				<div style="display: flex; gap: 10px;">
 					<button class="button button-primary approve-btn" data-id="<?php echo $item->id; ?>"><?php _e( 'Approve', 'agency-nexus' ); ?></button>
-					<button class="button reject-btn"><?php _e( 'Request Changes', 'agency-nexus' ); ?></button>
+					<button class="button reject-btn" data-id="<?php echo $item->id; ?>"><?php _e( 'Request Changes', 'agency-nexus' ); ?></button>
 				</div>
 			</div>
 		<?php endforeach; else : ?>
@@ -88,6 +88,27 @@ jQuery(document).ready(function($) {
 			} else {
 				alert('Approval failed');
 				btn.prop('disabled', false).text('Approve');
+			}
+		});
+	});
+
+	$('.reject-btn').on('click', function() {
+		const btn = $(this);
+		const id = btn.data('id');
+		btn.prop('disabled', true).text('Processing...');
+
+		const data = {
+			action: 'an_reject_content',
+			item_id: id,
+			security: $('#security').val()
+		};
+
+		$.post(ajaxurl, data, function(response) {
+			if (response.success) {
+				btn.closest('.approval-card').fadeOut();
+			} else {
+				alert('Rejection failed');
+				btn.prop('disabled', false).text('Request Changes');
 			}
 		});
 	});

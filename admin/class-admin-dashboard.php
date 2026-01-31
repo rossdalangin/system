@@ -58,9 +58,46 @@ class Agency_Nexus_Admin_Dashboard {
 		}
 
 		if ( 'an-clients' === $page ) {
+			if ( isset( $_POST['an_create_client_user'] ) && check_admin_referer( 'an_create_client_user_nonce' ) ) {
+				$this->handle_client_user_creation();
+			}
 			$this->process_client_actions();
 		} elseif ( 'an-projects' === $page ) {
 			$this->process_project_actions();
+		}
+	}
+
+	/**
+	 * Create a WordPress user for a client.
+	 */
+	private function handle_client_user_creation() {
+		if ( ! current_user_can( 'manage_options' ) ) return;
+
+		$client_id = intval( $_POST['client_id'] );
+		global $wpdb;
+		$client = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_clients WHERE id = %d", $client_id ) );
+
+		if ( ! $client ) return;
+
+		$username = strtolower( str_replace( ' ', '_', $client->name ) );
+		if ( username_exists( $username ) ) {
+			$username .= '_' . $client_id;
+		}
+
+		if ( email_exists( $client->email ) ) {
+			wp_redirect( admin_url( 'admin.php?page=an-clients&action=view&id=' . $client_id . '&msg=email_exists' ) );
+			exit;
+		}
+
+		$password = wp_generate_password();
+		$user_id = wp_create_user( $username, $password, $client->email );
+
+		if ( ! is_wp_error( $user_id ) ) {
+			$user = new WP_User( $user_id );
+			$user->set_role( 'subscriber' );
+			wp_update_user( [ 'ID' => $user_id, 'display_name' => $client->name ] );
+			wp_redirect( admin_url( 'admin.php?page=an-clients&action=view&id=' . $client_id . '&msg=user_created' ) );
+			exit;
 		}
 	}
 
@@ -76,7 +113,7 @@ class Agency_Nexus_Admin_Dashboard {
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
 		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		if ( $id && ! Agency_Nexus_Permissions::can_view_project( $id ) ) {
+		if ( $id && ! Agency_Nexus_Permissions::can_view_client( $id ) ) {
 			return;
 		}
 
@@ -96,7 +133,11 @@ class Agency_Nexus_Admin_Dashboard {
 			$data = [
 				'name'    => sanitize_text_field( $_POST['name'] ),
 				'email'   => sanitize_email( $_POST['email'] ),
-				'company' => isset( $_POST['company'] ) ? sanitize_text_field( $_POST['company'] ) : ''
+				'company' => isset( $_POST['company'] ) ? sanitize_text_field( $_POST['company'] ) : '',
+				'phone'   => isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '',
+				'address' => isset( $_POST['address'] ) ? sanitize_textarea_field( $_POST['address'] ) : '',
+				'website' => isset( $_POST['website'] ) ? esc_url_raw( $_POST['website'] ) : '',
+				'notes'   => isset( $_POST['notes'] ) ? sanitize_textarea_field( $_POST['notes'] ) : '',
 			];
 			if ( $id ) {
 				$wpdb->update( $table_name, $data, [ 'id' => $id ] );
@@ -148,9 +189,11 @@ class Agency_Nexus_Admin_Dashboard {
 			if ( $id ) {
 				$wpdb->update( $projects_table, $data, [ 'id' => $id ] );
 				$msg = 'updated';
+				do_action( 'agency_nexus_project_status_updated', $id, $data['status'] );
 			} else {
 				$wpdb->insert( $projects_table, $data );
 				$msg = 'created';
+				do_action( 'agency_nexus_project_status_updated', $wpdb->insert_id, $data['status'] );
 			}
 			wp_redirect( admin_url( 'admin.php?page=an-projects&msg=' . $msg ) );
 			exit;
@@ -277,9 +320,14 @@ class Agency_Nexus_Admin_Dashboard {
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
 		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		if ( $id && ! Agency_Nexus_Permissions::can_view_project( $id ) ) {
-			echo '<div class="error"><p>Unauthorized</p></div>';
-			return;
+		if ( $id ) {
+			if ( Agency_Nexus_Permissions::is_client() ) {
+				if ( Agency_Nexus_Permissions::get_client_id_for_user(get_current_user_id()) !== $id ) {
+					echo '<div class="error"><p>Unauthorized</p></div>'; return;
+				}
+			} elseif ( ! Agency_Nexus_Permissions::can_view_client( $id ) ) {
+				echo '<div class="error"><p>Unauthorized</p></div>'; return;
+			}
 		}
 
 		if ( isset( $_GET['msg'] ) ) {
@@ -288,8 +336,15 @@ class Agency_Nexus_Admin_Dashboard {
 				case 'added': $m = 'Client added!'; break;
 				case 'updated': $m = 'Client updated!'; break;
 				case 'deleted': $m = 'Client deleted!'; break;
+				case 'user_created': $m = 'WordPress user created for client!'; break;
+				case 'email_exists': $m = 'Error: A user with this email already exists.'; break;
 			}
 			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
+		}
+
+		if ( $action === 'view' && $id ) {
+			$this->render_client_profile($id);
+			return;
 		}
 
 		if ($action === 'edit' || $action === 'add') {
@@ -323,6 +378,34 @@ class Agency_Nexus_Admin_Dashboard {
 							<td>
 								<input type="text" name="company" id="company" value="<?php echo $client ? esc_attr($client->company) : ''; ?>" class="regular-text">
 								<p class="description"><?php _e('The legal name of the client\'s organization. e.g., Acme Corp', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="phone">Phone</label></th>
+							<td>
+								<input type="text" name="phone" id="phone" value="<?php echo $client ? esc_attr($client->phone) : ''; ?>" class="regular-text">
+								<p class="description"><?php _e('Primary contact phone number. e.g., +1-555-0199', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="website">Website</label></th>
+							<td>
+								<input type="url" name="website" id="website" value="<?php echo $client ? esc_attr($client->website) : ''; ?>" class="regular-text">
+								<p class="description"><?php _e('Client\'s corporate website. e.g., https://acme.com', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="address">Address</label></th>
+							<td>
+								<textarea name="address" id="address" rows="3" class="regular-text"><?php echo $client ? esc_textarea($client->address) : ''; ?></textarea>
+								<p class="description"><?php _e('Business physical address.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="notes">Internal Notes</label></th>
+							<td>
+								<textarea name="notes" id="notes" rows="5" class="regular-text"><?php echo $client ? esc_textarea($client->notes) : ''; ?></textarea>
+								<p class="description"><?php _e('Confidential notes about this client (Internal use only).', 'agency-nexus'); ?></p>
 							</td>
 						</tr>
 					</table>
@@ -377,12 +460,13 @@ class Agency_Nexus_Admin_Dashboard {
 					<?php if ( $clients ) : foreach ( $clients as $client ) : ?>
 						<tr>
 							<td><?php echo $client->id; ?></td>
-							<td><strong><a href="?page=an-clients&action=edit&id=<?php echo $client->id; ?>"><?php echo esc_html( $client->name ); ?></a></strong></td>
+							<td><strong><a href="?page=an-clients&action=view&id=<?php echo $client->id; ?>"><?php echo esc_html( $client->name ); ?></a></strong></td>
 							<td><?php echo esc_html( $client->email ); ?></td>
 							<td><?php echo esc_html( $client->company ); ?></td>
 							<td><?php echo $client->created_at; ?></td>
 							<td>
-								<a href="?page=an-clients&action=edit&id=<?php echo $client->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a> |
+								<a href="?page=an-clients&action=view&id=<?php echo $client->id; ?>"><?php _e('Profile', 'agency-nexus'); ?></a> |
+								<a href="?page=an-clients&action=edit&id=<?php echo $client->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a>
 								<?php if ( Agency_Nexus_Permissions::is_admin() ) : ?>
 								| <a href="<?php echo wp_nonce_url('?page=an-clients&action=delete&id=' . $client->id, 'an_delete_client_' . $client->id); ?>" style="color:red;" onclick="return confirm('Delete this client?')"><?php _e('Delete', 'agency-nexus'); ?></a>
 								<?php endif; ?>
@@ -423,20 +507,113 @@ class Agency_Nexus_Admin_Dashboard {
 			<p><strong><?php _e('How to assign tasks:', 'agency-nexus'); ?></strong> <?php _e('Navigate to a specific Project, and use the "Add Task" form to create and assign tasks to any of the team members listed below. Any WordPress user role (Subscriber to Administrator) can be assigned tasks.', 'agency-nexus'); ?></p>
 
 			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>User</th><th>Email</th><th>WP Role</th><th>Productivity</th></tr></thead>
+				<thead><tr><th>User</th><th>Email</th><th>Lead Projects</th><th>Active Tasks</th><th>Productivity</th></tr></thead>
 				<tbody>
-					<?php foreach ($users as $user) : ?>
+					<?php foreach ($users as $user) :
+						$lp_count = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}an_projects WHERE assigned_to = %d", $user->ID));
+						$at_count = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}an_tasks WHERE assigned_to = %d AND status != 'completed'", $user->ID));
+					?>
 						<tr>
-							<td><strong><?php echo esc_html($user->display_name); ?></strong></td>
+							<td><strong><a href="?page=an-team&action=performance&user_id=<?php echo $user->ID; ?>"><?php echo esc_html($user->display_name); ?></a></strong><br><small><?php echo implode(', ', $user->roles); ?></small></td>
 							<td><?php echo esc_html($user->user_email); ?></td>
-							<td><?php echo implode(', ', $user->roles); ?></td>
+							<td><?php echo $lp_count; ?></td>
+							<td><?php echo $at_count; ?></td>
 							<td>
-								<a href="?page=an-team&action=performance&user_id=<?php echo $user->ID; ?>" class="button button-small"><?php _e('View Performance', 'agency-nexus'); ?></a>
+								<a href="?page=an-team&action=performance&user_id=<?php echo $user->ID; ?>" class="button button-small"><?php _e('View Profile', 'agency-nexus'); ?></a>
 							</td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>
 			</table>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render the client profile view.
+	 */
+	private function render_client_profile($client_id) {
+		global $wpdb;
+		$client = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}an_clients WHERE id = %d", $client_id));
+		if (!$client) return;
+
+		$projects = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}an_projects WHERE client_id = %d", $client_id));
+		$invoices = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}an_invoices WHERE client_id = %d", $client_id));
+		$files    = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}an_shared_files WHERE client_id = %d", $client_id));
+		$user     = get_user_by('email', $client->email);
+
+		?>
+		<div class="wrap">
+			<h1><?php echo esc_html($client->name); ?> <small>(<?php echo esc_html($client->company); ?>)</small></h1>
+
+			<div style="display: flex; gap: 20px; margin-top: 20px;">
+				<div style="flex: 1;">
+					<div class="postbox" style="padding: 20px;">
+						<h2><?php _e('Contact Information', 'agency-nexus'); ?></h2>
+						<p><strong><?php _e('Email:', 'agency-nexus'); ?></strong> <?php echo esc_html($client->email); ?></p>
+						<p><strong><?php _e('Phone:', 'agency-nexus'); ?></strong> <?php echo esc_html($client->phone); ?></p>
+						<p><strong><?php _e('Website:', 'agency-nexus'); ?></strong> <?php if($client->website): ?><a href="<?php echo esc_url($client->website); ?>" target="_blank"><?php echo esc_html($client->website); ?></a><?php endif; ?></p>
+						<p><strong><?php _e('Address:', 'agency-nexus'); ?></strong><br><?php echo nl2br(esc_html($client->address)); ?></p>
+						<hr>
+						<p><strong><?php _e('User Account:', 'agency-nexus'); ?></strong>
+							<?php if ($user) : ?>
+								<span class="badge" style="background: #46b450; color: #fff; padding: 2px 8px; border-radius: 4px;"><?php _e('Linked', 'agency-nexus'); ?></span> (<?php echo $user->user_login; ?>)
+							<?php else : ?>
+								<span class="badge" style="background: #ccc; padding: 2px 8px; border-radius: 4px;"><?php _e('No WP Account', 'agency-nexus'); ?></span>
+								<?php if (current_user_can('manage_options')) : ?>
+									<form method="post" style="display:inline; margin-left: 10px;">
+										<?php wp_nonce_field('an_create_client_user_nonce'); ?>
+										<input type="hidden" name="client_id" value="<?php echo $client->id; ?>">
+										<input type="submit" name="an_create_client_user" class="button button-small" value="<?php _e('Create WP User', 'agency-nexus'); ?>">
+									</form>
+								<?php endif; ?>
+							<?php endif; ?>
+						</p>
+					</div>
+
+					<div class="postbox" style="padding: 20px;">
+						<h2><?php _e('Internal Notes', 'agency-nexus'); ?></h2>
+						<div style="background: #fff9c4; padding: 10px; border-left: 4px solid #fbc02d;">
+							<?php echo $client->notes ? nl2br(esc_html($client->notes)) : __('No internal notes.', 'agency-nexus'); ?>
+						</div>
+					</div>
+				</div>
+
+				<div style="flex: 2;">
+					<div class="postbox" style="padding: 20px;">
+						<h2><?php _e('Active Projects', 'agency-nexus'); ?></h2>
+						<table class="wp-list-table widefat fixed striped">
+							<thead><tr><th>Title</th><th>Status</th><th>Budget</th></tr></thead>
+							<tbody>
+								<?php foreach ($projects as $p) : ?>
+									<tr>
+										<td><strong><a href="?page=an-projects&action=view&id=<?php echo $p->id; ?>"><?php echo esc_html($p->title); ?></a></strong></td>
+										<td><?php echo ucfirst($p->status); ?></td>
+										<td>$<?php echo number_format($p->budget, 2); ?></td>
+									</tr>
+								<?php endforeach; if(empty($projects)) echo '<tr><td colspan="3">No projects.</td></tr>'; ?>
+							</tbody>
+						</table>
+					</div>
+
+					<div class="postbox" style="padding: 20px;">
+						<h2><?php _e('Invoices', 'agency-nexus'); ?></h2>
+						<table class="wp-list-table widefat fixed striped">
+							<thead><tr><th>Number</th><th>Amount</th><th>Status</th></tr></thead>
+							<tbody>
+								<?php foreach ($invoices as $i) : ?>
+									<tr>
+										<td><?php echo esc_html($i->number); ?></td>
+										<td>$<?php echo number_format($i->amount, 2); ?></td>
+										<td><?php echo ucfirst($i->status); ?></td>
+									</tr>
+								<?php endforeach; if(empty($invoices)) echo '<tr><td colspan="3">No invoices.</td></tr>'; ?>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<a href="?page=an-clients" class="button"><?php _e('Back to List', 'agency-nexus'); ?></a>
 		</div>
 		<?php
 	}
@@ -457,39 +634,70 @@ class Agency_Nexus_Admin_Dashboard {
 		$total_hours = round($total_seconds / 3600, 2);
 
 		$assigned_tasks = $wpdb->get_results($wpdb->prepare("SELECT * FROM $tasks_table WHERE assigned_to = %d", $user_id));
+		$lead_projects = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}an_projects WHERE assigned_to = %d", $user_id));
 
 		?>
 		<div class="wrap">
-			<h1><?php echo sprintf(__('Performance Report: %s', 'agency-nexus'), esc_html($user->display_name)); ?></h1>
-			<div class="postbox" style="padding: 20px; margin-top: 20px;">
-				<h3>Overview</h3>
-				<div style="display: flex; gap: 40px;">
-					<div>
-						<span style="font-size: 14px; color: #666;"><?php _e('Total Hours Logged', 'agency-nexus'); ?></span>
-						<div style="font-size: 24px; font-weight: bold;"><?php echo $total_hours; ?> hrs</div>
-					</div>
-					<div>
-						<span style="font-size: 14px; color: #666;"><?php _e('Active Tasks', 'agency-nexus'); ?></span>
-						<div style="font-size: 24px; font-weight: bold;"><?php echo count($assigned_tasks); ?></div>
+			<h1><?php echo sprintf(__('Team Member Profile: %s', 'agency-nexus'), esc_html($user->display_name)); ?></h1>
+
+			<div style="display: flex; gap: 20px; margin-top: 20px;">
+				<div style="flex: 1;">
+					<div class="postbox" style="padding: 20px;">
+						<h3>Overview</h3>
+						<p><strong><?php _e('Role:', 'agency-nexus'); ?></strong> <?php echo implode(', ', $user->roles); ?></p>
+						<p><strong><?php _e('Email:', 'agency-nexus'); ?></strong> <?php echo esc_html($user->user_email); ?></p>
+						<hr>
+						<div style="display: flex; justify-content: space-around; text-align: center;">
+							<div>
+								<span style="font-size: 12px; color: #666;"><?php _e('Hours Logged', 'agency-nexus'); ?></span>
+								<div style="font-size: 20px; font-weight: bold;"><?php echo $total_hours; ?></div>
+							</div>
+							<div>
+								<span style="font-size: 12px; color: #666;"><?php _e('Lead Projects', 'agency-nexus'); ?></span>
+								<div style="font-size: 20px; font-weight: bold;"><?php echo count($lead_projects); ?></div>
+							</div>
+							<div>
+								<span style="font-size: 12px; color: #666;"><?php _e('Assigned Tasks', 'agency-nexus'); ?></span>
+								<div style="font-size: 20px; font-weight: bold;"><?php echo count($assigned_tasks); ?></div>
+							</div>
+						</div>
 					</div>
 				</div>
 
-				<hr>
-				<h3>Assigned Tasks</h3>
-				<table class="wp-list-table widefat fixed striped">
-					<thead><tr><th>Task</th><th>Project</th><th>Status</th></tr></thead>
-					<tbody>
-						<?php foreach ($assigned_tasks as $task) :
-							$project_title = $wpdb->get_var($wpdb->prepare("SELECT title FROM {$wpdb->prefix}an_projects WHERE id = %d", $task->project_id));
-						?>
-							<tr>
-								<td><?php echo esc_html($task->title); ?></td>
-								<td><?php echo esc_html($project_title); ?></td>
-								<td><?php echo esc_html($task->status); ?></td>
-							</tr>
-						<?php endforeach; ?>
-					</tbody>
-				</table>
+				<div style="flex: 2;">
+					<div class="postbox" style="padding: 20px;">
+						<h3><?php _e('Projects as Lead', 'agency-nexus'); ?></h3>
+						<table class="wp-list-table widefat fixed striped">
+							<thead><tr><th>Project</th><th>Status</th></tr></thead>
+							<tbody>
+								<?php foreach ($lead_projects as $lp) : ?>
+									<tr>
+										<td><strong><a href="?page=an-projects&action=view&id=<?php echo $lp->id; ?>"><?php echo esc_html($lp->title); ?></a></strong></td>
+										<td><?php echo ucfirst($lp->status); ?></td>
+									</tr>
+								<?php endforeach; if(empty($lead_projects)) echo '<tr><td colspan="2">No projects led.</td></tr>'; ?>
+							</tbody>
+						</table>
+					</div>
+
+					<div class="postbox" style="padding: 20px;">
+						<h3><?php _e('Assigned Tasks', 'agency-nexus'); ?></h3>
+						<table class="wp-list-table widefat fixed striped">
+							<thead><tr><th>Task</th><th>Project</th><th>Status</th></tr></thead>
+							<tbody>
+								<?php foreach ($assigned_tasks as $task) :
+									$project_title = $wpdb->get_var($wpdb->prepare("SELECT title FROM {$wpdb->prefix}an_projects WHERE id = %d", $task->project_id));
+								?>
+									<tr>
+										<td><?php echo esc_html($task->title); ?></td>
+										<td><?php echo esc_html($project_title); ?></td>
+										<td><?php echo ucfirst($task->status); ?></td>
+									</tr>
+								<?php endforeach; if(empty($assigned_tasks)) echo '<tr><td colspan="3">No tasks assigned.</td></tr>'; ?>
+							</tbody>
+						</table>
+					</div>
+				</div>
 			</div>
 			<a href="?page=an-team" class="button"><?php _e('Back to Team', 'agency-nexus'); ?></a>
 		</div>

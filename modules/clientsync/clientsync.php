@@ -199,10 +199,34 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		global $wpdb;
+		$user_id = get_current_user_id();
+		$where = "WHERE is_read = 0 AND sender_id != $user_id";
+
+		if ( Agency_Nexus_Permissions::is_client() ) {
+			$client_id = Agency_Nexus_Permissions::get_client_id_for_user($user_id);
+			$where .= $wpdb->prepare(" AND client_id = %d", $client_id);
+		} else {
+			$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+			if ( is_array( $authorised_ids ) ) {
+				if ( empty( $authorised_ids ) ) {
+					$where .= " AND 1=0";
+				} else {
+					$client_ids = $wpdb->get_col( "SELECT client_id FROM {$wpdb->prefix}an_projects WHERE id IN (" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")" );
+					if ( ! empty( $client_ids ) ) {
+						$where .= " AND client_id IN (" . implode( ',', array_map( 'intval', array_unique($client_ids) ) ) . ")";
+					} else {
+						$where .= " AND 1=0";
+					}
+				}
+			}
+		}
+
+		$unread_count = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}an_messages $where" );
 		?>
 		<div class="postbox" style="padding: 20px;">
 			<h2><?php _e( 'ClientSync', 'agency-nexus' ); ?></h2>
-			<p><?php _e( 'You have 3 unread messages from clients.', 'agency-nexus' ); ?></p>
+			<p><?php echo sprintf( _n( 'You have %d unread message.', 'You have %d unread messages.', $unread_count, 'agency-nexus' ), $unread_count ); ?></p>
 			<a href="<?php echo admin_url( 'admin.php?page=an-messages' ); ?>" class="button"><?php _e( 'Open Inbox', 'agency-nexus' ); ?></a>
 		</div>
 		<?php
