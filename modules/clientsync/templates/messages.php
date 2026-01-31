@@ -49,7 +49,7 @@
 				</div>
 				<?php endif; ?>
 				<form id="an-message-form">
-					<?php wp_nonce_field( 'an_message_nonce', 'security' ); ?>
+					<?php wp_nonce_field( 'an_clientsync_nonce', 'security' ); ?>
 					<input type="hidden" name="client_id" id="chat-client-id">
 					<div style="display: flex; gap: 10px;">
 						<textarea name="message" id="chat-message-text" style="flex: 1; height: 60px;" placeholder="<?php _e( 'Type your message...', 'agency-nexus' ); ?>" disabled></textarea>
@@ -199,17 +199,29 @@ jQuery(document).ready(function($) {
 
 	$('#an-message-form').on('submit', function(e) {
 		e.preventDefault();
-		const msgText = $('#chat-message-text').val();
+		const $msgInput = $('#chat-message-text');
+		const msgText = $msgInput.val();
 		const clientId = $('#chat-client-id').val();
-		if (!msgText) return;
+		const $btn = $('#send-msg-btn');
 
-		$('#chat-message-text').val('');
+		if (!msgText.trim()) return;
+
+		$msgInput.prop('disabled', true);
+		$btn.prop('disabled', true);
 
 		const data = $(this).serialize() + '&action=an_send_message';
 		$.post(ajaxurl, data, function(response) {
 			if (response.success) {
+				$msgInput.val('');
 				loadMessages(clientId);
+			} else {
+				alert('Error: ' + (response.data || 'Unknown error occurred while sending message.'));
 			}
+		}).fail(function() {
+			alert('Failed to send message. Please check your connection and try again.');
+		}).always(function() {
+			$msgInput.prop('disabled', false).focus();
+			$btn.prop('disabled', false);
 		});
 	});
 });

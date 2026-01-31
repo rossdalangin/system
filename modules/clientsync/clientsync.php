@@ -80,7 +80,7 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	 * AJAX handler for fetching messages.
 	 */
 	public function handle_get_messages() {
-		check_ajax_referer( 'an_message_nonce', 'security' );
+		check_ajax_referer( 'an_clientsync_nonce', 'security' );
 
 		$client_id = intval( $_POST['client_id'] );
 		if ( ! Agency_Nexus_Permissions::can_access_messages( $client_id ) ) {
@@ -104,7 +104,7 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	 * AJAX handler for sharing files.
 	 */
 	public function handle_share_file() {
-		check_ajax_referer( 'an_message_nonce', 'security' );
+		check_ajax_referer( 'an_clientsync_nonce', 'security' );
 
 		$client_id = intval( $_POST['client_id'] );
 		if ( ! Agency_Nexus_Permissions::can_access_messages( $client_id ) ) {
@@ -132,7 +132,7 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	 * AJAX handler for deleting a message.
 	 */
 	public function handle_delete_message() {
-		check_ajax_referer( 'an_message_nonce', 'security' );
+		check_ajax_referer( 'an_clientsync_nonce', 'security' );
 		if ( ! Agency_Nexus_Permissions::is_team_member() ) wp_send_json_error( 'Unauthorized' );
 		global $wpdb;
 		$wpdb->delete( $wpdb->prefix . 'an_messages', [ 'id' => intval( $_POST['message_id'] ) ] );
@@ -143,7 +143,7 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	 * AJAX handler for deleting a file.
 	 */
 	public function handle_delete_file() {
-		check_ajax_referer( 'an_message_nonce', 'security' );
+		check_ajax_referer( 'an_clientsync_nonce', 'security' );
 		if ( ! Agency_Nexus_Permissions::is_team_member() ) wp_send_json_error( 'Unauthorized' );
 		global $wpdb;
 		$wpdb->delete( $wpdb->prefix . 'an_shared_files', [ 'id' => intval( $_POST['file_id'] ) ] );
@@ -154,7 +154,7 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	 * AJAX handler for fetching shared files.
 	 */
 	public function handle_get_files() {
-		check_ajax_referer( 'an_message_nonce', 'security' );
+		check_ajax_referer( 'an_clientsync_nonce', 'security' );
 
 		$client_id = intval( $_POST['client_id'] );
 		if ( ! Agency_Nexus_Permissions::can_access_messages( $client_id ) ) {
@@ -176,7 +176,7 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	 * AJAX handler for sending messages.
 	 */
 	public function handle_send_message() {
-		check_ajax_referer( 'an_message_nonce', 'security' );
+		check_ajax_referer( 'an_clientsync_nonce', 'security' );
 
 		$client_id = intval( $_POST['client_id'] );
 		if ( ! Agency_Nexus_Permissions::can_access_messages( $client_id ) ) {
@@ -184,16 +184,25 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 		}
 
 		global $wpdb;
-		$message   = sanitize_textarea_field( $_POST['message'] );
+		$message = isset( $_POST['message'] ) ? sanitize_textarea_field( $_POST['message'] ) : '';
 
-		$wpdb->insert(
+		if ( empty( $message ) ) {
+			wp_send_json_error( 'Message content is required.' );
+		}
+
+		$result = $wpdb->insert(
 			$wpdb->prefix . 'an_messages',
 			[
-				'client_id' => $client_id,
-				'sender_id' => get_current_user_id(),
-				'message'   => $message
+				'client_id'  => $client_id,
+				'sender_id'  => get_current_user_id(),
+				'message'    => $message,
+				'created_at' => current_time( 'mysql' )
 			]
 		);
+
+		if ( false === $result ) {
+			wp_send_json_error( 'Failed to save message to the database: ' . $wpdb->last_error );
+		}
 
 		wp_send_json_success();
 	}
