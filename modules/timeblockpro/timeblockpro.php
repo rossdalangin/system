@@ -18,7 +18,7 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 	}
 
 	public function handle_post() {
-		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+		if ( ! is_admin() || ! Agency_Nexus_Permissions::is_team_member() ) {
 			return;
 		}
 
@@ -57,14 +57,16 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 	}
 
 	public function register_submenu() {
-		add_submenu_page(
-			'agency-nexus',
-			__( 'Time Blocking', 'agency-nexus' ),
-			__( 'Time Blocking', 'agency-nexus' ),
-			'manage_options',
-			'an-time-blocking',
-			[ $this, 'render_dashboard' ]
-		);
+		if ( Agency_Nexus_Permissions::is_team_member() ) {
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Time Blocking', 'agency-nexus' ),
+				__( 'Time Blocking', 'agency-nexus' ),
+				'read',
+				'an-time-blocking',
+				[ $this, 'render_dashboard' ]
+			);
+		}
 	}
 
 	public function render_dashboard() {
@@ -117,6 +119,9 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+			return;
+		}
 		?>
 		<div class="postbox" style="padding: 20px;">
 			<h2><?php _e( 'TimeBlock Pro', 'agency-nexus' ); ?></h2>

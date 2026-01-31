@@ -36,6 +36,72 @@ class Agency_Nexus_API_Handler {
 			'callback'            => [ $this, 'get_status' ],
 			'permission_callback' => '__return_true',
 		] );
+
+		register_rest_route( $this->namespace, '/projects', [
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'get_projects' ],
+			'permission_callback' => [ $this, 'check_permission' ],
+		] );
+
+		register_rest_route( $this->namespace, '/projects/(?P<id>\d+)/tasks', [
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'get_project_tasks' ],
+			'permission_callback' => [ $this, 'check_permission' ],
+		] );
+
+		register_rest_route( $this->namespace, '/messages', [
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'get_messages' ],
+			'permission_callback' => [ $this, 'check_permission' ],
+		] );
+	}
+
+	/**
+	 * Permission check for API routes.
+	 */
+	public function check_permission() {
+		return Agency_Nexus_Permissions::can_access_nexus();
+	}
+
+	/**
+	 * Get projects list.
+	 */
+	public function get_projects() {
+		global $wpdb;
+		$query = "SELECT * FROM {$wpdb->prefix}an_projects";
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+			$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
+			$query .= $wpdb->prepare( " WHERE client_id = %d", $client_id );
+		}
+		return new WP_REST_Response( $wpdb->get_results( $query ), 200 );
+	}
+
+	/**
+	 * Get tasks for a specific project.
+	 */
+	public function get_project_tasks( $request ) {
+		$project_id = $request['id'];
+		if ( ! Agency_Nexus_Permissions::can_view_project( $project_id ) ) {
+			return new WP_Error( 'rest_forbidden', 'Unauthorized', [ 'status' => 403 ] );
+		}
+
+		global $wpdb;
+		$tasks = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_tasks WHERE project_id = %d", $project_id ) );
+		return new WP_REST_Response( $tasks, 200 );
+	}
+
+	/**
+	 * Get messages.
+	 */
+	public function get_messages() {
+		global $wpdb;
+		if ( Agency_Nexus_Permissions::is_team_member() ) {
+			$messages = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_messages ORDER BY created_at DESC LIMIT 50" );
+		} else {
+			$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
+			$messages = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_messages WHERE client_id = %d ORDER BY created_at DESC", $client_id ) );
+		}
+		return new WP_REST_Response( $messages, 200 );
 	}
 
 	/**

@@ -19,7 +19,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 	}
 
 	public function handle_post() {
-		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+		if ( ! is_admin() || ! Agency_Nexus_Permissions::is_team_member() ) {
 			return;
 		}
 
@@ -121,23 +121,25 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 	}
 
 	public function register_submenu() {
-		add_submenu_page(
-			'agency-nexus',
-			__( 'Expenses', 'agency-nexus' ),
-			__( 'Expenses', 'agency-nexus' ),
-			'manage_options',
-			'an-expenses',
-			[ $this, 'render_expenses' ]
-		);
+		if ( Agency_Nexus_Permissions::is_team_member() ) {
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Expenses', 'agency-nexus' ),
+				__( 'Expenses', 'agency-nexus' ),
+				'read',
+				'an-expenses',
+				[ $this, 'render_expenses' ]
+			);
 
-		add_submenu_page(
-			'agency-nexus',
-			__( 'Invoices', 'agency-nexus' ),
-			__( 'Invoices', 'agency-nexus' ),
-			'manage_options',
-			'an-invoices',
-			[ $this, 'render_invoices' ]
-		);
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Invoices', 'agency-nexus' ),
+				__( 'Invoices', 'agency-nexus' ),
+				'read',
+				'an-invoices',
+				[ $this, 'render_invoices' ]
+			);
+		}
 	}
 
 	public function enqueue_scripts( $hook ) {
@@ -489,6 +491,9 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+			return;
+		}
 		global $wpdb;
 		$projects = $wpdb->get_results( "SELECT id, budget FROM {$wpdb->prefix}an_projects" );
 

@@ -18,7 +18,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 	}
 
 	public function handle_post() {
-		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+		if ( ! is_admin() || ! Agency_Nexus_Permissions::is_team_member() ) {
 			return;
 		}
 
@@ -95,23 +95,25 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 	}
 
 	public function register_submenu() {
-		add_submenu_page(
-			'agency-nexus',
-			__( 'Leads', 'agency-nexus' ),
-			__( 'Leads', 'agency-nexus' ),
-			'manage_options',
-			'an-leads',
-			[ $this, 'render_leads' ]
-		);
+		if ( Agency_Nexus_Permissions::is_team_member() ) {
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Leads', 'agency-nexus' ),
+				__( 'Leads', 'agency-nexus' ),
+				'read',
+				'an-leads',
+				[ $this, 'render_leads' ]
+			);
 
-		add_submenu_page(
-			'agency-nexus',
-			__( 'Canned Responses', 'agency-nexus' ),
-			__( 'Canned Responses', 'agency-nexus' ),
-			'manage_options',
-			'an-canned-responses',
-			[ $this, 'render_canned_responses' ]
-		);
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Canned Responses', 'agency-nexus' ),
+				__( 'Canned Responses', 'agency-nexus' ),
+				'read',
+				'an-canned-responses',
+				[ $this, 'render_canned_responses' ]
+			);
+		}
 	}
 
 	public function render_leads() {
@@ -259,6 +261,9 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+			return;
+		}
 		global $wpdb;
 		$leads_table = $wpdb->prefix . 'an_leads';
 

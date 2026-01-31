@@ -23,7 +23,7 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 			'agency-nexus',
 			__( 'Approvals', 'agency-nexus' ),
 			__( 'Approvals', 'agency-nexus' ),
-			'manage_options',
+			'read',
 			'an-approvals',
 			[ $this, 'render_approvals' ]
 		);
@@ -31,17 +31,26 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 
 	public function render_approvals() {
 		global $wpdb;
+		$where_pending = "WHERE c.status = 'pending_approval'";
+		$where_history = "WHERE c.status != 'pending_approval'";
+
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+			$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
+			$where_pending .= $wpdb->prepare( " AND p.client_id = %d", $client_id );
+			$where_history .= $wpdb->prepare( " AND p.client_id = %d", $client_id );
+		}
+
 		$pending_items = $wpdb->get_results( "
 			SELECT c.*, p.title as project_title
 			FROM {$wpdb->prefix}an_content c
 			JOIN {$wpdb->prefix}an_projects p ON c.project_id = p.id
-			WHERE c.status = 'pending_approval'
+			$where_pending
 		" );
 		$history = $wpdb->get_results( "
 			SELECT c.*, p.title as project_title
 			FROM {$wpdb->prefix}an_content c
 			JOIN {$wpdb->prefix}an_projects p ON c.project_id = p.id
-			WHERE c.status != 'pending_approval'
+			$where_history
 			ORDER BY c.created_at DESC LIMIT 20
 		" );
 		$this->get_template( 'approvals', [ 'pending_items' => $pending_items, 'history' => $history ] );
@@ -50,12 +59,13 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 	public function handle_approve_content() {
 		check_ajax_referer( 'an_approval_nonce', 'security' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Unauthorized' );
-		}
-
 		global $wpdb;
 		$item_id = intval( $_POST['item_id'] );
+		$project_id = $wpdb->get_var( $wpdb->prepare( "SELECT project_id FROM {$wpdb->prefix}an_content WHERE id = %d", $item_id ) );
+
+		if ( ! Agency_Nexus_Permissions::can_view_project( $project_id ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
 
 		$wpdb->update(
 			$wpdb->prefix . 'an_content',
@@ -69,12 +79,13 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 	public function handle_disapprove_content() {
 		check_ajax_referer( 'an_approval_nonce', 'security' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Unauthorized' );
-		}
-
 		global $wpdb;
 		$item_id = intval( $_POST['item_id'] );
+		$project_id = $wpdb->get_var( $wpdb->prepare( "SELECT project_id FROM {$wpdb->prefix}an_content WHERE id = %d", $item_id ) );
+
+		if ( ! Agency_Nexus_Permissions::can_view_project( $project_id ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
 
 		$wpdb->update(
 			$wpdb->prefix . 'an_content',
@@ -86,6 +97,9 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! Agency_Nexus_Permissions::can_access_nexus() ) {
+			return;
+		}
 		?>
 		<div class="postbox" style="padding: 20px;">
 			<h2><?php _e( 'ApprovalFlow', 'agency-nexus' ); ?></h2>

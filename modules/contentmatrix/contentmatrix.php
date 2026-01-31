@@ -22,7 +22,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 	}
 
 	public function handle_post() {
-		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+		if ( ! is_admin() || ! Agency_Nexus_Permissions::can_access_nexus() ) {
 			return;
 		}
 
@@ -74,7 +74,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			'agency-nexus',
 			__( 'Content Calendar', 'agency-nexus' ),
 			__( 'Content Calendar', 'agency-nexus' ),
-			'manage_options',
+			'read',
 			'an-content-calendar',
 			[ $this, 'render_calendar' ]
 		);
@@ -83,7 +83,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			'agency-nexus',
 			__( 'Content List', 'agency-nexus' ),
 			__( 'Content List', 'agency-nexus' ),
-			'manage_options',
+			'read',
 			'an-content-list',
 			[ $this, 'render_content_list' ]
 		);
@@ -91,8 +91,17 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 
 	public function render_calendar() {
 		global $wpdb;
-		$content_items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_content" );
-		$projects      = $wpdb->get_results( "SELECT id, title FROM {$wpdb->prefix}an_projects" );
+		$content_query = "SELECT * FROM {$wpdb->prefix}an_content";
+		$projects_query = "SELECT id, title FROM {$wpdb->prefix}an_projects";
+
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+			$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
+			$content_query = $wpdb->prepare( "SELECT c.* FROM {$wpdb->prefix}an_content c JOIN {$wpdb->prefix}an_projects p ON c.project_id = p.id WHERE p.client_id = %d", $client_id );
+			$projects_query = $wpdb->prepare( "SELECT id, title FROM {$wpdb->prefix}an_projects WHERE client_id = %d", $client_id );
+		}
+
+		$content_items = $wpdb->get_results( $content_query );
+		$projects      = $wpdb->get_results( $projects_query );
 		?>
 		<div class="wrap">
 			<h1><?php _e( 'Content Calendar', 'agency-nexus' ); ?></h1>
@@ -171,12 +180,20 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			return;
 		}
 
-		$items = $wpdb->get_results("SELECT c.*, p.title as project_title FROM $table_name c JOIN $projects_table p ON c.project_id = p.id ORDER BY c.created_at DESC");
+		$query = "SELECT c.*, p.title as project_title FROM $table_name c JOIN $projects_table p ON c.project_id = p.id";
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+			$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
+			$query .= $wpdb->prepare( " WHERE p.client_id = %d", $client_id );
+		}
+		$query .= " ORDER BY c.created_at DESC";
+		$items = $wpdb->get_results($query);
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e('Content Management', 'agency-nexus'); ?></h1>
 			<p><?php _e( 'Guidance: Manage all your content assets here. Use the "Content Calendar" for a visual overview of your publishing schedule.', 'agency-nexus' ); ?></p>
+			<?php if ( Agency_Nexus_Permissions::is_team_member() ) : ?>
 			<a href="?page=an-content-list&action=add" class="page-title-action">Add New</a>
+			<?php endif; ?>
 			<hr class="wp-header-end">
 
 			<table class="wp-list-table widefat fixed striped">
@@ -191,8 +208,10 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 							<td><span class="badge status-<?php echo $item->status; ?>"><?php echo ucfirst(str_replace('_', ' ', $item->status)); ?></span></td>
 							<td><?php echo $item->scheduled_date; ?></td>
 							<td>
-								<a href="?page=an-content-list&action=edit&id=<?php echo $item->id; ?>">Edit</a> |
-								<a href="<?php echo wp_nonce_url('?page=an-content-list&action=delete&id=' . $item->id, 'an_delete_content_' . $item->id); ?>" style="color:red;" onclick="return confirm('Delete item?')">Delete</a>
+								<a href="?page=an-content-list&action=edit&id=<?php echo $item->id; ?>">Edit</a>
+								<?php if ( Agency_Nexus_Permissions::is_team_member() ) : ?>
+								| <a href="<?php echo wp_nonce_url('?page=an-content-list&action=delete&id=' . $item->id, 'an_delete_content_' . $item->id); ?>" style="color:red;" onclick="return confirm('Delete item?')">Delete</a>
+								<?php endif; ?>
 							</td>
 						</tr>
 					<?php endforeach; ?>
@@ -208,12 +227,12 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 	public function handle_create_content() {
 		check_ajax_referer( 'an_calendar_nonce', 'security' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		$project_id = intval( $_POST['project_id'] );
+		if ( ! Agency_Nexus_Permissions::can_view_project( $project_id ) ) {
 			wp_send_json_error( 'Unauthorized' );
 		}
 
 		global $wpdb;
-		$project_id = intval( $_POST['project_id'] );
 		$title      = sanitize_text_field( $_POST['title'] );
 		$content    = isset($_POST['content']) ? sanitize_textarea_field( $_POST['content'] ) : '';
 		$media_url  = esc_url_raw( $_POST['media_url'] );
@@ -238,12 +257,14 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 	public function handle_delete_content() {
 		check_ajax_referer( 'an_calendar_nonce', 'security' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		global $wpdb;
+		$item_id = intval( $_POST['item_id'] );
+		$project_id = $wpdb->get_var( $wpdb->prepare( "SELECT project_id FROM {$wpdb->prefix}an_content WHERE id = %d", $item_id ) );
+
+		if ( ! Agency_Nexus_Permissions::can_view_project( $project_id ) ) {
 			wp_send_json_error( 'Unauthorized' );
 		}
 
-		global $wpdb;
-		$item_id = intval( $_POST['item_id'] );
 		$wpdb->delete( $wpdb->prefix . 'an_content', [ 'id' => $item_id ] );
 		wp_send_json_success();
 	}
@@ -254,12 +275,14 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 	public function handle_update_content_date() {
 		check_ajax_referer( 'an_calendar_nonce', 'security' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		global $wpdb;
+		$item_id = intval( $_POST['item_id'] );
+		$project_id = $wpdb->get_var( $wpdb->prepare( "SELECT project_id FROM {$wpdb->prefix}an_content WHERE id = %d", $item_id ) );
+
+		if ( ! Agency_Nexus_Permissions::can_view_project( $project_id ) ) {
 			wp_send_json_error( 'Unauthorized' );
 		}
 
-		global $wpdb;
-		$item_id = intval( $_POST['item_id'] );
 		$new_date = sanitize_text_field( $_POST['new_date'] );
 
 		$wpdb->update(
@@ -272,6 +295,9 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! Agency_Nexus_Permissions::can_access_nexus() ) {
+			return;
+		}
 		?>
 		<div class="postbox" style="padding: 20px;">
 			<h2><?php _e( 'ContentMatrix', 'agency-nexus' ); ?></h2>

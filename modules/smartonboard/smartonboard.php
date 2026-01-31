@@ -19,7 +19,7 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 	}
 
 	public function handle_post() {
-		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+		if ( ! is_admin() || ! Agency_Nexus_Permissions::is_team_member() ) {
 			return;
 		}
 
@@ -44,23 +44,25 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 	}
 
 	public function register_submenu() {
-		add_submenu_page(
-			'agency-nexus',
-			__( 'Scope Builder', 'agency-nexus' ),
-			__( 'Scope Builder', 'agency-nexus' ),
-			'manage_options',
-			'an-scope-builder',
-			[ $this, 'render_scope_builder' ]
-		);
+		if ( Agency_Nexus_Permissions::is_team_member() ) {
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Scope Builder', 'agency-nexus' ),
+				__( 'Scope Builder', 'agency-nexus' ),
+				'read',
+				'an-scope-builder',
+				[ $this, 'render_scope_builder' ]
+			);
 
-		add_submenu_page(
-			'agency-nexus',
-			__( 'Scope Settings', 'agency-nexus' ),
-			__( 'Scope Settings', 'agency-nexus' ),
-			'manage_options',
-			'an-scope-settings',
-			[ $this, 'render_settings' ]
-		);
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Scope Settings', 'agency-nexus' ),
+				__( 'Scope Settings', 'agency-nexus' ),
+				'read',
+				'an-scope-settings',
+				[ $this, 'render_settings' ]
+			);
+		}
 	}
 
 	public function render_scope_builder() {
@@ -152,7 +154,7 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 	public function handle_save_scope() {
 		check_ajax_referer( 'an_scope_nonce', 'security' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
 			wp_send_json_error( 'Unauthorized' );
 		}
 
@@ -184,6 +186,9 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+			return;
+		}
 		?>
 		<div class="postbox" style="padding: 20px;">
 			<h2><?php _e( 'SmartOnboard', 'agency-nexus' ); ?></h2>

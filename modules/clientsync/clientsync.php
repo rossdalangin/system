@@ -35,7 +35,7 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 			'agency-nexus',
 			__( 'Messages', 'agency-nexus' ),
 			__( 'Messages', 'agency-nexus' ),
-			'manage_options',
+			'read',
 			'an-messages',
 			[ $this, 'render_messages' ]
 		);
@@ -43,7 +43,12 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 
 	public function render_messages() {
 		global $wpdb;
-		$clients = $wpdb->get_results( "SELECT id, name FROM {$wpdb->prefix}an_clients" );
+		if ( Agency_Nexus_Permissions::is_team_member() ) {
+			$clients = $wpdb->get_results( "SELECT id, name FROM {$wpdb->prefix}an_clients" );
+		} else {
+			$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
+			$clients = $wpdb->get_results( $wpdb->prepare( "SELECT id, name FROM {$wpdb->prefix}an_clients WHERE id = %d", $client_id ) );
+		}
 		$responses = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_canned_responses" );
 		$this->get_template( 'messages', [ 'clients' => $clients, 'responses' => $responses ] );
 	}
@@ -54,12 +59,12 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	public function handle_get_messages() {
 		check_ajax_referer( 'an_message_nonce', 'security' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		$client_id = intval( $_POST['client_id'] );
+		if ( ! Agency_Nexus_Permissions::can_access_messages( $client_id ) ) {
 			wp_send_json_error( 'Unauthorized' );
 		}
 
 		global $wpdb;
-		$client_id = intval( $_POST['client_id'] );
 
 		$messages = $wpdb->get_results( $wpdb->prepare( "
 			SELECT * FROM {$wpdb->prefix}an_messages
@@ -76,12 +81,12 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	public function handle_share_file() {
 		check_ajax_referer( 'an_message_nonce', 'security' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		$client_id = intval( $_POST['client_id'] );
+		if ( ! Agency_Nexus_Permissions::can_access_messages( $client_id ) ) {
 			wp_send_json_error( 'Unauthorized' );
 		}
 
 		global $wpdb;
-		$client_id = intval( $_POST['client_id'] );
 		$file_url  = esc_url_raw( $_POST['file_url'] );
 		$file_name = sanitize_text_field( $_POST['file_name'] );
 
@@ -103,7 +108,7 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	 */
 	public function handle_delete_message() {
 		check_ajax_referer( 'an_message_nonce', 'security' );
-		if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Unauthorized' );
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) wp_send_json_error( 'Unauthorized' );
 		global $wpdb;
 		$wpdb->delete( $wpdb->prefix . 'an_messages', [ 'id' => intval( $_POST['message_id'] ) ] );
 		wp_send_json_success();
@@ -114,7 +119,7 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	 */
 	public function handle_delete_file() {
 		check_ajax_referer( 'an_message_nonce', 'security' );
-		if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Unauthorized' );
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) wp_send_json_error( 'Unauthorized' );
 		global $wpdb;
 		$wpdb->delete( $wpdb->prefix . 'an_shared_files', [ 'id' => intval( $_POST['file_id'] ) ] );
 		wp_send_json_success();
@@ -126,12 +131,12 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	public function handle_get_files() {
 		check_ajax_referer( 'an_message_nonce', 'security' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		$client_id = intval( $_POST['client_id'] );
+		if ( ! Agency_Nexus_Permissions::can_access_messages( $client_id ) ) {
 			wp_send_json_error( 'Unauthorized' );
 		}
 
 		global $wpdb;
-		$client_id = intval( $_POST['client_id'] );
 
 		$files = $wpdb->get_results( $wpdb->prepare( "
 			SELECT * FROM {$wpdb->prefix}an_shared_files
@@ -148,12 +153,12 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	public function handle_send_message() {
 		check_ajax_referer( 'an_message_nonce', 'security' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		$client_id = intval( $_POST['client_id'] );
+		if ( ! Agency_Nexus_Permissions::can_access_messages( $client_id ) ) {
 			wp_send_json_error( 'Unauthorized' );
 		}
 
 		global $wpdb;
-		$client_id = intval( $_POST['client_id'] );
 		$message   = sanitize_textarea_field( $_POST['message'] );
 
 		$wpdb->insert(

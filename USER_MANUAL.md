@@ -31,6 +31,7 @@ Before using the advanced modules, you must set up your core data.
 - **Tasks & Team**: Assign tasks to specific team members in the Project View.
 - **Logging Time**: Against each task, use the "Log Time" field to enter hours worked.
     - *Note: Logged time automatically updates your financial ROI and workload capacity.*
+- **Timeline Visualizer (Gantt)**: View the automated Gantt chart at the bottom of the Project page to track task durations and dependencies.
 - **Print Report**: In the Project View, click "Print Report" for a hard copy of progress.
 
 ---
@@ -105,9 +106,20 @@ Before using the advanced modules, you must set up your core data.
 
 ---
 
-## 7. Automation & Resources
+## 7. Configuration & API
 
-### ⚙️ AutoPilot (Automation Center)
+### ⚙️ Global Settings
+- Navigate to **Agency Nexus > Settings**.
+- **Hourly Rate**: Set your agency's default hourly rate for ROI calculations.
+- **API Keys**: Configure your Stripe Secret Key and Zapier Webhook URL for external integrations.
+
+### 📱 Mobile App API
+- Agency Nexus provides a built-in REST API for custom mobile app development or integrations.
+- **Endpoints**: `/wp-json/agency-nexus/v1/projects`, `/tasks`, and `/messages`.
+
+## 8. Automation & Resources
+
+### 🤖 AutoPilot (Automation Center)
 - Navigate to **Agency Nexus > Automations**.
 - **Automation Rules**: Create custom IFTTT rules (e.g., IF Project Completed THEN Send Email).
 - Manage your rules by activating/deactivating, editing, or deleting them.

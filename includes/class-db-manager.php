@@ -84,6 +84,7 @@ description text NOT NULL,
 assigned_to bigint(20) DEFAULT 0 NOT NULL,
 priority varchar(20) DEFAULT 'medium' NOT NULL,
 status varchar(50) DEFAULT 'todo' NOT NULL,
+start_date date DEFAULT '0000-00-00',
 due_date date DEFAULT '0000-00-00',
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)

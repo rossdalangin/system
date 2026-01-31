@@ -19,7 +19,7 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 	}
 
 	public function handle_post() {
-		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+		if ( ! is_admin() || ! Agency_Nexus_Permissions::is_team_member() ) {
 			return;
 		}
 
@@ -69,7 +69,7 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 			'agency-nexus',
 			__( 'Resource Library', 'agency-nexus' ),
 			__( 'Resource Library', 'agency-nexus' ),
-			'manage_options',
+			'read',
 			'an-resources',
 			[ $this, 'render_resources' ]
 		);
@@ -149,10 +149,13 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 		$templates = array_filter( $resources, function($r) { return $r->type === 'template'; } );
 		$swipes    = array_filter( $resources, function($r) { return $r->type === 'swipe'; } );
 
+		$is_team = Agency_Nexus_Permissions::is_team_member();
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Agency Resource Library', 'agency-nexus' ); ?></h1>
+			<?php if ($is_team) : ?>
 			<a href="?page=an-resources&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
+			<?php endif; ?>
 			<hr class="wp-header-end">
 			<p><?php _e( 'Guidance: Store and organize your agency assets here. Keep contract templates and marketing swipe files easily accessible for your team.', 'agency-nexus' ); ?></p>
 
@@ -170,9 +173,11 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 							<td><span class="badge"><?php echo esc_html(ucfirst($res->type)); ?></span></td>
 							<td><strong><?php echo esc_html($res->title); ?></strong></td>
 							<td>
-								<?php if ($res->file_url) : ?><a href="<?php echo esc_url($res->file_url); ?>" target="_blank"><?php _e('View', 'agency-nexus'); ?></a> | <?php endif; ?>
-								<a href="?page=an-resources&action=edit&id=<?php echo $res->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a> |
+								<?php if ($res->file_url) : ?><a href="<?php echo esc_url($res->file_url); ?>" target="_blank"><?php _e('View', 'agency-nexus'); ?></a><?php endif; ?>
+								<?php if ($is_team) : ?>
+								| <a href="?page=an-resources&action=edit&id=<?php echo $res->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a> |
 								<a href="<?php echo wp_nonce_url( admin_url('admin.php?page=an-resources&action=delete&id=' . $res->id), 'an_delete_resource_' . $res->id ); ?>" style="color:red;" onclick="return confirm('Are you sure?')"><?php _e('Delete', 'agency-nexus'); ?></a>
+								<?php endif; ?>
 							</td>
 						</tr>
 					<?php endforeach; else : ?>
@@ -186,6 +191,9 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! Agency_Nexus_Permissions::can_access_nexus() ) {
+			return;
+		}
 		?>
 		<div class="postbox" style="padding: 20px;">
 			<h2><?php _e( 'FreebieFactory', 'agency-nexus' ); ?></h2>

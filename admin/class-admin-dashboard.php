@@ -28,15 +28,32 @@ class Agency_Nexus_Admin_Dashboard {
 	 * Handle POST and GET actions before output starts.
 	 */
 	public function handle_admin_actions() {
-		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+		if ( ! is_admin() || ! Agency_Nexus_Permissions::can_access_nexus() ) {
 			return;
 		}
 
 		$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
 
+		if ( 'an-settings' === $page && isset( $_POST['an_save_global_settings'] ) && check_admin_referer( 'an_global_settings_nonce' ) ) {
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return;
+			}
+			update_option( 'an_stripe_key', sanitize_text_field( $_POST['an_stripe_key'] ) );
+			update_option( 'an_zapier_webhook', esc_url_raw( $_POST['an_zapier_webhook'] ) );
+			update_option( 'an_hourly_rate', floatval( $_POST['an_hourly_rate'] ) );
+			wp_redirect( admin_url( 'admin.php?page=an-settings&msg=saved' ) );
+			exit;
+		}
+
 		if ( isset( $_POST['an_seed_data'] ) && check_admin_referer( 'an_seed_data_nonce' ) ) {
 			Agency_Nexus_Seeder::seed();
 			wp_redirect( admin_url( 'admin.php?page=agency-nexus&msg=seeded' ) );
+			exit;
+		}
+
+		if ( isset( $_POST['an_reset_data'] ) && check_admin_referer( 'an_reset_data_nonce' ) ) {
+			Agency_Nexus_Seeder::clear_all();
+			wp_redirect( admin_url( 'admin.php?page=agency-nexus&msg=reset' ) );
 			exit;
 		}
 
@@ -51,10 +68,17 @@ class Agency_Nexus_Admin_Dashboard {
 	 * Process client-related actions.
 	 */
 	private function process_client_actions() {
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+			return;
+		}
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_clients';
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
 		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		if ( $id && ! Agency_Nexus_Permissions::can_view_project( $id ) ) {
+			return;
+		}
 
 		// Handle Deletion
 		if ( 'delete' === $action && $id ) {
@@ -104,6 +128,9 @@ class Agency_Nexus_Admin_Dashboard {
 
 		// Handle Save (Add/Edit)
 		if ( isset( $_POST['an_save_project'] ) && check_admin_referer( 'an_save_project_nonce' ) ) {
+			if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+				return;
+			}
 			$data = [
 				'client_id'   => intval( $_POST['client_id'] ),
 				'title'       => sanitize_text_field( $_POST['title'] ),
@@ -124,12 +151,17 @@ class Agency_Nexus_Admin_Dashboard {
 
 		// Handle Task Creation
 		if ( isset( $_POST['an_add_task'] ) && check_admin_referer( 'an_add_task_nonce' ) ) {
+			if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+				return;
+			}
 			$wpdb->insert( $tasks_table, [
 				'project_id'  => intval( $_POST['project_id'] ),
 				'title'       => sanitize_text_field( $_POST['title'] ),
 				'assigned_to' => isset( $_POST['assigned_to'] ) ? intval( $_POST['assigned_to'] ) : 0,
 				'status'      => 'todo',
-				'priority'    => 'medium'
+				'priority'    => 'medium',
+				'start_date'  => ! empty( $_POST['start_date'] ) ? sanitize_text_field( $_POST['start_date'] ) : date('Y-m-d'),
+				'due_date'    => ! empty( $_POST['due_date'] ) ? sanitize_text_field( $_POST['due_date'] ) : date('Y-m-d', strtotime('+7 days'))
 			] );
 			wp_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . intval( $_POST['project_id'] ) . '&msg=task_added' ) );
 			exit;
@@ -137,6 +169,9 @@ class Agency_Nexus_Admin_Dashboard {
 
 		// Handle Task Assignment Update
 		if ( isset( $_POST['an_assign_task'] ) && check_admin_referer( 'an_assign_task_nonce' ) ) {
+			if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+				return;
+			}
 			$wpdb->update( $tasks_table, [
 				'assigned_to' => intval( $_POST['assigned_to'] )
 			], [ 'id' => intval( $_POST['task_id'] ) ] );
@@ -162,10 +197,14 @@ class Agency_Nexus_Admin_Dashboard {
 	 * Register the main menu and submenus.
 	 */
 	public function register_menu() {
+		if ( ! Agency_Nexus_Permissions::can_access_nexus() ) {
+			return;
+		}
+
 		add_menu_page(
 			__( 'Agency Nexus', 'agency-nexus' ),
 			__( 'Agency Nexus', 'agency-nexus' ),
-			'manage_options',
+			'read',
 			'agency-nexus',
 			[ $this, 'render_dashboard' ],
 			'dashicons-chart-area',
@@ -176,39 +215,50 @@ class Agency_Nexus_Admin_Dashboard {
 			'agency-nexus',
 			__( 'Dashboard', 'agency-nexus' ),
 			__( 'Dashboard', 'agency-nexus' ),
-			'manage_options',
+			'read',
 			'agency-nexus',
 			[ $this, 'render_dashboard' ]
 		);
 
-		add_submenu_page(
-			'agency-nexus',
-			__( 'Clients', 'agency-nexus' ),
-			__( 'Clients', 'agency-nexus' ),
-			'manage_options',
-			'an-clients',
-			[ $this, 'render_clients' ]
-		);
+		if ( Agency_Nexus_Permissions::is_team_member() ) {
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Clients', 'agency-nexus' ),
+				__( 'Clients', 'agency-nexus' ),
+				'read',
+				'an-clients',
+				[ $this, 'render_clients' ]
+			);
+		}
 
 		add_submenu_page(
 			'agency-nexus',
 			__( 'Projects', 'agency-nexus' ),
 			__( 'Projects', 'agency-nexus' ),
-			'manage_options',
+			'read',
 			'an-projects',
 			[ $this, 'render_projects' ]
 		);
 
-		add_submenu_page(
-			'agency-nexus',
-			__( 'Team', 'agency-nexus' ),
-			__( 'Team', 'agency-nexus' ),
-			'manage_options',
-			'an-team',
-			[ $this, 'render_team' ]
-		);
+		if ( current_user_can( 'manage_options' ) ) {
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Team', 'agency-nexus' ),
+				__( 'Team', 'agency-nexus' ),
+				'manage_options',
+				'an-team',
+				[ $this, 'render_team' ]
+			);
 
-		// Modules will add their own submenus or sections.
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Settings', 'agency-nexus' ),
+				__( 'Settings', 'agency-nexus' ),
+				'manage_options',
+				'an-settings',
+				[ $this, 'render_settings' ]
+			);
+		}
 	}
 
 	/**
@@ -219,6 +269,11 @@ class Agency_Nexus_Admin_Dashboard {
 		$table_name = $wpdb->prefix . 'an_clients';
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
 		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		if ( $id && ! Agency_Nexus_Permissions::can_view_project( $id ) ) {
+			echo '<div class="error"><p>Unauthorized</p></div>';
+			return;
+		}
 
 		if ( isset( $_GET['msg'] ) ) {
 			$m = '';
@@ -421,6 +476,7 @@ class Agency_Nexus_Admin_Dashboard {
 		}
 
 		if ($action === 'view' && $id) {
+			$is_team = Agency_Nexus_Permissions::is_team_member();
 			$project = $wpdb->get_row($wpdb->prepare("SELECT p.*, c.name as client_name FROM $projects_table p JOIN $clients_table c ON p.client_id = c.id WHERE p.id = %d", $id));
 			$tasks = $wpdb->get_results($wpdb->prepare("SELECT * FROM $tasks_table WHERE project_id = %d", $id));
 			?>
@@ -435,7 +491,7 @@ class Agency_Nexus_Admin_Dashboard {
 					<hr>
 					<h3>Tasks & Time</h3>
 					<table class="wp-list-table widefat fixed striped">
-						<thead><tr><th>Task</th><th>Assigned To</th><th>Status</th><th>Time Logged</th><th>Action</th></tr></thead>
+						<thead><tr><th>Task</th><th>Assigned To</th><th>Timeline</th><th>Status</th><th>Time Logged</th><th>Action</th></tr></thead>
 						<tbody>
 							<?php foreach ($tasks as $task) :
 								$total_time = $wpdb->get_var($wpdb->prepare("SELECT SUM(duration) FROM $time_table WHERE task_id = %d", $task->id));
@@ -457,6 +513,7 @@ class Agency_Nexus_Admin_Dashboard {
 											<input type="hidden" name="an_assign_task" value="1">
 										</form>
 									</td>
+									<td><small><?php echo esc_html($task->start_date); ?> to <?php echo esc_html($task->due_date); ?></small></td>
 									<td><?php echo esc_html($task->status); ?></td>
 									<td><?php echo round($total_time / 3600, 2); ?> hrs</td>
 									<td>
@@ -471,18 +528,27 @@ class Agency_Nexus_Admin_Dashboard {
 							<?php endforeach; ?>
 						</tbody>
 					</table>
-					<form method="post" style="margin-top: 15px; display:flex; gap: 10px; align-items: center;">
+					<form method="post" style="margin-top: 15px; display:flex; flex-wrap: wrap; gap: 10px; align-items: center;">
 						<?php wp_nonce_field('an_add_task_nonce'); ?>
 						<input type="hidden" name="project_id" value="<?php echo $project->id; ?>">
 						<input type="text" name="title" placeholder="New Task Title" required>
+						<input type="date" name="start_date" title="Start Date" value="<?php echo date('Y-m-d'); ?>">
+						<input type="date" name="due_date" title="Due Date" value="<?php echo date('Y-m-d', strtotime('+7 days')); ?>">
+						<?php if ( $is_team ) : ?>
 						<select name="assigned_to">
 							<option value="0"><?php _e('Assign to...', 'agency-nexus'); ?></option>
 							<?php foreach (get_users() as $u) : ?>
 								<option value="<?php echo $u->ID; ?>"><?php echo esc_html($u->display_name); ?></option>
 							<?php endforeach; ?>
 						</select>
+						<?php endif; ?>
 						<input type="submit" name="an_add_task" class="button button-primary" value="Add Task">
 					</form>
+				</div>
+
+				<div class="postbox" style="padding: 20px; margin-top: 20px;">
+					<h3>Timeline Visualizer (Gantt)</h3>
+					<?php $this->render_gantt_chart($tasks); ?>
 				</div>
 				<a href="?page=an-projects" class="button"><?php _e('Back to Projects', 'agency-nexus'); ?></a>
 				<button onclick="window.print()" class="button"><?php _e('Print Report', 'agency-nexus'); ?></button>
@@ -492,6 +558,9 @@ class Agency_Nexus_Admin_Dashboard {
 		}
 
 		if ($action === 'edit' || $action === 'add') {
+			if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+				echo '<div class="error"><p>Unauthorized</p></div>'; return;
+			}
 			$project = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $projects_table WHERE id = %d", $id)) : null;
 			$clients = $wpdb->get_results("SELECT id, name FROM $clients_table");
 			?>
@@ -544,11 +613,19 @@ class Agency_Nexus_Admin_Dashboard {
 			return;
 		}
 
-		$projects = $wpdb->get_results( "SELECT p.*, c.name as client_name FROM $projects_table p JOIN $clients_table c ON p.client_id = c.id ORDER BY p.created_at DESC" );
+		$query = "SELECT p.*, c.name as client_name FROM $projects_table p JOIN $clients_table c ON p.client_id = c.id";
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+			$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
+			$query .= $wpdb->prepare( " WHERE p.client_id = %d", $client_id );
+		}
+		$query .= " ORDER BY p.created_at DESC";
+		$projects = $wpdb->get_results( $query );
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Project Management', 'agency-nexus' ); ?></h1>
+			<?php if ( Agency_Nexus_Permissions::is_team_member() ) : ?>
 			<a href="?page=an-projects&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
+			<?php endif; ?>
 			<hr class="wp-header-end">
 
 			<table class="wp-list-table widefat fixed striped">
@@ -571,9 +648,11 @@ class Agency_Nexus_Admin_Dashboard {
 							<td><span class="badge status-<?php echo $project->status; ?>"><?php echo ucfirst($project->status); ?></span></td>
 							<td><?php echo $project->created_at; ?></td>
 							<td>
-								<a href="?page=an-projects&action=view&id=<?php echo $project->id; ?>"><?php _e('View', 'agency-nexus'); ?></a> |
-								<a href="?page=an-projects&action=edit&id=<?php echo $project->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a> |
+								<a href="?page=an-projects&action=view&id=<?php echo $project->id; ?>"><?php _e('View', 'agency-nexus'); ?></a>
+								<?php if ( Agency_Nexus_Permissions::is_team_member() ) : ?>
+								| <a href="?page=an-projects&action=edit&id=<?php echo $project->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a> |
 								<a href="<?php echo wp_nonce_url('?page=an-projects&action=delete&id=' . $project->id, 'an_delete_project_' . $project->id); ?>" style="color:red;" onclick="return confirm('Delete this project?')"><?php _e('Delete', 'agency-nexus'); ?></a>
+								<?php endif; ?>
 							</td>
 						</tr>
 					<?php endforeach; else : ?>
@@ -586,27 +665,126 @@ class Agency_Nexus_Admin_Dashboard {
 	}
 
 	/**
+	 * Render a basic Gantt chart for tasks.
+	 */
+	private function render_gantt_chart($tasks) {
+		if ( empty($tasks) ) {
+			echo '<p>No tasks to display in timeline.</p>';
+			return;
+		}
+
+		// Calculate date range
+		$start_dates = array_map(function($t){ return strtotime($t->start_date); }, $tasks);
+		$end_dates   = array_map(function($t){ return strtotime($t->due_date); }, $tasks);
+		$min_date = min($start_dates);
+		$max_date = max($end_dates);
+		$total_days = ceil(($max_date - $min_date) / 86400) + 1;
+		if ($total_days < 7) $total_days = 7;
+
+		?>
+		<div style="overflow-x: auto; background: #f9f9f9; padding: 15px; border: 1px solid #ddd;">
+			<div style="min-width: 800px; position: relative;">
+				<!-- Header with dates -->
+				<div style="display: flex; border-bottom: 1px solid #ccc; margin-bottom: 10px;">
+					<div style="width: 200px; font-weight: bold;">Task</div>
+					<div style="flex: 1; display: flex;">
+						<?php for($i=0; $i<$total_days; $i+=max(1, floor($total_days/10))):
+							$d = date('M d', $min_date + ($i * 86400));
+						?>
+							<div style="flex: 1; font-size: 10px; border-left: 1px solid #eee; padding-left: 2px;"><?php echo $d; ?></div>
+						<?php endfor; ?>
+					</div>
+				</div>
+
+				<?php foreach($tasks as $task):
+					$t_start = strtotime($task->start_date);
+					$t_end   = strtotime($task->due_date);
+					$offset = ($t_start - $min_date) / 86400;
+					$duration = ($t_end - $t_start) / 86400 + 1;
+					$left_pct = ($offset / $total_days) * 100;
+					$width_pct = ($duration / $total_days) * 100;
+					$color = ($task->status === 'completed') ? '#46b450' : '#0073aa';
+				?>
+					<div style="display: flex; height: 30px; align-items: center; border-bottom: 1px solid #eee;">
+						<div style="width: 200px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<?php echo esc_attr($task->title); ?>">
+							<?php echo esc_html($task->title); ?>
+						</div>
+						<div style="flex: 1; position: relative; height: 100%;">
+							<div style="position: absolute; left: <?php echo $left_pct; ?>%; width: <?php echo $width_pct; ?>%; height: 12px; background: <?php echo $color; ?>; border-radius: 6px; top: 9px;" title="<?php echo $task->start_date; ?> to <?php echo $task->due_date; ?>"></div>
+						</div>
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render the global settings page.
+	 */
+	public function render_settings() {
+		if ( isset( $_GET['msg'] ) && 'saved' === $_GET['msg'] ) {
+			echo '<div class="updated"><p>Settings saved!</p></div>';
+		}
+		?>
+		<div class="wrap">
+			<h1><?php _e( 'Agency Nexus Settings', 'agency-nexus' ); ?></h1>
+			<form method="post">
+				<?php wp_nonce_field( 'an_global_settings_nonce' ); ?>
+				<table class="form-table">
+					<tr>
+						<th><label for="an_hourly_rate">Default Hourly Rate ($)</label></th>
+						<td><input type="number" name="an_hourly_rate" id="an_hourly_rate" value="<?php echo esc_attr( get_option( 'an_hourly_rate', 50 ) ); ?>" class="regular-text"></td>
+					</tr>
+					<tr>
+						<th><label for="an_stripe_key">Stripe Secret Key</label></th>
+						<td><input type="password" name="an_stripe_key" id="an_stripe_key" value="<?php echo esc_attr( get_option( 'an_stripe_key' ) ); ?>" class="regular-text"></td>
+					</tr>
+					<tr>
+						<th><label for="an_zapier_webhook">Zapier Webhook URL</label></th>
+						<td><input type="text" name="an_zapier_webhook" id="an_zapier_webhook" value="<?php echo esc_attr( get_option( 'an_zapier_webhook' ) ); ?>" class="large-text"></td>
+					</tr>
+				</table>
+				<p class="submit">
+					<input type="submit" name="an_save_global_settings" class="button button-primary" value="Save Settings">
+				</p>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Render the main dashboard page.
 	 */
 	public function render_dashboard() {
-		if ( isset( $_GET['msg'] ) && 'seeded' === $_GET['msg'] ) {
-			echo '<div class="updated"><p>Sample data seeded successfully! Created "Sample Client" and "Sample Team Member" accounts.</p></div>';
+		if ( isset( $_GET['msg'] ) ) {
+			if ( 'seeded' === $_GET['msg'] ) {
+				echo '<div class="updated"><p>Sample data seeded successfully! Created "Sample Client" and "Sample Team Member" accounts.</p></div>';
+			} elseif ( 'reset' === $_GET['msg'] ) {
+				echo '<div class="updated"><p>All Agency Nexus data has been cleared.</p></div>';
+			}
 		}
+		$is_admin = current_user_can( 'manage_options' );
 		?>
 		<div class="wrap">
 			<h1><?php _e( 'Agency Nexus Dashboard', 'agency-nexus' ); ?></h1>
 			<p><?php _e( 'Welcome to your comprehensive agency management dashboard.', 'agency-nexus' ); ?></p>
 
+			<?php if ( $is_admin ) : ?>
 			<div class="welcome-panel" style="padding: 20px; margin-top: 20px;">
 				<div class="welcome-panel-content">
 					<h2>Getting Started</h2>
 					<p>To help you explore the features, you can seed the dashboard with sample accounts and data.</p>
-					<form method="post">
+					<form method="post" style="display:flex; gap: 10px;">
 						<?php wp_nonce_field('an_seed_data_nonce'); ?>
 						<input type="submit" name="an_seed_data" class="button button-primary button-hero" value="Seed Sample Data">
+
+						<?php wp_nonce_field('an_reset_data_nonce', 'an_reset_data_nonce'); ?>
+						<input type="submit" name="an_reset_data" class="button button-link-delete" value="Clear All Data" onclick="return confirm('This will delete ALL agency projects, clients, and records. Continue?')">
 					</form>
 				</div>
 			</div>
+			<?php endif; ?>
 
 			<div class="agency-nexus-widgets" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
 				<?php do_action( 'agency_nexus_dashboard_widgets' ); ?>

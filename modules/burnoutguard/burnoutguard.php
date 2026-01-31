@@ -18,7 +18,7 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 	}
 
 	public function handle_post() {
-		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+		if ( ! is_admin() || ! Agency_Nexus_Permissions::is_team_member() ) {
 			return;
 		}
 
@@ -56,14 +56,16 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 	}
 
 	public function register_submenu() {
-		add_submenu_page(
-			'agency-nexus',
-			__( 'Health Check', 'agency-nexus' ),
-			__( 'Health Check', 'agency-nexus' ),
-			'manage_options',
-			'an-health-check',
-			[ $this, 'render_health_check' ]
-		);
+		if ( Agency_Nexus_Permissions::is_team_member() ) {
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Health Check', 'agency-nexus' ),
+				__( 'Health Check', 'agency-nexus' ),
+				'read',
+				'an-health-check',
+				[ $this, 'render_health_check' ]
+			);
+		}
 	}
 
 	public function render_health_check() {
@@ -142,6 +144,9 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+			return;
+		}
 		global $wpdb;
 		$time_table = $wpdb->prefix . 'an_time_entries';
 

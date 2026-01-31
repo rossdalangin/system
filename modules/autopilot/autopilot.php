@@ -168,6 +168,9 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
 		?>
 		<div class="postbox" style="padding: 20px;">
 			<h2><?php _e( 'AutoPilot', 'agency-nexus' ); ?></h2>
