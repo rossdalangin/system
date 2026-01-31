@@ -206,10 +206,9 @@ jQuery(document).ready(function($) {
 
 		if (!msgText.trim()) return;
 
+		const data = $(this).serialize() + '&action=an_send_message';
 		$msgInput.prop('disabled', true);
 		$btn.prop('disabled', true);
-
-		const data = $(this).serialize() + '&action=an_send_message';
 		$.post(ajaxurl, data, function(response) {
 			if (response.success) {
 				$msgInput.val('');
