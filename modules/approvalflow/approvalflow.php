@@ -31,6 +31,12 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 
 	public function render_approvals() {
 		global $wpdb;
+		?>
+		<div class="wrap">
+			<h1><?php _e('Approval Portal', 'agency-nexus'); ?></h1>
+			<p class="description"><?php _e('Review and approve content items before they are published. Items marked as "Pending Approval" in the Content Calendar will appear here.', 'agency-nexus'); ?></p>
+		</div>
+		<?php
 		$where_pending = "WHERE c.status = 'pending_approval'";
 		$where_history = "WHERE c.status != 'pending_approval'";
 

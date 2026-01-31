@@ -87,27 +87,48 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 			?>
 			<div class="wrap">
 				<h1><?php echo $id ? __('Edit Rule', 'agency-nexus') : __('Add New Rule', 'agency-nexus'); ?></h1>
+				<p class="description"><?php _e('Create automated workflows to handle repetitive agency tasks based on specific triggers.', 'agency-nexus'); ?></p>
 				<form method="post">
 					<?php wp_nonce_field('an_save_rule_nonce'); ?>
 					<table class="form-table">
-						<tr><th>Rule Name</th><td><input type="text" name="title" value="<?php echo $rule ? esc_attr($rule->title) : ''; ?>" required class="regular-text"></td></tr>
-						<tr><th>IF This Happens:</th><td>
-							<select name="trigger_evt" class="regular-text">
-								<option value="project_completed" <?php selected($rule ? $rule->trigger_evt : '', 'project_completed'); ?>>Project status changes to 'Completed'</option>
-								<option value="new_lead" <?php selected($rule ? $rule->trigger_evt : '', 'new_lead'); ?>>New lead recorded in EngageTrack</option>
-								<option value="content_approved" <?php selected($rule ? $rule->trigger_evt : '', 'content_approved'); ?>>Content item approved in ApprovalFlow</option>
-								<option value="invoice_overdue" <?php selected($rule ? $rule->trigger_evt : '', 'invoice_overdue'); ?>>Invoice becomes overdue</option>
-							</select>
-						</td></tr>
-						<tr><th>THEN Do This:</th><td>
-							<select name="action_evt" class="regular-text">
-								<option value="email_client" <?php selected($rule ? $rule->action_evt : '', 'email_client'); ?>>Send email to Client</option>
-								<option value="slack_msg" <?php selected($rule ? $rule->action_evt : '', 'slack_msg'); ?>>Post message to Slack channel</option>
-								<option value="zapier_hook" <?php selected($rule ? $rule->action_evt : '', 'zapier_hook'); ?>>Trigger Zapier Webhook</option>
-								<option value="create_task" <?php selected($rule ? $rule->action_evt : '', 'create_task'); ?>>Create new task in 'Follow-up' project</option>
-							</select>
-						</td></tr>
-						<tr><th>Active</th><td><input type="checkbox" name="is_active" <?php checked($rule ? $rule->is_active : 1, 1); ?>></td></tr>
+						<tr>
+							<th><label><?php _e('Rule Name', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="text" name="title" value="<?php echo $rule ? esc_attr($rule->title) : ''; ?>" required class="regular-text">
+								<p class="description"><?php _e('Internal name for this automation. e.g., Onboarding Welcome', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('IF This Happens:', 'agency-nexus'); ?></label></th>
+							<td>
+								<select name="trigger_evt" class="regular-text">
+									<option value="project_completed" <?php selected($rule ? $rule->trigger_evt : '', 'project_completed'); ?>>Project status changes to 'Completed'</option>
+									<option value="new_lead" <?php selected($rule ? $rule->trigger_evt : '', 'new_lead'); ?>>New lead recorded in EngageTrack</option>
+									<option value="content_approved" <?php selected($rule ? $rule->trigger_evt : '', 'content_approved'); ?>>Content item approved in ApprovalFlow</option>
+									<option value="invoice_overdue" <?php selected($rule ? $rule->trigger_evt : '', 'invoice_overdue'); ?>>Invoice becomes overdue</option>
+								</select>
+								<p class="description"><?php _e('The event that starts the automation.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('THEN Do This:', 'agency-nexus'); ?></label></th>
+							<td>
+								<select name="action_evt" class="regular-text">
+									<option value="email_client" <?php selected($rule ? $rule->action_evt : '', 'email_client'); ?>>Send email to Client</option>
+									<option value="slack_msg" <?php selected($rule ? $rule->action_evt : '', 'slack_msg'); ?>>Post message to Slack channel</option>
+									<option value="zapier_hook" <?php selected($rule ? $rule->action_evt : '', 'zapier_hook'); ?>>Trigger Zapier Webhook</option>
+									<option value="create_task" <?php selected($rule ? $rule->action_evt : '', 'create_task'); ?>>Create new task in 'Follow-up' project</option>
+								</select>
+								<p class="description"><?php _e('The action to take when the trigger occurs.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Active', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="checkbox" name="is_active" <?php checked($rule ? $rule->is_active : 1, 1); ?>>
+								<p class="description"><?php _e('Turn this rule on or off.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
 					</table>
 					<input type="submit" name="an_save_rule" class="button button-primary" value="Save Rule">
 					<a href="?page=an-automations" class="button">Cancel</a>

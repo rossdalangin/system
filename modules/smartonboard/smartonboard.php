@@ -89,7 +89,8 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 			<h1 class="wp-heading-inline"><?php _e( 'Interactive Scope Builder', 'agency-nexus' ); ?></h1>
 			<a href="<?php echo admin_url('admin.php?page=an-scope-settings'); ?>" class="page-title-action"><?php _e('Configure Services & Scales', 'agency-nexus'); ?></a>
 			<hr class="wp-header-end">
-			<p><?php _e( 'Guidance: Use this tool to quickly generate project scopes for new clients. Select a service and scale to see estimated budgets and deliverables. You can manage the available options in the "Configure" page.', 'agency-nexus' ); ?></p>
+			<p class="description"><?php _e( 'The Scope Builder helps you standardize your service offerings. Select a client, a service type, and the project scale to automatically generate a detailed project plan and budget.', 'agency-nexus' ); ?></p>
+			<p><strong><?php _e('Pro Tip:', 'agency-nexus'); ?></strong> <?php _e('You can customize the budgets and deliverables for each service type in the Settings page.', 'agency-nexus'); ?></p>
 		</div>
 		<?php
 		$this->get_template( 'scope-builder', [
@@ -128,16 +129,20 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 		?>
 		<div class="wrap">
 			<h1><?php _e( 'Scope Builder Settings', 'agency-nexus' ); ?></h1>
-			<p><?php _e( 'Manage the available services, project scales, and deliverables here.', 'agency-nexus' ); ?></p>
+			<p class="description"><?php _e( 'Define your service packages here using JSON. This data powers the interactive Scope Builder dropdowns.', 'agency-nexus' ); ?></p>
 			<form method="post">
 				<?php wp_nonce_field( 'an_scope_settings_nonce' ); ?>
-				<h3>Services (JSON format: "key": "Label")</h3>
+
+				<h3><?php _e('Services', 'agency-nexus'); ?></h3>
+				<p class="description"><?php _e('Format: "unique_key": "Display Label". e.g., "seo": "SEO Strategy"', 'agency-nexus'); ?></p>
 				<textarea name="services_json" rows="5" class="large-text"><?php echo esc_textarea( json_encode( $services, JSON_PRETTY_PRINT ) ); ?></textarea>
 
-				<h3>Scales (JSON format)</h3>
+				<h3><?php _e('Scales & Budgets', 'agency-nexus'); ?></h3>
+				<p class="description"><?php _e('Define tiers like Small, Medium, Large with their associated budgets.', 'agency-nexus'); ?></p>
 				<textarea name="scales_json" rows="8" class="large-text"><?php echo esc_textarea( json_encode( $scales, JSON_PRETTY_PRINT ) ); ?></textarea>
 
-				<h3>Deliverables by Service (JSON format)</h3>
+				<h3><?php _e('Deliverables by Service', 'agency-nexus'); ?></h3>
+				<p class="description"><?php _e('List specific items included for each service type defined above.', 'agency-nexus'); ?></p>
 				<textarea name="deliverables_json" rows="8" class="large-text"><?php echo esc_textarea( json_encode( $deliverables, JSON_PRETTY_PRINT ) ); ?></textarea>
 
 				<p class="submit">

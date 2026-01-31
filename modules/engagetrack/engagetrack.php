@@ -137,21 +137,50 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 			?>
 			<div class="wrap">
 				<h1><?php echo $id ? __('Edit Lead', 'agency-nexus') : __('Add New Lead', 'agency-nexus'); ?></h1>
+				<p class="description"><?php _e('Track a potential client in your sales pipeline.', 'agency-nexus'); ?></p>
 				<form method="post">
 					<?php wp_nonce_field( 'an_save_lead_nonce' ); ?>
 					<table class="form-table">
-						<tr><th>Name</th><td><input type="text" name="name" value="<?php echo $lead ? esc_attr($lead->name) : ''; ?>" required class="regular-text"></td></tr>
-						<tr><th>Email</th><td><input type="email" name="email" value="<?php echo $lead ? esc_attr($lead->email) : ''; ?>" required class="regular-text"></td></tr>
-						<tr><th>Source</th><td><input type="text" name="source" value="<?php echo $lead ? esc_attr($lead->source) : ''; ?>" class="regular-text"></td></tr>
-						<tr><th>Status</th><td>
-							<select name="status">
-								<option value="new" <?php selected($lead ? $lead->status : '', 'new'); ?>>New</option>
-								<option value="qualified" <?php selected($lead ? $lead->status : '', 'qualified'); ?>>Qualified</option>
-								<option value="converted" <?php selected($lead ? $lead->status : '', 'converted'); ?>>Converted</option>
-								<option value="lost" <?php selected($lead ? $lead->status : '', 'lost'); ?>>Lost</option>
-							</select>
-						</td></tr>
-						<tr><th>Potential Value ($)</th><td><input type="number" step="0.01" name="conversion_value" value="<?php echo $lead ? esc_attr($lead->conversion_value) : ''; ?>" class="regular-text"></td></tr>
+						<tr>
+							<th><label><?php _e('Name', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="text" name="name" value="<?php echo $lead ? esc_attr($lead->name) : ''; ?>" required class="regular-text">
+								<p class="description"><?php _e('Full name of the prospect.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Email', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="email" name="email" value="<?php echo $lead ? esc_attr($lead->email) : ''; ?>" required class="regular-text">
+								<p class="description"><?php _e('Contact email for follow-ups.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Source', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="text" name="source" value="<?php echo $lead ? esc_attr($lead->source) : ''; ?>" class="regular-text">
+								<p class="description"><?php _e('Where did this lead come from? e.g., LinkedIn, Referral, Google Ads', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Status', 'agency-nexus'); ?></label></th>
+							<td>
+								<select name="status">
+									<option value="new" <?php selected($lead ? $lead->status : '', 'new'); ?>>New</option>
+									<option value="qualified" <?php selected($lead ? $lead->status : '', 'qualified'); ?>>Qualified</option>
+									<option value="converted" <?php selected($lead ? $lead->status : '', 'converted'); ?>>Converted</option>
+									<option value="lost" <?php selected($lead ? $lead->status : '', 'lost'); ?>>Lost</option>
+								</select>
+								<p class="description"><?php _e('Current stage in your sales process.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Potential Value ($)', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="number" step="0.01" name="conversion_value" value="<?php echo $lead ? esc_attr($lead->conversion_value) : ''; ?>" class="regular-text">
+								<p class="description"><?php _e('Estimated project value if this lead converts.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
 					</table>
 					<input type="submit" name="an_save_lead" class="button button-primary" value="Save Lead">
 					<a href="?page=an-leads" class="button">Cancel</a>
@@ -211,11 +240,24 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 			?>
 			<div class="wrap">
 				<h1><?php echo $id ? __('Edit Response', 'agency-nexus') : __('Add New Response', 'agency-nexus'); ?></h1>
+				<p class="description"><?php _e('Save reusable text snippets for common client inquiries.', 'agency-nexus'); ?></p>
 				<form method="post">
 					<?php wp_nonce_field( 'an_save_response_nonce' ); ?>
 					<table class="form-table">
-						<tr><th>Shortcut Title</th><td><input type="text" name="title" value="<?php echo $resp ? esc_attr($resp->title) : ''; ?>" required class="regular-text"></td></tr>
-						<tr><th>Content</th><td><textarea name="content" required class="regular-text" rows="5"><?php echo $resp ? esc_textarea($resp->content) : ''; ?></textarea></td></tr>
+						<tr>
+							<th><label><?php _e('Shortcut Title', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="text" name="title" value="<?php echo $resp ? esc_attr($resp->title) : ''; ?>" required class="regular-text">
+								<p class="description"><?php _e('A short name to identify this template. e.g., Welcome Message', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Content', 'agency-nexus'); ?></label></th>
+							<td>
+								<textarea name="content" required class="regular-text" rows="5"><?php echo $resp ? esc_textarea($resp->content) : ''; ?></textarea>
+								<p class="description"><?php _e('The full text that will be inserted when you use this shortcut.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
 					</table>
 					<input type="submit" name="an_save_response" class="button button-primary" value="Save Response">
 					<a href="?page=an-canned-responses" class="button">Cancel</a>

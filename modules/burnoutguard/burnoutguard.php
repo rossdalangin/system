@@ -89,19 +89,24 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 			?>
 			<div class="wrap">
 				<h1><?php echo $id ? __('Edit Health Check', 'agency-nexus') : __('New Health Check', 'agency-nexus'); ?></h1>
+				<p class="description"><?php _e('Log your mental well-being to monitor agency capacity and prevent burnout.', 'agency-nexus'); ?></p>
 				<form method="post">
 					<?php wp_nonce_field( 'an_save_check_nonce' ); ?>
 					<table class="form-table">
 						<tr>
-							<th><label>Stress Level (1-10)</label></th>
+							<th><label><?php _e('Stress Level (1-10)', 'agency-nexus'); ?></label></th>
 							<td>
 								<input type="range" name="stress_level" min="1" max="10" value="<?php echo $log ? $log->stress_level : 5; ?>" class="regular-text" oninput="this.nextElementSibling.value = this.value">
 								<output><?php echo $log ? $log->stress_level : 5; ?></output>
+								<p class="description"><?php _e('1 = Very relaxed, 10 = Critically stressed.', 'agency-nexus'); ?></p>
 							</td>
 						</tr>
 						<tr>
-							<th><label>Notes</label></th>
-							<td><textarea name="note" class="regular-text" rows="3"><?php echo $log ? esc_textarea($log->note) : ''; ?></textarea></td>
+							<th><label><?php _e('Notes', 'agency-nexus'); ?></label></th>
+							<td>
+								<textarea name="note" class="regular-text" rows="3"><?php echo $log ? esc_textarea($log->note) : ''; ?></textarea>
+								<p class="description"><?php _e('Describe any factors affecting your well-being or workload.', 'agency-nexus'); ?></p>
+							</td>
 						</tr>
 					</table>
 					<input type="submit" name="an_save_check" class="button button-primary" value="Save Entry">

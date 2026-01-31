@@ -105,7 +105,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		?>
 		<div class="wrap">
 			<h1><?php _e( 'Content Calendar', 'agency-nexus' ); ?></h1>
-			<p><?php _e( 'Guidance: Drag and drop items to reschedule. Click on a date to create new content placeholders.', 'agency-nexus' ); ?></p>
+			<p class="description"><?php _e( 'A visual overview of your cross-platform content strategy. Drag unscheduled items onto the calendar to set a publication date, or move existing items to reschedule.', 'agency-nexus' ); ?></p>
 		</div>
 		<?php
 		$this->get_template( 'calendar', [ 'content_items' => $content_items, 'projects' => $projects ] );
@@ -134,32 +134,69 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			?>
 			<div class="wrap">
 				<h1><?php echo $id ? __('Edit Content', 'agency-nexus') : __('Add New Content', 'agency-nexus'); ?></h1>
+				<p class="description"><?php _e('Create a content piece for a specific project. This can be a blog post, social media update, or newsletter.', 'agency-nexus'); ?></p>
 				<form method="post">
 					<?php wp_nonce_field('an_save_content_nonce'); ?>
 					<table class="form-table">
-						<tr><th>Project</th><td>
-							<select name="project_id" required>
-								<?php foreach ($projects as $p) : ?>
-									<option value="<?php echo $p->id; ?>" <?php selected($content ? $content->project_id : 0, $p->id); ?>><?php echo esc_html($p->title); ?></option>
-								<?php endforeach; ?>
-							</select>
-						</td></tr>
-						<tr><th>Title</th><td><input type="text" name="title" value="<?php echo $content ? esc_attr($content->title) : ''; ?>" required class="regular-text"></td></tr>
-						<tr><th>Body Content</th><td><textarea name="content" class="regular-text" rows="10"><?php echo $content ? esc_textarea($content->content) : ''; ?></textarea></td></tr>
-						<tr><th>Media URL</th><td>
-							<input type="text" name="media_url" id="media_url" value="<?php echo $content ? esc_attr($content->media_url) : ''; ?>" class="regular-text">
-							<button type="button" id="upload_media_btn" class="button">Upload/Select Media</button>
-						</td></tr>
-						<tr><th>Platform</th><td><input type="text" name="platform" value="<?php echo $content ? esc_attr($content->platform) : 'wordpress'; ?>" class="regular-text"></td></tr>
-						<tr><th>Status</th><td>
-							<select name="status">
-								<option value="draft" <?php selected($content ? $content->status : '', 'draft'); ?>>Draft</option>
-								<option value="pending_approval" <?php selected($content ? $content->status : '', 'pending_approval'); ?>>Pending Approval</option>
-								<option value="approved" <?php selected($content ? $content->status : '', 'approved'); ?>>Approved</option>
-								<option value="published" <?php selected($content ? $content->status : '', 'published'); ?>>Published</option>
-							</select>
-						</td></tr>
-						<tr><th>Scheduled Date</th><td><input type="datetime-local" name="scheduled_date" value="<?php echo ($content && $content->scheduled_date) ? date('Y-m-d\TH:i', strtotime($content->scheduled_date)) : ''; ?>"></td></tr>
+						<tr>
+							<th><label><?php _e('Project', 'agency-nexus'); ?></label></th>
+							<td>
+								<select name="project_id" required>
+									<?php foreach ($projects as $p) : ?>
+										<option value="<?php echo $p->id; ?>" <?php selected($content ? $content->project_id : 0, $p->id); ?>><?php echo esc_html($p->title); ?></option>
+									<?php endforeach; ?>
+								</select>
+								<p class="description"><?php _e('Which project does this content belong to?', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Title', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="text" name="title" value="<?php echo $content ? esc_attr($content->title) : ''; ?>" required class="regular-text">
+								<p class="description"><?php _e('Internal name or headline for the content.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Body Content', 'agency-nexus'); ?></label></th>
+							<td>
+								<textarea name="content" class="regular-text" rows="10"><?php echo $content ? esc_textarea($content->content) : ''; ?></textarea>
+								<p class="description"><?php _e('The actual text or copy for the post.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Media URL', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="text" name="media_url" id="media_url" value="<?php echo $content ? esc_attr($content->media_url) : ''; ?>" class="regular-text">
+								<button type="button" id="upload_media_btn" class="button">Upload/Select Media</button>
+								<p class="description"><?php _e('URL of an image or video asset from the Media Library.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Platform', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="text" name="platform" value="<?php echo $content ? esc_attr($content->platform) : 'wordpress'; ?>" class="regular-text">
+								<p class="description"><?php _e('Where will this be published? e.g., WordPress, Instagram, LinkedIn', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Status', 'agency-nexus'); ?></label></th>
+							<td>
+								<select name="status">
+									<option value="draft" <?php selected($content ? $content->status : '', 'draft'); ?>>Draft</option>
+									<option value="pending_approval" <?php selected($content ? $content->status : '', 'pending_approval'); ?>>Pending Approval</option>
+									<option value="approved" <?php selected($content ? $content->status : '', 'approved'); ?>>Approved</option>
+									<option value="published" <?php selected($content ? $content->status : '', 'published'); ?>>Published</option>
+								</select>
+								<p class="description"><?php _e('Clients can only approve items set to "Pending Approval".', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Scheduled Date', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="datetime-local" name="scheduled_date" value="<?php echo ($content && $content->scheduled_date) ? date('Y-m-d\TH:i', strtotime($content->scheduled_date)) : ''; ?>">
+								<p class="description"><?php _e('When should this content go live?', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
 					</table>
 					<input type="submit" name="an_save_content" class="button button-primary" value="Save Content">
 					<a href="?page=an-content-list" class="button">Cancel</a>

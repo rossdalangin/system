@@ -175,11 +175,12 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			?>
 			<div class="wrap">
 				<h1><?php echo $id ? __( 'Edit Expense', 'agency-nexus' ) : __( 'Add New Expense', 'agency-nexus' ); ?></h1>
+				<p class="description"><?php _e('Record a business cost to track your agency\'s true profitability.', 'agency-nexus'); ?></p>
 				<form method="post">
 					<?php wp_nonce_field( 'an_save_expense_nonce' ); ?>
 					<table class="form-table">
 						<tr>
-							<th><label for="project_id">Project</label></th>
+							<th><label for="project_id"><?php _e('Project', 'agency-nexus'); ?></label></th>
 							<td>
 								<select name="project_id" id="project_id">
 									<option value="0"><?php _e( 'General / No Project', 'agency-nexus' ); ?></option>
@@ -187,14 +188,18 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 										<option value="<?php echo $project->id; ?>" <?php selected( $expense ? $expense->project_id : 0, $project->id ); ?>><?php echo esc_html( $project->title ); ?></option>
 									<?php endforeach; ?>
 								</select>
+								<p class="description"><?php _e('Optional: Link this cost to a specific client project.', 'agency-nexus'); ?></p>
 							</td>
 						</tr>
 						<tr>
-							<th><label for="amount">Amount ($)</label></th>
-							<td><input type="number" step="0.01" name="amount" id="amount" value="<?php echo $expense ? esc_attr($expense->amount) : ''; ?>" class="regular-text" required></td>
+							<th><label for="amount"><?php _e('Amount ($)', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="number" step="0.01" name="amount" id="amount" value="<?php echo $expense ? esc_attr($expense->amount) : ''; ?>" class="regular-text" required>
+								<p class="description"><?php _e('Total cost including tax. e.g., 29.99', 'agency-nexus'); ?></p>
+							</td>
 						</tr>
 						<tr>
-							<th><label for="category">Category</label></th>
+							<th><label for="category"><?php _e('Category', 'agency-nexus'); ?></label></th>
 							<td>
 								<select name="category" id="category">
 									<option value="software" <?php selected( $expense ? $expense->category : '', 'software' ); ?>><?php _e( 'Software / Tools', 'agency-nexus' ); ?></option>
@@ -203,18 +208,23 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 									<option value="travel" <?php selected( $expense ? $expense->category : '', 'travel' ); ?>><?php _e( 'Travel', 'agency-nexus' ); ?></option>
 									<option value="other" <?php selected( $expense ? $expense->category : '', 'other' ); ?>><?php _e( 'Other', 'agency-nexus' ); ?></option>
 								</select>
+								<p class="description"><?php _e('Used for financial reporting and tax categorization.', 'agency-nexus'); ?></p>
 							</td>
 						</tr>
 						<tr>
-							<th><label for="receipt_url">Receipt (URL or Upload)</label></th>
+							<th><label for="receipt_url"><?php _e('Receipt', 'agency-nexus'); ?></label></th>
 							<td>
 								<input type="text" name="receipt_url" id="receipt_url" value="<?php echo $expense ? esc_attr($expense->receipt_url) : ''; ?>" class="regular-text">
 								<button type="button" id="upload_receipt_button" class="button"><?php _e( 'Upload Receipt', 'agency-nexus' ); ?></button>
+								<p class="description"><?php _e('Upload a PDF or image of the receipt for your records.', 'agency-nexus'); ?></p>
 							</td>
 						</tr>
 						<tr>
-							<th><label for="note">Note</label></th>
-							<td><textarea name="note" id="note" class="regular-text"><?php echo $expense ? esc_textarea($expense->note) : ''; ?></textarea></td>
+							<th><label for="note"><?php _e('Note', 'agency-nexus'); ?></label></th>
+							<td>
+								<textarea name="note" id="note" class="regular-text"><?php echo $expense ? esc_textarea($expense->note) : ''; ?></textarea>
+								<p class="description"><?php _e('Internal memo about this purchase.', 'agency-nexus'); ?></p>
+							</td>
 						</tr>
 					</table>
 					<p class="submit">
@@ -371,34 +381,65 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			?>
 			<div class="wrap">
 				<h1><?php echo $id ? __('Edit Invoice', 'agency-nexus') : __('Create New Invoice', 'agency-nexus'); ?></h1>
+				<p class="description"><?php _e('Generate a professional invoice for your client. Once saved, you can print it or record payments.', 'agency-nexus'); ?></p>
 				<form method="post">
 					<?php wp_nonce_field('an_save_invoice_nonce'); ?>
 					<table class="form-table">
-						<tr><th>Invoice Number</th><td><input type="text" name="number" value="<?php echo $invoice ? esc_attr($invoice->number) : 'INV-' . time(); ?>" required></td></tr>
-						<tr><th>Project</th><td>
-							<select name="project_id" required>
-								<?php foreach ($projects as $p) : ?>
-									<option value="<?php echo $p->id; ?>" <?php selected($invoice ? $invoice->project_id : 0, $p->id); ?>><?php echo esc_html($p->title); ?></option>
-								<?php endforeach; ?>
-							</select>
-						</td></tr>
-						<tr><th>Client</th><td>
-							<select name="client_id" required>
-								<?php foreach ($clients as $c) : ?>
-									<option value="<?php echo $c->id; ?>" <?php selected($invoice ? $invoice->client_id : 0, $c->id); ?>><?php echo esc_html($c->name); ?></option>
-								<?php endforeach; ?>
-							</select>
-						</td></tr>
-						<tr><th>Amount ($)</th><td><input type="number" step="0.01" name="amount" value="<?php echo $invoice ? esc_attr($invoice->amount) : ''; ?>" required></td></tr>
-						<tr><th>Due Date</th><td><input type="date" name="due_date" value="<?php echo $invoice ? esc_attr($invoice->due_date) : ''; ?>" required></td></tr>
-						<tr><th>Status</th><td>
-							<select name="status">
-								<option value="draft" <?php selected($invoice ? $invoice->status : '', 'draft'); ?>>Draft</option>
-								<option value="sent" <?php selected($invoice ? $invoice->status : '', 'sent'); ?>>Sent</option>
-								<option value="paid" <?php selected($invoice ? $invoice->status : '', 'paid'); ?>>Paid</option>
-								<option value="overdue" <?php selected($invoice ? $invoice->status : '', 'overdue'); ?>>Overdue</option>
-							</select>
-						</td></tr>
+						<tr>
+							<th><label><?php _e('Invoice Number', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="text" name="number" value="<?php echo $invoice ? esc_attr($invoice->number) : 'INV-' . time(); ?>" required>
+								<p class="description"><?php _e('Unique identifier for this invoice. e.g., INV-2024-001', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Project', 'agency-nexus'); ?></label></th>
+							<td>
+								<select name="project_id" required>
+									<?php foreach ($projects as $p) : ?>
+										<option value="<?php echo $p->id; ?>" <?php selected($invoice ? $invoice->project_id : 0, $p->id); ?>><?php echo esc_html($p->title); ?></option>
+									<?php endforeach; ?>
+								</select>
+								<p class="description"><?php _e('Link this invoice to a project for revenue tracking.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Client', 'agency-nexus'); ?></label></th>
+							<td>
+								<select name="client_id" required>
+									<?php foreach ($clients as $c) : ?>
+										<option value="<?php echo $c->id; ?>" <?php selected($invoice ? $invoice->client_id : 0, $c->id); ?>><?php echo esc_html($c->name); ?></option>
+									<?php endforeach; ?>
+								</select>
+								<p class="description"><?php _e('Who is being billed?', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Amount ($)', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="number" step="0.01" name="amount" value="<?php echo $invoice ? esc_attr($invoice->amount) : ''; ?>" required>
+								<p class="description"><?php _e('Total amount due.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Due Date', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="date" name="due_date" value="<?php echo $invoice ? esc_attr($invoice->due_date) : ''; ?>" required>
+								<p class="description"><?php _e('Deadline for payment.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Status', 'agency-nexus'); ?></label></th>
+							<td>
+								<select name="status">
+									<option value="draft" <?php selected($invoice ? $invoice->status : '', 'draft'); ?>>Draft</option>
+									<option value="sent" <?php selected($invoice ? $invoice->status : '', 'sent'); ?>>Sent</option>
+									<option value="paid" <?php selected($invoice ? $invoice->status : '', 'paid'); ?>>Paid</option>
+									<option value="overdue" <?php selected($invoice ? $invoice->status : '', 'overdue'); ?>>Overdue</option>
+								</select>
+								<p class="description"><?php _e('Current state of the invoice.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
 					</table>
 					<input type="submit" name="an_save_invoice" class="button button-primary" value="Save Invoice">
 				</form>

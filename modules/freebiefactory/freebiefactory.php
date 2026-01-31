@@ -96,32 +96,41 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 			?>
 			<div class="wrap">
 				<h1><?php echo $id ? __('Edit Resource', 'agency-nexus') : __('Add New Resource', 'agency-nexus'); ?></h1>
+				<p class="description"><?php _e('Add an asset to your agency library. These can be templates for your team or files for client download.', 'agency-nexus'); ?></p>
 				<form method="post">
 					<?php wp_nonce_field( 'an_save_resource_nonce' ); ?>
 					<table class="form-table">
 						<tr>
-							<th><label for="title">Title</label></th>
-							<td><input type="text" name="title" id="title" value="<?php echo $resource ? esc_attr($resource->title) : ''; ?>" class="regular-text" required></td>
+							<th><label for="title"><?php _e('Title', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="text" name="title" id="title" value="<?php echo $resource ? esc_attr($resource->title) : ''; ?>" class="regular-text" required>
+								<p class="description"><?php _e('Descriptive name of the resource. e.g., Standard Service Agreement', 'agency-nexus'); ?></p>
+							</td>
 						</tr>
 						<tr>
-							<th><label for="type">Type</label></th>
+							<th><label for="type"><?php _e('Type', 'agency-nexus'); ?></label></th>
 							<td>
 								<select name="type" id="type">
 									<option value="template" <?php selected($resource ? $resource->type : '', 'template'); ?>>Template</option>
 									<option value="swipe" <?php selected($resource ? $resource->type : '', 'swipe'); ?>>Swipe File</option>
 								</select>
+								<p class="description"><?php _e('Templates are frameworks for work; Swipe files are inspiration or examples.', 'agency-nexus'); ?></p>
 							</td>
 						</tr>
 						<tr>
-							<th><label for="file_url">File URL</label></th>
+							<th><label for="file_url"><?php _e('File URL', 'agency-nexus'); ?></label></th>
 							<td>
 								<input type="text" name="file_url" id="file_url" value="<?php echo $resource ? esc_attr($resource->file_url) : ''; ?>" class="regular-text">
 								<button type="button" id="upload_resource_btn" class="button">Upload File</button>
+								<p class="description"><?php _e('Optional: Upload a document (PDF, Word) or provide a link.', 'agency-nexus'); ?></p>
 							</td>
 						</tr>
 						<tr>
-							<th><label for="content">Text Content / Description</label></th>
-							<td><textarea name="content" id="content" class="regular-text"><?php echo $resource ? esc_textarea($resource->content) : ''; ?></textarea></td>
+							<th><label for="content"><?php _e('Text Content / Description', 'agency-nexus'); ?></label></th>
+							<td>
+								<textarea name="content" id="content" class="regular-text"><?php echo $resource ? esc_textarea($resource->content) : ''; ?></textarea>
+								<p class="description"><?php _e('The text body of the template or a brief overview of how to use this resource.', 'agency-nexus'); ?></p>
+							</td>
 						</tr>
 					</table>
 					<p class="submit">

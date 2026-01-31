@@ -290,20 +290,30 @@ class Agency_Nexus_Admin_Dashboard {
 			?>
 			<div class="wrap">
 				<h1><?php echo $id ? __('Edit Client', 'agency-nexus') : __('Add New Client', 'agency-nexus'); ?></h1>
+				<p class="description"><?php _e('Register a new client to start managing their projects and communication. This record is for internal tracking.', 'agency-nexus'); ?></p>
 				<form method="post">
 					<?php wp_nonce_field('an_save_client_nonce'); ?>
 					<table class="form-table">
 						<tr>
 							<th><label for="name">Name</label></th>
-							<td><input type="text" name="name" id="name" value="<?php echo $client ? esc_attr($client->name) : ''; ?>" class="regular-text" required></td>
+							<td>
+								<input type="text" name="name" id="name" value="<?php echo $client ? esc_attr($client->name) : ''; ?>" class="regular-text" required>
+								<p class="description"><?php _e('Full name of the client or primary contact. e.g., John Doe', 'agency-nexus'); ?></p>
+							</td>
 						</tr>
 						<tr>
 							<th><label for="email">Email</label></th>
-							<td><input type="email" name="email" id="email" value="<?php echo $client ? esc_attr($client->email) : ''; ?>" class="regular-text" required></td>
+							<td>
+								<input type="email" name="email" id="email" value="<?php echo $client ? esc_attr($client->email) : ''; ?>" class="regular-text" required>
+								<p class="description"><?php _e('The email address used for communication and to link their WordPress user account. e.g., john@example.com', 'agency-nexus'); ?></p>
+							</td>
 						</tr>
 						<tr>
 							<th><label for="company">Company</label></th>
-							<td><input type="text" name="company" id="company" value="<?php echo $client ? esc_attr($client->company) : ''; ?>" class="regular-text"></td>
+							<td>
+								<input type="text" name="company" id="company" value="<?php echo $client ? esc_attr($client->company) : ''; ?>" class="regular-text">
+								<p class="description"><?php _e('The legal name of the client\'s organization. e.g., Acme Corp', 'agency-nexus'); ?></p>
+							</td>
 						</tr>
 					</table>
 					<p class="submit">
@@ -566,6 +576,7 @@ class Agency_Nexus_Admin_Dashboard {
 			?>
 			<div class="wrap">
 				<h1><?php echo $id ? __('Edit Project', 'agency-nexus') : __('Create New Project', 'agency-nexus'); ?></h1>
+				<p class="description"><?php _e('Define the project scope, budget, and timeline for your client.', 'agency-nexus'); ?></p>
 				<form method="post">
 					<?php wp_nonce_field('an_save_project_nonce'); ?>
 					<table class="form-table">
@@ -577,15 +588,22 @@ class Agency_Nexus_Admin_Dashboard {
 										<option value="<?php echo $client->id; ?>" <?php selected($project ? $project->client_id : 0, $client->id); ?>><?php echo esc_html($client->name); ?></option>
 									<?php endforeach; ?>
 								</select>
+								<p class="description"><?php _e('Select the client who owns this project.', 'agency-nexus'); ?></p>
 							</td>
 						</tr>
 						<tr>
 							<th><label for="title">Project Title</label></th>
-							<td><input type="text" name="title" id="title" value="<?php echo $project ? esc_attr($project->title) : ''; ?>" class="regular-text" required></td>
+							<td>
+								<input type="text" name="title" id="title" value="<?php echo $project ? esc_attr($project->title) : ''; ?>" class="regular-text" required>
+								<p class="description"><?php _e('Short, descriptive name for the project. e.g., Website Redesign 2024', 'agency-nexus'); ?></p>
+							</td>
 						</tr>
 						<tr>
 							<th><label for="budget">Budget ($)</label></th>
-							<td><input type="number" step="0.01" name="budget" id="budget" value="<?php echo $project ? esc_attr($project->budget) : '0.00'; ?>" class="regular-text"></td>
+							<td>
+								<input type="number" step="0.01" name="budget" id="budget" value="<?php echo $project ? esc_attr($project->budget) : '0.00'; ?>" class="regular-text">
+								<p class="description"><?php _e('Total project value. Used for profitability tracking.', 'agency-nexus'); ?></p>
+							</td>
 						</tr>
 						<tr>
 							<th><label for="status">Status</label></th>
@@ -596,11 +614,15 @@ class Agency_Nexus_Admin_Dashboard {
 									<option value="on_hold" <?php selected($project ? $project->status : '', 'on_hold'); ?>>On Hold</option>
 									<option value="completed" <?php selected($project ? $project->status : '', 'completed'); ?>>Completed</option>
 								</select>
+								<p class="description"><?php _e('The current stage of the project.', 'agency-nexus'); ?></p>
 							</td>
 						</tr>
 						<tr>
 							<th><label for="description">Description</label></th>
-							<td><textarea name="description" id="description" class="regular-text"><?php echo $project ? esc_textarea($project->description) : ''; ?></textarea></td>
+							<td>
+								<textarea name="description" id="description" class="regular-text"><?php echo $project ? esc_textarea($project->description) : ''; ?></textarea>
+								<p class="description"><?php _e('Detailed overview of goals and deliverables.', 'agency-nexus'); ?></p>
+							</td>
 						</tr>
 					</table>
 					<p class="submit">
@@ -729,20 +751,30 @@ class Agency_Nexus_Admin_Dashboard {
 		?>
 		<div class="wrap">
 			<h1><?php _e( 'Agency Nexus Settings', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e('Configure your agency\'s global parameters for finances and external integrations.', 'agency-nexus'); ?></p>
 			<form method="post">
 				<?php wp_nonce_field( 'an_global_settings_nonce' ); ?>
 				<table class="form-table">
 					<tr>
 						<th><label for="an_hourly_rate">Default Hourly Rate ($)</label></th>
-						<td><input type="number" name="an_hourly_rate" id="an_hourly_rate" value="<?php echo esc_attr( get_option( 'an_hourly_rate', 50 ) ); ?>" class="regular-text"></td>
+						<td>
+							<input type="number" name="an_hourly_rate" id="an_hourly_rate" value="<?php echo esc_attr( get_option( 'an_hourly_rate', 50 ) ); ?>" class="regular-text">
+							<p class="description"><?php _e('Used to calculate internal labor costs in the Financial Dashboard. Default: $50/hr', 'agency-nexus'); ?></p>
+						</td>
 					</tr>
 					<tr>
 						<th><label for="an_stripe_key">Stripe Secret Key</label></th>
-						<td><input type="password" name="an_stripe_key" id="an_stripe_key" value="<?php echo esc_attr( get_option( 'an_stripe_key' ) ); ?>" class="regular-text"></td>
+						<td>
+							<input type="password" name="an_stripe_key" id="an_stripe_key" value="<?php echo esc_attr( get_option( 'an_stripe_key' ) ); ?>" class="regular-text">
+							<p class="description"><?php _e('Required for automating subscription payments and invoice processing.', 'agency-nexus'); ?></p>
+						</td>
 					</tr>
 					<tr>
 						<th><label for="an_zapier_webhook">Zapier Webhook URL</label></th>
-						<td><input type="text" name="an_zapier_webhook" id="an_zapier_webhook" value="<?php echo esc_attr( get_option( 'an_zapier_webhook' ) ); ?>" class="large-text"></td>
+						<td>
+							<input type="text" name="an_zapier_webhook" id="an_zapier_webhook" value="<?php echo esc_attr( get_option( 'an_zapier_webhook' ) ); ?>" class="large-text">
+							<p class="description"><?php _e('Trigger external workflows in Zapier or Make.com when project milestones are met.', 'agency-nexus'); ?></p>
+						</td>
 					</tr>
 				</table>
 				<p class="submit">
@@ -768,7 +800,7 @@ class Agency_Nexus_Admin_Dashboard {
 		?>
 		<div class="wrap">
 			<h1><?php _e( 'Agency Nexus Dashboard', 'agency-nexus' ); ?></h1>
-			<p><?php _e( 'Welcome to your comprehensive agency management dashboard.', 'agency-nexus' ); ?></p>
+			<p class="description"><?php _e( 'Your central command center for agency operations. Monitor project health, team productivity, and financial performance at a glance.', 'agency-nexus' ); ?></p>
 
 			<?php if ( $is_admin ) : ?>
 			<div class="welcome-panel" style="padding: 20px; margin-top: 20px;">

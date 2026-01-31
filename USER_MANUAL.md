@@ -1,10 +1,10 @@
 # Agency Nexus - User Manual & Instructions
 
-Welcome to **Agency Nexus**, the all-in-one WordPress plugin designed for freelancers and agency owners. This manual will guide you through using the plugin effectively to manage your clients, projects, content, and time.
+Welcome to **Agency Nexus**, the premium, all-in-one WordPress management suite designed exclusively for freelancers and agency owners. Agency Nexus integrates project management, content operations, client collaboration, and financial tracking into a single, intuitive dashboard.
 
 ---
 
-## 🛠️ Quick Start: Sample Data
+## 🛠️ Quick Start: Exploring with Sample Data
 If you are new to the plugin, you can quickly explore its features by seeding it with sample data.
 1. Navigate to **Agency Nexus > Dashboard**.
 2. Click the **Seed Sample Data** button in the welcome panel.
@@ -17,49 +17,42 @@ If you are new to the plugin, you can quickly explore its features by seeding it
 
 ## 1. Getting Started: Core Data Management
 
-Before using the advanced modules, you must set up your core data.
+Before diving into the advanced features, you need to establish your agency's core data structure.
 
-### 👥 Client Management
-- Navigate to **Agency Nexus > Clients**.
-- Use the **Add New Client** form to register your clients.
-- This is required for projects and messaging.
+### 👥 Client Management (The Foundation)
+Clients are the heart of your agency. Everything from projects to invoices is linked to a client record.
+- **How to register**: Navigate to **Agency Nexus > Clients** and click **Add New**.
+- **Best Practice**: Use the primary contact's email. If you want the client to have login access, create a standard WordPress user with the *same* email address. The system will automatically link them.
 
-### 📁 Project Management
-- Navigate to **Agency Nexus > Projects**.
-- **Create New Project**: Select a client, set a budget, and add a description.
-- **Manage**: View detailed reports, edit project details, or delete completed projects. Full CRUD is available.
-- **Tasks & Team**: Assign tasks to specific team members in the Project View.
-- **Logging Time**: Against each task, use the "Log Time" field to enter hours worked.
-    - *Note: Logged time automatically updates your financial ROI and workload capacity.*
-- **Timeline Visualizer (Gantt)**: View the automated Gantt chart at the bottom of the Project page to track task durations and dependencies.
-- **Print Report**: In the Project View, click "Print Report" for a hard copy of progress.
+### 📁 Project Management (The Engine)
+Projects house your tasks, time logs, and content plans.
+- **Creating a Project**: Go to **Agency Nexus > Projects > Add New**.
+- **Task Management**: Within any project's **View** page, you can create tasks and assign them to team members.
+- **Dynamic Timeline**: Use the **Start Date** and **Due Date** fields for tasks to automatically populate the **Timeline Visualizer (Gantt Chart)** at the bottom of the page.
+- **ROI Tracking**: Encourage your team to log their hours against specific tasks. This data flows directly into your **MoneyFlow** financial reports.
 
 ---
 
-## 2. Onboarding & Sales
+## 2. Sales & Onboarding
 
-### 🚀 SmartOnboard (Scope Builder)
-- Navigate to **Agency Nexus > Scope Builder**.
-- Use the interactive form to define a project's scale:
-    - **Small**: Automatically sets a $1,000 budget.
-    - **Medium**: Automatically sets a $5,000 budget.
-    - **Large**: Automatically sets a $15,000 budget.
-- Clicking **Create Project** instantly adds it to your Project Management list.
+### 🚀 SmartOnboard: Standardizing Your Sales
+Avoid "scope creep" by using the **Scope Builder**.
+- **Interactive Scoping**: Define service types (SEO, Web Design) and scales (Small to Large) in the settings.
+- **One-Click Projects**: Once you build a scope, click **Create Project** to instantly move the prospect into your production pipeline with pre-defined deliverables.
 
 ---
 
-## 3. Content Operations
+## 3. Content Operations & Approval
 
-### 📅 ContentMatrix (Content Calendar)
-- Navigate to **Agency Nexus > Content Calendar**.
-- **Creation**: Use the form at the top to create content items linked to your projects.
-- **Scheduling**: Drag content items from the "Unscheduled" area into the calendar grid.
-- **Organization**: Drag items between dates to reschedule them. The status is automatically set to "Pending Approval".
+### 📅 ContentMatrix: The Master Calendar
+Manage your agency's content output across all clients.
+- **Visual Planning**: Use the **Content Calendar** to drag-and-drop content items into specific dates.
+- **Platform Agnostic**: Track content for WordPress, Instagram, LinkedIn, or any custom platform.
 
-### ✍️ ApprovalFlow (Sign-off Portal)
-- Navigate to **Agency Nexus > Approvals**.
-- View all content items created in the calendar that are awaiting client or internal sign-off.
-- Click **Approve** to move them to the "Approved" status, or **Request Changes** for revisions.
+### ✍️ ApprovalFlow: Getting Client Sign-off
+No more chasing emails for approvals.
+- **Client Portal**: Clients see a list of items marked as **Pending Approval**.
+- **Audit Trail**: They can approve or request revisions with a single click, which updates the status in real-time on your calendar.
 
 ---
 
@@ -90,13 +83,11 @@ Before using the advanced modules, you must set up your core data.
 
 ## 6. Financials & Growth
 
-### 💰 MoneyFlow (Financial Dashboard & Invoicing)
-- View the widget on the main **Agency Nexus Dashboard** for a real-time **Profitability** overview.
-- **Calculation**: Revenue (Invoiced/Budgets) - Labor Cost (Logged Hours x $50/hr) - Recorded Expenses.
-- **Expenses**: Navigate to **Agency Nexus > Expenses** to record costs and upload receipts.
-- **Invoicing**: Navigate to **Agency Nexus > Invoices** to generate professional invoices.
-- **Printing**: Use the "Print" action on any invoice to generate a printable version.
-- **Payments**: Record payments against invoices to track your cash flow.
+### 💰 MoneyFlow: Your Agency's Bottom Line
+Track every dollar flowing in and out of your agency.
+- **Invoicing**: Create professional, printable invoices directly from your projects.
+- **Expense Tracking**: Upload receipts for software, outsourcing, or travel.
+- **Profitability Intelligence**: The dashboard widget calculates your **True Profit** by subtracting labor costs (calculated from logged hours) and expenses from your project budgets.
 
 ### 📈 EngageTrack (Leads & Sentiment)
 - View the widget on the main **Agency Nexus Dashboard**.
@@ -137,6 +128,24 @@ Before using the advanced modules, you must set up your core data.
 2. **Use the Scope Builder**: Standardize your pricing tiers to avoid scope creep.
 3. **Batch Content**: Create all your content for the week in ContentMatrix and drag them to their respective dates in one go.
 4. **Monitor Capacity**: If BurnoutGuard hits red, use the Resource Library (FreebieFactory) to find referral or overflow contract templates.
+
+---
+
+## 9. Roles & Permissions
+
+Agency Nexus utilizes a tiered permission system to ensure data security and a tailored user experience.
+
+- **Administrator**: Full access to all systems, global settings, and data management.
+- **Team Member (Editor/Author)**: Access to all internal agency tools (Scope Builder, MoneyFlow, AutoPilot) but restricted from global settings.
+- **Client (Subscriber/Linked Email)**: Access to a focused "Client Portal" view containing only their specific projects, messages, content approvals, and a shared resource library.
+
+## 💡 Best Practices for Effectiveness
+
+1.  **Log Time Daily**: Accurate time logging is the engine that drives **MoneyFlow** profitability reports and **BurnoutGuard** capacity monitoring.
+2.  **Use the Scope Builder**: Standardize your pricing tiers and deliverables to avoid "scope creep" and improve project predictability.
+3.  **Batch Content**: Use the **ContentMatrix** calendar to plan and schedule an entire week's worth of content in one sitting, then drag items to their final dates.
+4.  **Monitor Capacity**: If your **BurnoutGuard** widget enters the "Red" zone, use the **FreebieFactory** to find referral or outsourcing contract templates to handle overflow.
+5.  **Centralize Communication**: Encourage clients to use the **Messaging Hub** instead of email to maintain a single, searchable source of truth for every project.
 
 ---
 *Built for Agencies, by Agencies.*

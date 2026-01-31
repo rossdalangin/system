@@ -43,6 +43,12 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 
 	public function render_messages() {
 		global $wpdb;
+		?>
+		<div class="wrap">
+			<h1><?php _e('Messaging Hub', 'agency-nexus'); ?></h1>
+			<p class="description"><?php _e('Collaborate with clients in real-time. Share project updates, files, and feedback within a secure, dedicated environment.', 'agency-nexus'); ?></p>
+		</div>
+		<?php
 		if ( Agency_Nexus_Permissions::is_team_member() ) {
 			$clients = $wpdb->get_results( "SELECT id, name FROM {$wpdb->prefix}an_clients" );
 		} else {

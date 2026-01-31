@@ -91,20 +91,43 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 			?>
 			<div class="wrap">
 				<h1><?php echo $id ? __('Edit Time Block', 'agency-nexus') : __('Add New Time Block', 'agency-nexus'); ?></h1>
+				<p class="description"><?php _e('Schedule your focus periods to maximize productivity and avoid burnout.', 'agency-nexus'); ?></p>
 				<form method="post">
 					<?php wp_nonce_field('an_save_block_nonce'); ?>
 					<table class="form-table">
-						<tr><th>Title</th><td><input type="text" name="title" value="<?php echo $block ? esc_attr($block->title) : ''; ?>" required class="regular-text"></td></tr>
-						<tr><th>Start</th><td><input type="datetime-local" name="start_time" value="<?php echo $block ? date('Y-m-d\TH:i', strtotime($block->start_time)) : ''; ?>" required></td></tr>
-						<tr><th>End</th><td><input type="datetime-local" name="end_time" value="<?php echo $block ? date('Y-m-d\TH:i', strtotime($block->end_time)) : ''; ?>" required></td></tr>
-						<tr><th>Type</th><td>
-							<select name="type">
-								<option value="deep_work" <?php selected($block ? $block->type : '', 'deep_work'); ?>>Deep Work</option>
-								<option value="shallow_work" <?php selected($block ? $block->type : '', 'shallow_work'); ?>>Shallow Work</option>
-								<option value="meeting" <?php selected($block ? $block->type : '', 'meeting'); ?>>Meeting</option>
-								<option value="break" <?php selected($block ? $block->type : '', 'break'); ?>>Break</option>
-							</select>
-						</td></tr>
+						<tr>
+							<th><label><?php _e('Title', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="text" name="title" value="<?php echo $block ? esc_attr($block->title) : ''; ?>" required class="regular-text">
+								<p class="description"><?php _e('What are you working on? e.g., Code Review, Client Call', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Start', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="datetime-local" name="start_time" value="<?php echo $block ? date('Y-m-d\TH:i', strtotime($block->start_time)) : ''; ?>" required>
+								<p class="description"><?php _e('Beginning of the time block.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('End', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="datetime-local" name="end_time" value="<?php echo $block ? date('Y-m-d\TH:i', strtotime($block->end_time)) : ''; ?>" required>
+								<p class="description"><?php _e('End of the time block.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Type', 'agency-nexus'); ?></label></th>
+							<td>
+								<select name="type">
+									<option value="deep_work" <?php selected($block ? $block->type : '', 'deep_work'); ?>>Deep Work</option>
+									<option value="shallow_work" <?php selected($block ? $block->type : '', 'shallow_work'); ?>>Shallow Work</option>
+									<option value="meeting" <?php selected($block ? $block->type : '', 'meeting'); ?>>Meeting</option>
+									<option value="break" <?php selected($block ? $block->type : '', 'break'); ?>>Break</option>
+								</select>
+								<p class="description"><?php _e('Deep Work is for intense concentration; Shallow Work is for administrative tasks.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
 					</table>
 					<input type="submit" name="an_save_block" class="button button-primary" value="Save Block">
 					<a href="?page=an-time-blocking" class="button">Cancel</a>
