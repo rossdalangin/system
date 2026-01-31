@@ -64,6 +64,7 @@ PRIMARY KEY  (id)
 		$queries[] = "CREATE TABLE $table_projects (
 id bigint(20) NOT NULL AUTO_INCREMENT,
 client_id bigint(20) NOT NULL,
+assigned_to bigint(20) DEFAULT 0 NOT NULL,
 title varchar(255) NOT NULL,
 description text NOT NULL,
 budget decimal(10,2) DEFAULT 0.00 NOT NULL,

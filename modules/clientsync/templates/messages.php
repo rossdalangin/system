@@ -38,6 +38,7 @@
 			</div>
 
 			<div id="chat-input" style="padding: 15px; border-top: 1px solid #eee; display: none;">
+				<?php if ( $is_team ) : ?>
 				<div style="margin-bottom: 10px;">
 					<select id="canned-response-select" style="width: 200px;">
 						<option value=""><?php _e( 'Insert Canned Response...', 'agency-nexus' ); ?></option>
@@ -46,6 +47,7 @@
 						<?php endforeach; ?>
 					</select>
 				</div>
+				<?php endif; ?>
 				<form id="an-message-form">
 					<?php wp_nonce_field( 'an_message_nonce', 'security' ); ?>
 					<input type="hidden" name="client_id" id="chat-client-id">
@@ -90,6 +92,7 @@ function loadMessages(id) {
 				var bg = isSent ? '#0073aa' : '#eee';
 				var color = isSent ? '#fff' : '#333';
 				html += '<div class="msg" id="msg-' + msg.id + '" style="margin-bottom: 15px; text-align: ' + align + ';">';
+				html += '<div style="font-size: 10px; color: #999; margin-bottom: 2px;">' + (msg.sender_name || 'System') + '</div>';
 				html += '<div style="background: ' + bg + '; color: ' + color + '; padding: 10px; border-radius: 10px; display: inline-block; max-width: 80%; position:relative;">' + msg.message;
 				html += '<span class="delete-msg" onclick="deleteMessage(' + msg.id + ')" style="cursor:pointer; font-size:10px; opacity:0.5; margin-left:10px;">×</span>';
 				html += '</div></div>';
@@ -191,15 +194,17 @@ jQuery(document).ready(function($) {
 
 	$('#an-message-form').on('submit', function(e) {
 		e.preventDefault();
-		const msg = $('#chat-message-text').val();
-		if (!msg) return;
+		const msgText = $('#chat-message-text').val();
+		const clientId = $('#chat-client-id').val();
+		if (!msgText) return;
 
-		$('#chat-messages').append('<div class="msg sent" style="margin-bottom: 15px; text-align: right;"><div style="background: #0073aa; color: #fff; padding: 10px; border-radius: 10px; display: inline-block; max-width: 80%;">' + msg + '</div></div>');
 		$('#chat-message-text').val('');
 
 		const data = $(this).serialize() + '&action=an_send_message';
 		$.post(ajaxurl, data, function(response) {
-			console.log('Message sent');
+			if (response.success) {
+				loadMessages(clientId);
+			}
 		});
 	});
 });

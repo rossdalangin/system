@@ -91,13 +91,19 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 
 	public function render_calendar() {
 		global $wpdb;
-		$content_query = "SELECT * FROM {$wpdb->prefix}an_content";
+		$content_query = "SELECT c.* FROM {$wpdb->prefix}an_content c JOIN {$wpdb->prefix}an_projects p ON c.project_id = p.id";
 		$projects_query = "SELECT id, title FROM {$wpdb->prefix}an_projects";
 
-		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
-			$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
-			$content_query = $wpdb->prepare( "SELECT c.* FROM {$wpdb->prefix}an_content c JOIN {$wpdb->prefix}an_projects p ON c.project_id = p.id WHERE p.client_id = %d", $client_id );
-			$projects_query = $wpdb->prepare( "SELECT id, title FROM {$wpdb->prefix}an_projects WHERE client_id = %d", $client_id );
+		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+		if ( is_array( $authorised_ids ) ) {
+			if ( empty( $authorised_ids ) ) {
+				$content_query .= " WHERE 1=0";
+				$projects_query .= " WHERE 1=0";
+			} else {
+				$in_clause = "(" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")";
+				$content_query .= " WHERE c.project_id IN $in_clause";
+				$projects_query .= " WHERE id IN $in_clause";
+			}
 		}
 
 		$content_items = $wpdb->get_results( $content_query );
@@ -115,6 +121,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_content';
 		$projects_table = $wpdb->prefix . 'an_projects';
+		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
 		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
@@ -218,9 +225,12 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		}
 
 		$query = "SELECT c.*, p.title as project_title FROM $table_name c JOIN $projects_table p ON c.project_id = p.id";
-		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
-			$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
-			$query .= $wpdb->prepare( " WHERE p.client_id = %d", $client_id );
+		if ( is_array( $authorised_ids ) ) {
+			if ( empty( $authorised_ids ) ) {
+				$query .= " WHERE 1=0";
+			} else {
+				$query .= " WHERE c.project_id IN (" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")";
+			}
 		}
 		$query .= " ORDER BY c.created_at DESC";
 		$items = $wpdb->get_results($query);

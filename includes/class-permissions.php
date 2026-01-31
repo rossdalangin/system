@@ -52,13 +52,23 @@ class Agency_Nexus_Permissions {
 	}
 
 	/**
+	 * Check if user is an Administrator.
+	 */
+	public static function is_admin( $user_id = 0 ) {
+		if ( ! $user_id ) {
+			$user_id = get_current_user_id();
+		}
+		return user_can( $user_id, 'manage_options' );
+	}
+
+	/**
 	 * Check if user is a Team Member (Staff).
 	 */
 	public static function is_team_member( $user_id = 0 ) {
 		if ( ! $user_id ) {
 			$user_id = get_current_user_id();
 		}
-		if ( user_can( $user_id, 'manage_options' ) ) {
+		if ( self::is_admin( $user_id ) ) {
 			return true;
 		}
 		$user = get_userdata( $user_id );
@@ -82,12 +92,33 @@ class Agency_Nexus_Permissions {
 	 * Granular check for project access.
 	 */
 	public static function can_view_project( $project_id ) {
-		if ( self::is_team_member() ) {
+		$user_id = get_current_user_id();
+
+		if ( self::is_admin( $user_id ) ) {
 			return true;
 		}
 
 		global $wpdb;
-		$client_id = self::get_client_id_for_user( get_current_user_id() );
+
+		// If Team Member, check if project or any task in this project is assigned to them.
+		if ( self::is_team_member( $user_id ) ) {
+			$project_assigned = $wpdb->get_var( $wpdb->prepare(
+				"SELECT id FROM {$wpdb->prefix}an_projects WHERE id = %d AND assigned_to = %d",
+				$project_id,
+				$user_id
+			) );
+			if ( $project_assigned ) return true;
+
+			$task_assigned = $wpdb->get_var( $wpdb->prepare(
+				"SELECT id FROM {$wpdb->prefix}an_tasks WHERE project_id = %d AND assigned_to = %d LIMIT 1",
+				$project_id,
+				$user_id
+			) );
+			return (bool) $task_assigned;
+		}
+
+		// If Client, check if they own the project.
+		$client_id = self::get_client_id_for_user( $user_id );
 		if ( ! $client_id ) {
 			return false;
 		}
@@ -101,14 +132,55 @@ class Agency_Nexus_Permissions {
 	}
 
 	/**
+	 * Get authorized project IDs for the current user.
+	 * Returns null if the user is an admin (authorized for all).
+	 */
+	public static function get_authorised_project_ids() {
+		$user_id = get_current_user_id();
+		if ( self::is_admin( $user_id ) ) {
+			return null;
+		}
+
+		global $wpdb;
+		if ( self::is_team_member( $user_id ) ) {
+			return $wpdb->get_col( $wpdb->prepare( "
+				SELECT id FROM {$wpdb->prefix}an_projects
+				WHERE (assigned_to = %d OR id IN (SELECT project_id FROM {$wpdb->prefix}an_tasks WHERE assigned_to = %d))",
+				$user_id, $user_id
+			) );
+		}
+
+		$client_id = self::get_client_id_for_user( $user_id );
+		if ( ! $client_id ) {
+			return [];
+		}
+
+		return $wpdb->get_col( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}an_projects WHERE client_id = %d", $client_id ) );
+	}
+
+	/**
 	 * Granular check for message access.
 	 */
 	public static function can_access_messages( $requested_client_id ) {
-		if ( self::is_team_member() ) {
+		$user_id = get_current_user_id();
+		if ( self::is_admin( $user_id ) ) {
 			return true;
 		}
 
-		$client_id = self::get_client_id_for_user( get_current_user_id() );
+		global $wpdb;
+		// If Team Member, can access if assigned to at least one project of this client.
+		if ( self::is_team_member( $user_id ) ) {
+			$authorised_projects = self::get_authorised_project_ids();
+			if ( empty($authorised_projects) ) return false;
+
+			$client_has_authorised_project = $wpdb->get_var( $wpdb->prepare(
+				"SELECT id FROM {$wpdb->prefix}an_projects WHERE client_id = %d AND id IN (" . implode(',', array_map('intval', $authorised_projects)) . ") LIMIT 1",
+				$requested_client_id
+			) );
+			return (bool) $client_has_authorised_project;
+		}
+
+		$client_id = self::get_client_id_for_user( $user_id );
 		return $client_id && $client_id === (int) $requested_client_id;
 	}
 }

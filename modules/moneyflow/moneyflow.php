@@ -248,7 +248,17 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			return;
 		}
 
-		$expenses = $wpdb->get_results( "SELECT e.*, p.title as project_title FROM $expenses_table e LEFT JOIN $projects_table p ON e.project_id = p.id ORDER BY e.created_at DESC" );
+		$expenses_query = "SELECT e.*, p.title as project_title FROM $expenses_table e LEFT JOIN $projects_table p ON e.project_id = p.id";
+		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+		if ( is_array( $authorised_ids ) ) {
+			if ( empty( $authorised_ids ) ) {
+				$expenses_query .= " WHERE 1=0";
+			} else {
+				$expenses_query .= " WHERE e.project_id IN (" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")";
+			}
+		}
+		$expenses_query .= " ORDER BY e.created_at DESC";
+		$expenses = $wpdb->get_results( $expenses_query );
 
 		?>
 		<div class="wrap">
@@ -448,7 +458,17 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			return;
 		}
 
-		$invoices = $wpdb->get_results("SELECT i.*, c.name as client_name, p.title as project_title FROM $invoices_table i JOIN $clients_table c ON i.client_id = c.id JOIN $projects_table p ON i.project_id = p.id ORDER BY i.created_at DESC");
+		$invoices_query = "SELECT i.*, c.name as client_name, p.title as project_title FROM $invoices_table i JOIN $clients_table c ON i.client_id = c.id JOIN $projects_table p ON i.project_id = p.id";
+		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+		if ( is_array( $authorised_ids ) ) {
+			if ( empty( $authorised_ids ) ) {
+				$invoices_query .= " WHERE 1=0";
+			} else {
+				$invoices_query .= " WHERE i.project_id IN (" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")";
+			}
+		}
+		$invoices_query .= " ORDER BY i.created_at DESC";
+		$invoices = $wpdb->get_results( $invoices_query );
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e('Invoices', 'agency-nexus'); ?></h1>
@@ -512,8 +532,8 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 
 		$total_hours = $total_seconds / 3600;
 
-		// Assuming a default hourly cost of 50 for the agency
-		$hourly_cost = 50;
+		// Use the global hourly rate setting or fallback to 50.
+		$hourly_cost = get_option( 'an_hourly_rate', 50 );
 		$labor_cost = $total_hours * $hourly_cost;
 
 		// Get expenses for project

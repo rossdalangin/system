@@ -44,7 +44,7 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 	}
 
 	public function register_submenu() {
-		if ( Agency_Nexus_Permissions::is_team_member() ) {
+		if ( Agency_Nexus_Permissions::is_admin() ) {
 			add_submenu_page(
 				'agency-nexus',
 				__( 'Scope Builder', 'agency-nexus' ),

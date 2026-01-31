@@ -43,20 +43,37 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 
 	public function render_messages() {
 		global $wpdb;
+		$is_team = Agency_Nexus_Permissions::is_team_member();
+		$is_admin = Agency_Nexus_Permissions::is_admin();
 		?>
 		<div class="wrap">
 			<h1><?php _e('Messaging Hub', 'agency-nexus'); ?></h1>
 			<p class="description"><?php _e('Collaborate with clients in real-time. Share project updates, files, and feedback within a secure, dedicated environment.', 'agency-nexus'); ?></p>
 		</div>
 		<?php
-		if ( Agency_Nexus_Permissions::is_team_member() ) {
+		if ( $is_admin ) {
 			$clients = $wpdb->get_results( "SELECT id, name FROM {$wpdb->prefix}an_clients" );
+			$responses = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_canned_responses" );
+		} elseif ( $is_team ) {
+			$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+			if ( ! empty($authorised_ids) ) {
+				$authorised_client_ids = $wpdb->get_col( "SELECT client_id FROM {$wpdb->prefix}an_projects WHERE id IN (" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")" );
+				if ( ! empty($authorised_client_ids) ) {
+					$clients = $wpdb->get_results( "SELECT id, name FROM {$wpdb->prefix}an_clients WHERE id IN (" . implode( ',', array_map( 'intval', $authorised_client_ids ) ) . ")" );
+				} else {
+					$clients = [];
+				}
+			} else {
+				$clients = [];
+			}
+			$responses = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_canned_responses" );
 		} else {
 			$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
 			$clients = $wpdb->get_results( $wpdb->prepare( "SELECT id, name FROM {$wpdb->prefix}an_clients WHERE id = %d", $client_id ) );
+			$responses = []; // Clients don't get canned responses
 		}
-		$responses = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_canned_responses" );
-		$this->get_template( 'messages', [ 'clients' => $clients, 'responses' => $responses ] );
+
+		$this->get_template( 'messages', [ 'clients' => $clients, 'responses' => $responses, 'is_team' => $is_team ] );
 	}
 
 	/**
@@ -73,9 +90,11 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 		global $wpdb;
 
 		$messages = $wpdb->get_results( $wpdb->prepare( "
-			SELECT * FROM {$wpdb->prefix}an_messages
-			WHERE client_id = %d
-			ORDER BY created_at ASC
+			SELECT m.*, u.display_name as sender_name
+			FROM {$wpdb->prefix}an_messages m
+			LEFT JOIN {$wpdb->users} u ON m.sender_id = u.ID
+			WHERE m.client_id = %d
+			ORDER BY m.created_at ASC
 		", $client_id ) );
 
 		wp_send_json_success( $messages );

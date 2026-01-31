@@ -40,10 +40,16 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 		$where_pending = "WHERE c.status = 'pending_approval'";
 		$where_history = "WHERE c.status != 'pending_approval'";
 
-		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
-			$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
-			$where_pending .= $wpdb->prepare( " AND p.client_id = %d", $client_id );
-			$where_history .= $wpdb->prepare( " AND p.client_id = %d", $client_id );
+		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+		if ( is_array( $authorised_ids ) ) {
+			if ( empty( $authorised_ids ) ) {
+				$where_pending .= " AND 1=0";
+				$where_history .= " AND 1=0";
+			} else {
+				$in_clause = "(" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")";
+				$where_pending .= " AND c.project_id IN $in_clause";
+				$where_history .= " AND c.project_id IN $in_clause";
+			}
 		}
 
 		$pending_items = $wpdb->get_results( "

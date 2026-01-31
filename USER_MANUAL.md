@@ -135,8 +135,8 @@ Track every dollar flowing in and out of your agency.
 
 Agency Nexus utilizes a tiered permission system to ensure data security and a tailored user experience.
 
-- **Administrator**: Full access to all systems, global settings, and data management.
-- **Team Member (Editor/Author)**: Access to all internal agency tools (Scope Builder, MoneyFlow, AutoPilot) but restricted from global settings.
+- **Administrator**: Full access to all systems, global settings, and data management. Can see and manage everything across the agency.
+- **Team Member (Editor/Author)**: Access to internal agency tools (MoneyFlow, AutoPilot, Messaging) but strictly limited to **assigned projects and tasks**. They cannot see or manage data from projects they are not part of.
 - **Client (Subscriber/Linked Email)**: Access to a focused "Client Portal" view containing only their specific projects, messages, content approvals, and a shared resource library.
 
 ## 💡 Best Practices for Effectiveness

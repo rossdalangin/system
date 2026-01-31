@@ -133,6 +133,7 @@ class Agency_Nexus_Admin_Dashboard {
 			}
 			$data = [
 				'client_id'   => intval( $_POST['client_id'] ),
+				'assigned_to' => isset( $_POST['assigned_to'] ) ? intval( $_POST['assigned_to'] ) : 0,
 				'title'       => sanitize_text_field( $_POST['title'] ),
 				'budget'      => floatval( $_POST['budget'] ),
 				'status'      => sanitize_text_field( $_POST['status'] ),
@@ -326,7 +327,23 @@ class Agency_Nexus_Admin_Dashboard {
 			return;
 		}
 
-		$clients = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC" );
+		$clients_query = "SELECT * FROM $table_name";
+		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+		if ( is_array( $authorised_ids ) ) {
+			if ( empty( $authorised_ids ) ) {
+				$clients_query .= " WHERE 1=0";
+			} else {
+				// Get clients belonging to authorised projects
+				$authorised_client_ids = $wpdb->get_col( "SELECT client_id FROM {$wpdb->prefix}an_projects WHERE id IN (" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")" );
+				if ( ! empty( $authorised_client_ids ) ) {
+					$clients_query .= " WHERE id IN (" . implode( ',', array_map( 'intval', $authorised_client_ids ) ) . ")";
+				} else {
+					$clients_query .= " WHERE 1=0";
+				}
+			}
+		}
+		$clients_query .= " ORDER BY created_at DESC";
+		$clients = $wpdb->get_results( $clients_query );
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Client Management', 'agency-nexus' ); ?></h1>
@@ -371,6 +388,9 @@ class Agency_Nexus_Admin_Dashboard {
 	 * Render the team management page.
 	 */
 	public function render_team() {
+		if ( ! Agency_Nexus_Permissions::is_admin() ) {
+			echo '<div class="error"><p>Unauthorized</p></div>'; return;
+		}
 		$users = get_users();
 		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
 		$user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
@@ -412,6 +432,9 @@ class Agency_Nexus_Admin_Dashboard {
 	 * Render detailed performance for a user.
 	 */
 	private function render_performance_view($user_id) {
+		if ( ! Agency_Nexus_Permissions::is_admin() && $user_id != get_current_user_id() ) {
+			echo '<div class="error"><p>Unauthorized</p></div>'; return;
+		}
 		global $wpdb;
 		$user = get_userdata($user_id);
 		$time_table = $wpdb->prefix . 'an_time_entries';
@@ -486,9 +509,18 @@ class Agency_Nexus_Admin_Dashboard {
 		}
 
 		if ($action === 'view' && $id) {
+			if ( ! Agency_Nexus_Permissions::can_view_project( $id ) ) {
+				echo '<div class="error"><p>Unauthorized</p></div>'; return;
+			}
+			$is_admin = Agency_Nexus_Permissions::is_admin();
 			$is_team = Agency_Nexus_Permissions::is_team_member();
 			$project = $wpdb->get_row($wpdb->prepare("SELECT p.*, c.name as client_name FROM $projects_table p JOIN $clients_table c ON p.client_id = c.id WHERE p.id = %d", $id));
-			$tasks = $wpdb->get_results($wpdb->prepare("SELECT * FROM $tasks_table WHERE project_id = %d", $id));
+
+			$tasks_query = $wpdb->prepare("SELECT * FROM $tasks_table WHERE project_id = %d", $id);
+			if ( ! $is_admin && $is_team ) {
+				$tasks_query .= $wpdb->prepare(" AND assigned_to = %d", get_current_user_id());
+			}
+			$tasks = $wpdb->get_results($tasks_query);
 			?>
 			<div class="wrap">
 				<h1><?php echo esc_html($project->title); ?> <small>(<?php echo esc_html($project->client_name); ?>)</small></h1>
@@ -592,6 +624,18 @@ class Agency_Nexus_Admin_Dashboard {
 							</td>
 						</tr>
 						<tr>
+							<th><label for="assigned_to"><?php _e('Project Lead / Assigned To', 'agency-nexus'); ?></label></th>
+							<td>
+								<select name="assigned_to" id="assigned_to">
+									<option value="0"><?php _e('Unassigned', 'agency-nexus'); ?></option>
+									<?php foreach (get_users() as $u) : ?>
+										<option value="<?php echo $u->ID; ?>" <?php selected($project ? $project->assigned_to : 0, $u->ID); ?>><?php echo esc_html($u->display_name); ?></option>
+									<?php endforeach; ?>
+								</select>
+								<p class="description"><?php _e('Assign an internal team member to manage this project.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
 							<th><label for="title">Project Title</label></th>
 							<td>
 								<input type="text" name="title" id="title" value="<?php echo $project ? esc_attr($project->title) : ''; ?>" class="regular-text" required>
@@ -636,9 +680,13 @@ class Agency_Nexus_Admin_Dashboard {
 		}
 
 		$query = "SELECT p.*, c.name as client_name FROM $projects_table p JOIN $clients_table c ON p.client_id = c.id";
-		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
-			$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
-			$query .= $wpdb->prepare( " WHERE p.client_id = %d", $client_id );
+		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+		if ( is_array( $authorised_ids ) ) {
+			if ( empty( $authorised_ids ) ) {
+				$query .= " WHERE 1=0";
+			} else {
+				$query .= " WHERE p.id IN (" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")";
+			}
 		}
 		$query .= " ORDER BY p.created_at DESC";
 		$projects = $wpdb->get_results( $query );
@@ -655,6 +703,7 @@ class Agency_Nexus_Admin_Dashboard {
 					<tr>
 						<th>Title</th>
 						<th>Client</th>
+						<th>Lead</th>
 						<th>Budget</th>
 						<th>Status</th>
 						<th>Created</th>
@@ -663,9 +712,14 @@ class Agency_Nexus_Admin_Dashboard {
 				</thead>
 				<tbody>
 					<?php if ( $projects ) : foreach ( $projects as $project ) : ?>
+						<?php
+							$lead_user = $project->assigned_to ? get_userdata($project->assigned_to) : null;
+							$lead_name = $lead_user ? $lead_user->display_name : '<em>Unassigned</em>';
+						?>
 						<tr>
 							<td><strong><a href="?page=an-projects&action=view&id=<?php echo $project->id; ?>"><?php echo esc_html( $project->title ); ?></a></strong></td>
 							<td><?php echo esc_html( $project->client_name ); ?></td>
+							<td><?php echo $lead_name; ?></td>
 							<td>$<?php echo number_format($project->budget, 2); ?></td>
 							<td><span class="badge status-<?php echo $project->status; ?>"><?php echo ucfirst($project->status); ?></span></td>
 							<td><?php echo $project->created_at; ?></td>

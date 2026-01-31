@@ -117,7 +117,12 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 			return;
 		}
 
-		$logs = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC LIMIT 20" );
+		$logs_query = $wpdb->prepare( "SELECT * FROM $table_name" );
+		if ( ! Agency_Nexus_Permissions::is_admin() ) {
+			$logs_query = $wpdb->prepare( "SELECT * FROM $table_name WHERE user_id = %d", get_current_user_id() );
+		}
+		$logs_query .= " ORDER BY created_at DESC LIMIT 20";
+		$logs = $wpdb->get_results( $logs_query );
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Health & Sustainability System', 'agency-nexus' ); ?></h1>
