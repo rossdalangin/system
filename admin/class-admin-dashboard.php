@@ -80,8 +80,11 @@ class Agency_Nexus_Admin_Dashboard {
 			return;
 		}
 
-		// Handle Deletion
+		// Handle Deletion - Admin Only
 		if ( 'delete' === $action && $id ) {
+			if ( ! Agency_Nexus_Permissions::is_admin() ) {
+				wp_die( 'Unauthorized' );
+			}
 			check_admin_referer( 'an_delete_client_' . $id );
 			$wpdb->delete( $table_name, [ 'id' => $id ] );
 			wp_redirect( admin_url( 'admin.php?page=an-clients&msg=deleted' ) );
@@ -118,8 +121,11 @@ class Agency_Nexus_Admin_Dashboard {
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
 		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		// Handle Deletion
+		// Handle Deletion - Admin Only
 		if ( 'delete' === $action && $id ) {
+			if ( ! Agency_Nexus_Permissions::is_admin() ) {
+				wp_die( 'Unauthorized' );
+			}
 			check_admin_referer( 'an_delete_project_' . $id );
 			$wpdb->delete( $projects_table, [ 'id' => $id ] );
 			wp_redirect( admin_url( 'admin.php?page=an-projects&msg=deleted' ) );
@@ -287,6 +293,9 @@ class Agency_Nexus_Admin_Dashboard {
 		}
 
 		if ($action === 'edit' || $action === 'add') {
+			if ( ! Agency_Nexus_Permissions::is_admin() ) {
+				echo '<div class="error"><p>Unauthorized</p></div>'; return;
+			}
 			$client = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
 			?>
 			<div class="wrap">
@@ -347,7 +356,9 @@ class Agency_Nexus_Admin_Dashboard {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Client Management', 'agency-nexus' ); ?></h1>
+			<?php if ( Agency_Nexus_Permissions::is_admin() ) : ?>
 			<a href="?page=an-clients&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
+			<?php endif; ?>
 			<hr class="wp-header-end">
 			<p><?php _e('Guidance: These records are for internal project management. If you want a client to be able to log in, create a WordPress user for them and ensure their email matches here.', 'agency-nexus'); ?></p>
 
@@ -372,7 +383,9 @@ class Agency_Nexus_Admin_Dashboard {
 							<td><?php echo $client->created_at; ?></td>
 							<td>
 								<a href="?page=an-clients&action=edit&id=<?php echo $client->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a> |
-								<a href="<?php echo wp_nonce_url('?page=an-clients&action=delete&id=' . $client->id, 'an_delete_client_' . $client->id); ?>" style="color:red;" onclick="return confirm('Delete this client?')"><?php _e('Delete', 'agency-nexus'); ?></a>
+								<?php if ( Agency_Nexus_Permissions::is_admin() ) : ?>
+								| <a href="<?php echo wp_nonce_url('?page=an-clients&action=delete&id=' . $client->id, 'an_delete_client_' . $client->id); ?>" style="color:red;" onclick="return confirm('Delete this client?')"><?php _e('Delete', 'agency-nexus'); ?></a>
+								<?php endif; ?>
 							</td>
 						</tr>
 					<?php endforeach; else : ?>
@@ -516,9 +529,12 @@ class Agency_Nexus_Admin_Dashboard {
 			$is_team = Agency_Nexus_Permissions::is_team_member();
 			$project = $wpdb->get_row($wpdb->prepare("SELECT p.*, c.name as client_name FROM $projects_table p JOIN $clients_table c ON p.client_id = c.id WHERE p.id = %d", $id));
 
+			$user_id = get_current_user_id();
+			$is_lead = (int)$project->assigned_to === $user_id;
+
 			$tasks_query = $wpdb->prepare("SELECT * FROM $tasks_table WHERE project_id = %d", $id);
-			if ( ! $is_admin && $is_team ) {
-				$tasks_query .= $wpdb->prepare(" AND assigned_to = %d", get_current_user_id());
+			if ( ! $is_admin && $is_team && ! $is_lead ) {
+				$tasks_query .= $wpdb->prepare(" AND assigned_to = %d", $user_id );
 			}
 			$tasks = $wpdb->get_results($tasks_query);
 			?>
@@ -726,8 +742,10 @@ class Agency_Nexus_Admin_Dashboard {
 							<td>
 								<a href="?page=an-projects&action=view&id=<?php echo $project->id; ?>"><?php _e('View', 'agency-nexus'); ?></a>
 								<?php if ( Agency_Nexus_Permissions::is_team_member() ) : ?>
-								| <a href="?page=an-projects&action=edit&id=<?php echo $project->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a> |
-								<a href="<?php echo wp_nonce_url('?page=an-projects&action=delete&id=' . $project->id, 'an_delete_project_' . $project->id); ?>" style="color:red;" onclick="return confirm('Delete this project?')"><?php _e('Delete', 'agency-nexus'); ?></a>
+								| <a href="?page=an-projects&action=edit&id=<?php echo $project->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a>
+								<?php if ( Agency_Nexus_Permissions::is_admin() ) : ?>
+								| <a href="<?php echo wp_nonce_url('?page=an-projects&action=delete&id=' . $project->id, 'an_delete_project_' . $project->id); ?>" style="color:red;" onclick="return confirm('Delete this project?')"><?php _e('Delete', 'agency-nexus'); ?></a>
+								<?php endif; ?>
 								<?php endif; ?>
 							</td>
 						</tr>

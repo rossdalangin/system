@@ -40,8 +40,12 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			}
 
 			if ( isset( $_POST['an_save_content'] ) && check_admin_referer( 'an_save_content_nonce' ) ) {
+				$project_id = intval( $_POST['project_id'] );
+				if ( ! Agency_Nexus_Permissions::can_view_project( $project_id ) ) {
+					wp_die( 'Unauthorized' );
+				}
 				$data = [
-					'project_id'     => intval( $_POST['project_id'] ),
+					'project_id'     => $project_id,
 					'title'          => sanitize_text_field( $_POST['title'] ),
 					'content'        => wp_kses_post( $_POST['content'] ),
 					'media_url'      => esc_url_raw( $_POST['media_url'] ),

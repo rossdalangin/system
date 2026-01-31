@@ -37,6 +37,7 @@ class Agency_Nexus_Seeder {
 		if ( ! $project_id ) {
 			$wpdb->insert( $table_projects, [
 				'client_id'   => $client_id,
+				'assigned_to' => $team_user_id,
 				'title'       => 'Sample Web Design Project',
 				'description' => 'A sample project to demonstrate Agency Nexus features.',
 				'budget'      => 5000.00,
@@ -44,6 +45,9 @@ class Agency_Nexus_Seeder {
 				'start_date'  => date( 'Y-m-d' )
 			] );
 			$project_id = $wpdb->insert_id;
+		} else {
+			// Ensure it's assigned to the team member if it already exists
+			$wpdb->update( $table_projects, [ 'assigned_to' => $team_user_id ], [ 'id' => $project_id ] );
 		}
 
 		// 5. Create Sample Tasks

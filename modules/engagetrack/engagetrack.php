@@ -25,9 +25,13 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
 
 		if ( 'an-leads' === $page ) {
-			$this->process_lead_actions();
+			if ( Agency_Nexus_Permissions::is_admin() ) {
+				$this->process_lead_actions();
+			}
 		} elseif ( 'an-canned-responses' === $page ) {
-			$this->process_response_actions();
+			if ( Agency_Nexus_Permissions::is_admin() ) {
+				$this->process_response_actions();
+			}
 		}
 	}
 
@@ -303,7 +307,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
-		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+		if ( ! Agency_Nexus_Permissions::is_admin() ) {
 			return;
 		}
 		global $wpdb;

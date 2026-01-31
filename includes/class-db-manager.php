@@ -19,20 +19,22 @@ class Agency_Nexus_DB_Manager {
 	}
 
 	public function __construct() {
-		// Ensure tables exist on every load during development
+		// Ensure tables exist and are up to date.
 		if ( is_admin() ) {
-			$this->maybe_create_tables();
+			$this->maybe_update_db();
 		}
 	}
 
 	/**
-	 * Check if a core table exists, if not, run creation.
+	 * Check if the DB needs an update (e.g. new columns).
+	 * dbDelta is safe to call multiple times.
 	 */
-	private function maybe_create_tables() {
-		global $wpdb;
-		$table_name = $wpdb->prefix . 'an_clients';
-		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) !== $table_name ) {
+	private function maybe_update_db() {
+		$version = get_option( 'an_db_version', '0' );
+		// If version is less than 1.0.3 (where assigned_to was added/refined) or not set.
+		if ( version_compare( $version, '1.0.3', '<' ) ) {
 			self::create_tables();
+			update_option( 'an_db_version', '1.0.3' );
 		}
 	}
 

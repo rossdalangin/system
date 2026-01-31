@@ -92,8 +92,8 @@ function loadMessages(id) {
 				var bg = isSent ? '#0073aa' : '#eee';
 				var color = isSent ? '#fff' : '#333';
 				html += '<div class="msg" id="msg-' + msg.id + '" style="margin-bottom: 15px; text-align: ' + align + ';">';
-				html += '<div style="font-size: 10px; color: #999; margin-bottom: 2px;">' + (msg.sender_name || 'System') + '</div>';
-				html += '<div style="background: ' + bg + '; color: ' + color + '; padding: 10px; border-radius: 10px; display: inline-block; max-width: 80%; position:relative;">' + msg.message;
+				html += '<div style="font-size: 10px; color: #999; margin-bottom: 2px;">' + (msg.sender_name || '<?php _e("Participant", "agency-nexus"); ?>') + '</div>';
+				html += '<div style="background: ' + bg + '; color: ' + color + '; padding: 10px; border-radius: 10px; display: inline-block; max-width: 80%; position:relative; text-align: left;">' + msg.message;
 				html += '<span class="delete-msg" onclick="deleteMessage(' + msg.id + ')" style="cursor:pointer; font-size:10px; opacity:0.5; margin-left:10px;">×</span>';
 				html += '</div></div>';
 			});
@@ -151,6 +151,11 @@ function loadFiles(id) {
 }
 
 jQuery(document).ready(function($) {
+	// Auto-select client if there is only one
+	if ($('.client-item').length === 1) {
+		$('.client-item').first().click();
+	}
+
 	$('#canned-response-select').on('change', function() {
 		var content = $(this).val();
 		if (content) {

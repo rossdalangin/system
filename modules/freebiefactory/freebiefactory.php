@@ -30,6 +30,9 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 			$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
 			if ( 'delete' === $action && $id ) {
+				if ( ! Agency_Nexus_Permissions::is_admin() ) {
+					wp_die( 'Unauthorized' );
+				}
 				check_admin_referer( 'an_delete_resource_' . $id );
 				$wpdb->delete( $table_name, [ 'id' => $id ] );
 				wp_redirect( admin_url( 'admin.php?page=an-resources&msg=deleted' ) );
@@ -185,7 +188,9 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 								<?php if ($res->file_url) : ?><a href="<?php echo esc_url($res->file_url); ?>" target="_blank"><?php _e('View', 'agency-nexus'); ?></a><?php endif; ?>
 								<?php if ($is_team) : ?>
 								| <a href="?page=an-resources&action=edit&id=<?php echo $res->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a> |
+								<?php if ( Agency_Nexus_Permissions::is_admin() ) : ?>
 								<a href="<?php echo wp_nonce_url( admin_url('admin.php?page=an-resources&action=delete&id=' . $res->id), 'an_delete_resource_' . $res->id ); ?>" style="color:red;" onclick="return confirm('Are you sure?')"><?php _e('Delete', 'agency-nexus'); ?></a>
+								<?php endif; ?>
 								<?php endif; ?>
 							</td>
 						</tr>

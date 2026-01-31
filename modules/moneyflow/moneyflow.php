@@ -46,8 +46,12 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		}
 
 		if ( isset( $_POST['an_save_expense'] ) && check_admin_referer( 'an_save_expense_nonce' ) ) {
+			$project_id = intval( $_POST['project_id'] );
+			if ( $project_id && ! Agency_Nexus_Permissions::can_view_project( $project_id ) ) {
+				wp_die( 'Unauthorized' );
+			}
 			$data = [
-				'project_id'  => intval( $_POST['project_id'] ),
+				'project_id'  => $project_id,
 				'amount'      => floatval( $_POST['amount'] ),
 				'category'    => sanitize_text_field( $_POST['category'] ),
 				'note'        => sanitize_textarea_field( $_POST['note'] ),
@@ -81,8 +85,12 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		}
 
 		if ( isset( $_POST['an_save_invoice'] ) && check_admin_referer( 'an_save_invoice_nonce' ) ) {
+			$project_id = intval( $_POST['project_id'] );
+			if ( ! Agency_Nexus_Permissions::can_view_project( $project_id ) ) {
+				wp_die( 'Unauthorized' );
+			}
 			$data = [
-				'project_id' => intval( $_POST['project_id'] ),
+				'project_id' => $project_id,
 				'client_id'  => intval( $_POST['client_id'] ),
 				'number'     => sanitize_text_field( $_POST['number'] ),
 				'amount'     => floatval( $_POST['amount'] ),
@@ -556,7 +564,17 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			return;
 		}
 		global $wpdb;
-		$projects = $wpdb->get_results( "SELECT id, budget FROM {$wpdb->prefix}an_projects" );
+
+		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+		$query = "SELECT id, budget FROM {$wpdb->prefix}an_projects";
+		if ( is_array($authorised_ids) ) {
+			if ( empty($authorised_ids) ) {
+				return; // Nothing to show
+			}
+			$query .= " WHERE id IN (" . implode(',', array_map('intval', $authorised_ids)) . ")";
+		}
+
+		$projects = $wpdb->get_results( $query );
 
 		$total_budget = 0;
 		$total_labor  = 0;
