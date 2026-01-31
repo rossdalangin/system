@@ -488,6 +488,7 @@ class Agency_Nexus_Admin_Dashboard {
 		if ( ! Agency_Nexus_Permissions::is_admin() ) {
 			echo '<div class="error"><p>Unauthorized</p></div>'; return;
 		}
+		global $wpdb;
 		$users = get_users();
 		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
 		$user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
