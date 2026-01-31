@@ -66,9 +66,23 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_scope_builder() {
-		// Ensure we have some clients for the dropdown
 		global $wpdb;
-		$clients = $wpdb->get_results( "SELECT id, name FROM {$wpdb->prefix}an_clients" );
+		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+		$query = "SELECT id, name FROM {$wpdb->prefix}an_clients";
+		if ( is_array( $authorised_ids ) ) {
+			if ( empty( $authorised_ids ) ) {
+				$query .= " WHERE 1=0";
+			} else {
+				$authorised_client_ids = $wpdb->get_col( "SELECT client_id FROM {$wpdb->prefix}an_projects WHERE id IN (" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")" );
+				if ( ! empty( $authorised_client_ids ) ) {
+					$query .= " WHERE id IN (" . implode( ',', array_map( 'intval', array_unique($authorised_client_ids) ) ) . ")";
+				} else {
+					$query .= " WHERE 1=0";
+				}
+			}
+		}
+		$clients = $wpdb->get_results( $query );
+
 		$services = get_option( 'an_scope_services', [
 			'seo' => 'SEO Strategy',
 			'web_design' => 'Web Design',

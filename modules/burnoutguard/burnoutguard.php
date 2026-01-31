@@ -160,8 +160,11 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 		global $wpdb;
 		$time_table = $wpdb->prefix . 'an_time_entries';
 
-		// Get hours logged in the last 7 days
-		$last_week_seconds = $wpdb->get_var( "SELECT SUM(duration) FROM $time_table WHERE date >= DATE_SUB(NOW(), INTERVAL 7 DAY)" );
+		// Get hours logged in the last 7 days for the current user
+		$last_week_seconds = $wpdb->get_var( $wpdb->prepare(
+			"SELECT SUM(duration) FROM $time_table WHERE user_id = %d AND date >= DATE_SUB(NOW(), INTERVAL 7 DAY)",
+			get_current_user_id()
+		) );
 		$last_week_hours = $last_week_seconds / 3600;
 
 		// Assuming 40 hours is 100% capacity

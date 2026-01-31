@@ -538,9 +538,30 @@ class Agency_Nexus_Admin_Dashboard {
 		$client = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}an_clients WHERE id = %d", $client_id));
 		if (!$client) return;
 
-		$projects = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}an_projects WHERE client_id = %d", $client_id));
-		$invoices = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}an_invoices WHERE client_id = %d", $client_id));
-		$files    = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}an_shared_files WHERE client_id = %d", $client_id));
+		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+
+		$projects_query = $wpdb->prepare("SELECT * FROM {$wpdb->prefix}an_projects WHERE client_id = %d", $client_id);
+		$invoices_query = $wpdb->prepare("SELECT * FROM {$wpdb->prefix}an_invoices WHERE client_id = %d", $client_id);
+		// Files are already client-linked, but for team members we might want to restrict to those from authorised projects too?
+		// Currently an_shared_files doesn't have project_id.
+		// If the team member is authorised for ANY project of this client, they can see shared files?
+		// That seems consistent with how they can see the client.
+		$files_query    = $wpdb->prepare("SELECT * FROM {$wpdb->prefix}an_shared_files WHERE client_id = %d", $client_id);
+
+		if ( is_array( $authorised_ids ) ) {
+			if ( empty( $authorised_ids ) ) {
+				$projects_query .= " AND 1=0";
+				$invoices_query .= " AND 1=0";
+			} else {
+				$in_clause = "(" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")";
+				$projects_query .= " AND id IN $in_clause";
+				$invoices_query .= " AND project_id IN $in_clause";
+			}
+		}
+
+		$projects = $wpdb->get_results($projects_query);
+		$invoices = $wpdb->get_results($invoices_query);
+		$files    = $wpdb->get_results($files_query);
 		$user     = get_user_by('email', $client->email);
 
 		?>
@@ -829,7 +850,22 @@ class Agency_Nexus_Admin_Dashboard {
 				echo '<div class="error"><p>Unauthorized</p></div>'; return;
 			}
 			$project = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $projects_table WHERE id = %d", $id)) : null;
-			$clients = $wpdb->get_results("SELECT id, name FROM $clients_table");
+
+			$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+			$clients_query = "SELECT id, name FROM $clients_table";
+			if ( is_array( $authorised_ids ) ) {
+				if ( empty( $authorised_ids ) ) {
+					$clients_query .= " WHERE 1=0";
+				} else {
+					$authorised_client_ids = $wpdb->get_col( "SELECT client_id FROM {$wpdb->prefix}an_projects WHERE id IN (" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")" );
+					if ( ! empty( $authorised_client_ids ) ) {
+						$clients_query .= " WHERE id IN (" . implode( ',', array_map( 'intval', array_unique($authorised_client_ids) ) ) . ")";
+					} else {
+						$clients_query .= " WHERE 1=0";
+					}
+				}
+			}
+			$clients = $wpdb->get_results($clients_query);
 			?>
 			<div class="wrap">
 				<h1><?php echo $id ? __('Edit Project', 'agency-nexus') : __('Create New Project', 'agency-nexus'); ?></h1>
