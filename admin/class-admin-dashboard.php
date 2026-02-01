@@ -29,6 +29,15 @@ class Agency_Nexus_Admin_Dashboard {
 	 * Enqueue scripts for the admin area.
 	 */
 	public function enqueue_scripts( $hook ) {
+		// Only load on our plugin pages
+		if ( strpos( $hook, 'agency-nexus' ) === false && strpos( $hook, 'an-' ) === false ) {
+			return;
+		}
+
+		// Enqueue Design System
+		wp_enqueue_style( 'agency-nexus-google-fonts', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@700&display=swap', [], AGENCY_NEXUS_VERSION );
+		wp_enqueue_style( 'agency-nexus-design', AGENCY_NEXUS_URL . 'assets/css/agency-nexus-design.css', [], AGENCY_NEXUS_VERSION );
+
 		if ( 'agency-nexus_page_an-settings' === $hook ) {
 			wp_enqueue_media();
 		}
@@ -448,7 +457,7 @@ class Agency_Nexus_Admin_Dashboard {
 		$clients_query .= " ORDER BY created_at DESC";
 		$clients = $wpdb->get_results( $clients_query );
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Client Management', 'agency-nexus' ); ?></h1>
 			<?php if ( Agency_Nexus_Permissions::is_admin() ) : ?>
 			<a href="?page=an-clients&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
@@ -510,7 +519,7 @@ class Agency_Nexus_Admin_Dashboard {
 		}
 
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e('Agency Team Management', 'agency-nexus'); ?></h1>
 			<a href="<?php echo admin_url('user-new.php'); ?>" class="page-title-action"><?php _e('Add New Team Member', 'agency-nexus'); ?></a>
 			<hr class="wp-header-end">
@@ -576,7 +585,7 @@ class Agency_Nexus_Admin_Dashboard {
 		$user     = get_user_by('email', $client->email);
 
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1><?php echo esc_html($client->name); ?> <small>(<?php echo esc_html($client->company); ?>)</small></h1>
 
 			<div style="display: flex; gap: 20px; margin-top: 20px;">
@@ -963,7 +972,7 @@ class Agency_Nexus_Admin_Dashboard {
 		$query .= " ORDER BY p.created_at DESC";
 		$projects = $wpdb->get_results( $query );
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Project Management', 'agency-nexus' ); ?></h1>
 			<?php if ( Agency_Nexus_Permissions::is_team_member() ) : ?>
 			<a href="?page=an-projects&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
@@ -1077,7 +1086,7 @@ class Agency_Nexus_Admin_Dashboard {
 			echo '<div class="updated"><p>Settings saved!</p></div>';
 		}
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1><?php _e( 'Agency Nexus Settings', 'agency-nexus' ); ?></h1>
 			<p class="description"><?php _e('Configure your agency\'s global parameters for finances and external integrations.', 'agency-nexus'); ?></p>
 			<form method="post">
@@ -1151,27 +1160,28 @@ class Agency_Nexus_Admin_Dashboard {
 		}
 		$is_admin = current_user_can( 'manage_options' );
 		?>
-		<div class="wrap">
-			<h1><?php _e( 'Agency Nexus Dashboard', 'agency-nexus' ); ?></h1>
-			<p class="description"><?php _e( 'Your central command center for agency operations. Monitor project health, team productivity, and financial performance at a glance.', 'agency-nexus' ); ?></p>
-
-			<?php if ( $is_admin ) : ?>
-			<div class="welcome-panel" style="padding: 20px; margin-top: 20px;">
-				<div class="welcome-panel-content">
-					<h2>Getting Started</h2>
-					<p>To help you explore the features, you can seed the dashboard with sample accounts and data.</p>
-					<form method="post" style="display:flex; gap: 10px;">
-						<?php wp_nonce_field('an_seed_data_nonce'); ?>
-						<input type="submit" name="an_seed_data" class="button button-primary button-hero" value="Seed Sample Data">
-
-						<?php wp_nonce_field('an_reset_data_nonce', 'an_reset_data_nonce'); ?>
-						<input type="submit" name="an_reset_data" class="button button-link-delete" value="Clear All Data" onclick="return confirm('This will delete ALL agency projects, clients, and records. Continue?')">
-					</form>
+		<div class="agency-nexus-wrap">
+			<header class="an-dashboard-header">
+				<div class="an-dashboard-header-content">
+					<h1><?php _e( 'Agency Nexus Dashboard', 'agency-nexus' ); ?></h1>
+					<p class="description" style="font-size: 1.1rem; color: var(--an-slate-500);">
+						<?php _e( 'Your central command center for agency operations. Monitor project health, team productivity, and financial performance at a glance.', 'agency-nexus' ); ?>
+					</p>
 				</div>
-			</div>
-			<?php endif; ?>
+				<div class="an-dashboard-header-actions">
+					<?php if ( $is_admin ) : ?>
+						<form method="post" style="display:flex; gap: 10px;">
+							<?php wp_nonce_field('an_seed_data_nonce'); ?>
+							<input type="submit" name="an_seed_data" class="button button-primary" value="Seed Sample Data">
 
-			<div class="agency-nexus-widgets" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+							<?php wp_nonce_field('an_reset_data_nonce', 'an_reset_data_nonce'); ?>
+							<input type="submit" name="an_reset_data" class="button button-link-delete" value="Clear Data" onclick="return confirm('Delete ALL records?')">
+						</form>
+					<?php endif; ?>
+				</div>
+			</header>
+
+			<div class="agency-nexus-widgets" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px;">
 				<?php do_action( 'agency_nexus_dashboard_widgets' ); ?>
 			</div>
 		</div>

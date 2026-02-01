@@ -86,7 +86,7 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 		if ($action === 'edit' || $action === 'add') {
 			$rule = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
 			?>
-			<div class="wrap">
+			<div class="agency-nexus-wrap">
 				<h1><?php echo $id ? __('Edit Rule', 'agency-nexus') : __('Add New Rule', 'agency-nexus'); ?></h1>
 				<p class="description"><?php _e('Create automated workflows to handle repetitive agency tasks based on specific triggers.', 'agency-nexus'); ?></p>
 				<form method="post">
@@ -141,7 +141,7 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 
 		$rules = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY id DESC" );
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Automation Center (AutoPilot)', 'agency-nexus' ); ?></h1>
 			<p><?php _e( 'Guidance: Create "If-This-Then-That" rules to automate repetitive agency tasks. You can also connect to Zapier via the Global Settings.', 'agency-nexus' ); ?></p>
 			<a href="?page=an-automations&action=add" class="page-title-action">Add New Rule</a>

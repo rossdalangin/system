@@ -87,7 +87,7 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 		if ($action === 'edit' || $action === 'add') {
 			$log = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
 			?>
-			<div class="wrap">
+			<div class="agency-nexus-wrap">
 				<h1><?php echo $id ? __('Edit Health Check', 'agency-nexus') : __('New Health Check', 'agency-nexus'); ?></h1>
 				<p class="description"><?php _e('Log your mental well-being to monitor agency capacity and prevent burnout.', 'agency-nexus'); ?></p>
 				<form method="post">
@@ -124,7 +124,7 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 		$logs_query .= " ORDER BY created_at DESC LIMIT 20";
 		$logs = $wpdb->get_results( $logs_query );
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Health & Sustainability System', 'agency-nexus' ); ?></h1>
 			<p><?php _e( 'Guidance: Use this system to monitor your mental well-being and agency capacity. Regular check-ins help identify burnout risks early.', 'agency-nexus' ); ?></p>
 			<a href="?page=an-health-check&action=add" class="page-title-action">New Check-in</a>

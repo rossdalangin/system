@@ -113,7 +113,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		$content_items = $wpdb->get_results( $content_query );
 		$projects      = $wpdb->get_results( $projects_query );
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1><?php _e( 'Content Calendar', 'agency-nexus' ); ?></h1>
 			<p class="description"><?php _e( 'A visual overview of your cross-platform content strategy. Drag unscheduled items onto the calendar to set a publication date, or move existing items to reschedule.', 'agency-nexus' ); ?></p>
 		</div>
@@ -143,7 +143,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			$content = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
 			$projects = $wpdb->get_results("SELECT id, title FROM $projects_table");
 			?>
-			<div class="wrap">
+			<div class="agency-nexus-wrap">
 				<h1><?php echo $id ? __('Edit Content', 'agency-nexus') : __('Add New Content', 'agency-nexus'); ?></h1>
 				<p class="description"><?php _e('Create a content piece for a specific project. This can be a blog post, social media update, or newsletter.', 'agency-nexus'); ?></p>
 				<form method="post">
@@ -239,7 +239,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		$query .= " ORDER BY c.created_at DESC";
 		$items = $wpdb->get_results($query);
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e('Content Management', 'agency-nexus'); ?></h1>
 			<p><?php _e( 'Guidance: Manage all your content assets here. Use the "Content Calendar" for a visual overview of your publishing schedule.', 'agency-nexus' ); ?></p>
 			<?php if ( Agency_Nexus_Permissions::is_team_member() ) : ?>

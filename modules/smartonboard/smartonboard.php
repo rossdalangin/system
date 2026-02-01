@@ -99,7 +99,7 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 			'social_media' => [ 'Content Calendar', '30 Posts', 'Engagement Report' ]
 		] );
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Interactive Scope Builder', 'agency-nexus' ); ?></h1>
 			<a href="<?php echo admin_url('admin.php?page=an-scope-settings'); ?>" class="page-title-action"><?php _e('Configure Services & Scales', 'agency-nexus'); ?></a>
 			<hr class="wp-header-end">
@@ -141,7 +141,7 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 		] );
 
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1><?php _e( 'Scope Builder Settings', 'agency-nexus' ); ?></h1>
 			<p class="description"><?php _e( 'Define your service packages here using JSON. This data powers the interactive Scope Builder dropdowns.', 'agency-nexus' ); ?></p>
 			<form method="post">

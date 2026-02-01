@@ -89,12 +89,17 @@ Track every dollar flowing in and out of your agency.
 - **Expense Tracking**: Upload receipts for software, outsourcing, or travel.
 - **Profitability Intelligence**: The dashboard widget calculates your **True Profit** by subtracting labor costs (calculated from logged hours) and expenses from your project budgets.
 
-### 📈 EngageTrack (Leads & Sentiment)
-- View the widget on the main **Agency Nexus Dashboard**.
-- **Lead Management**: Navigate to **Agency Nexus > Leads** to track names, emails, sources, and potential values.
-- **Lead Capture Form**: Click the **Generate Embed Code** button on the Leads page. You can copy this HTML code and embed it on any external website to capture leads directly into your dashboard.
-- **Canned Responses**: Navigate to **Agency Nexus > Canned Responses** to save frequently used DM or email templates.
-- **Sentiment Analysis**: Gauge brand health based on social interaction data shown on the dashboard widget.
+### 📈 EngageTrack (Leads & Conversion)
+- **Unified Lead Dashboard**: View the widget on the main Agency Nexus Dashboard for real-time ROI tracking.
+- **Lead Management**: Navigate to **Agency Nexus > Leads** to track names, emails, sources, and potential lifetime value projections.
+- **Advanced Lead Capture**: Click the **Generate Embed Code** button on the Leads page.
+    - **Step 1: Setup Redirects**: Enter a URL where leads should be redirected after successful submission (e.g., your thank you page).
+    - **Step 2: Generate Code**: The system produces high-converting HTML embed code you can place on any website.
+- **Thank You Page Builder**: Use the `[agency_nexus_thank_you]` shortcode on your WordPress pages to create a professional confirmation page. It features:
+    - Success checkmarks and personalized messages.
+    - Customizable upsell call-to-action buttons.
+    - Social proof sections to build immediate trust.
+- **Canned Responses**: Navigate to **Agency Nexus > Canned Responses** to save frequently used DM or email templates for rapid follow-ups.
 
 ---
 

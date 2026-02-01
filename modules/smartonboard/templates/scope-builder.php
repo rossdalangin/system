@@ -1,4 +1,4 @@
-<div class="wrap">
+<div class="agency-nexus-wrap">
 	<h1><?php _e( 'Interactive Scope Builder', 'agency-nexus' ); ?></h1>
 	<p><?php _e( 'Guidance: Use this tool to quickly define a project scope and create a corresponding project record. Select a client, service type, and project scale to auto-calculate the budget.', 'agency-nexus' ); ?></p>
 

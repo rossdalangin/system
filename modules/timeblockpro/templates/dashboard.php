@@ -1,4 +1,4 @@
-<div class="wrap">
+<div class="agency-nexus-wrap">
 	<h1><?php _e( 'Intelligent Time Blocking', 'agency-nexus' ); ?></h1>
 	<p><?php _e( 'Guidance: Use time blocks to protect your focus. Schedule "Deep Work" for intensive tasks and "Shallow Work" for administrative duties like emails.', 'agency-nexus' ); ?></p>
 

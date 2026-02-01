@@ -140,7 +140,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		if ($action === 'edit' || $action === 'add') {
 			$lead = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
 			?>
-			<div class="wrap">
+			<div class="agency-nexus-wrap">
 				<h1><?php echo $id ? __('Edit Lead', 'agency-nexus') : __('Add New Lead', 'agency-nexus'); ?></h1>
 				<p class="description"><?php _e('Track a potential client in your sales pipeline.', 'agency-nexus'); ?></p>
 				<form method="post">
@@ -197,7 +197,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 
 		$leads = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC" );
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Lead Intelligence System', 'agency-nexus' ); ?></h1>
 			<p><?php _e( 'Guidance: Track your sales pipeline here. Assign potential values to leads to help calculate your agency\'s projected revenue.', 'agency-nexus' ); ?></p>
 			<a href="?page=an-leads&action=add" class="page-title-action">Add New</a>
@@ -307,7 +307,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		if ($action === 'edit' || $action === 'add') {
 			$resp = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
 			?>
-			<div class="wrap">
+			<div class="agency-nexus-wrap">
 				<h1><?php echo $id ? __('Edit Response', 'agency-nexus') : __('Add New Response', 'agency-nexus'); ?></h1>
 				<p class="description"><?php _e('Save reusable text snippets for common client inquiries.', 'agency-nexus'); ?></p>
 				<form method="post">
@@ -338,7 +338,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 
 		$responses = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC" );
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Canned Responses', 'agency-nexus' ); ?></h1>
 			<a href="?page=an-canned-responses&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
 			<hr class="wp-header-end">

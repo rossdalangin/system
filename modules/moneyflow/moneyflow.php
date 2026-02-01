@@ -181,7 +181,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			$expense = $id ? $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $expenses_table WHERE id = %d", $id ) ) : null;
 			$projects = $wpdb->get_results( "SELECT id, title FROM $projects_table" );
 			?>
-			<div class="wrap">
+			<div class="agency-nexus-wrap">
 				<h1><?php echo $id ? __( 'Edit Expense', 'agency-nexus' ) : __( 'Add New Expense', 'agency-nexus' ); ?></h1>
 				<p class="description"><?php _e('Record a business cost to track your agency\'s true profitability.', 'agency-nexus'); ?></p>
 				<form method="post">
@@ -269,7 +269,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		$expenses = $wpdb->get_results( $expenses_query );
 
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Expense Management', 'agency-nexus' ); ?></h1>
 			<a href="?page=an-expenses&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
 			<hr class="wp-header-end">
@@ -404,7 +404,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			$projects = $wpdb->get_results("SELECT id, title, client_id FROM $projects_table");
 			$clients = $wpdb->get_results("SELECT id, name FROM $clients_table");
 			?>
-			<div class="wrap">
+			<div class="agency-nexus-wrap">
 				<h1><?php echo $id ? __('Edit Invoice', 'agency-nexus') : __('Create New Invoice', 'agency-nexus'); ?></h1>
 				<p class="description"><?php _e('Generate a professional invoice for your client. Once saved, you can print it or record payments.', 'agency-nexus'); ?></p>
 				<form method="post">
@@ -485,7 +485,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		$invoices_query .= " ORDER BY i.created_at DESC";
 		$invoices = $wpdb->get_results( $invoices_query );
 		?>
-		<div class="wrap">
+		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e('Invoices', 'agency-nexus'); ?></h1>
 			<p><?php _e( 'Guidance: Create and manage client invoices. You can track payments against each invoice and print professional reports for your clients.', 'agency-nexus' ); ?></p>
 			<a href="?page=an-invoices&action=add" class="page-title-action">Add New</a>

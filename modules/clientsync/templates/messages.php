@@ -1,4 +1,4 @@
-<div class="wrap">
+<div class="agency-nexus-wrap">
 	<h1><?php _e( 'Unified Communication Hub', 'agency-nexus' ); ?></h1>
 	<p><?php _e( 'Guidance: Select a client from the left to start a conversation. You can share files or use canned responses to speed up your communication.', 'agency-nexus' ); ?></p>
 
