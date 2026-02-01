@@ -15,6 +15,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		add_action( 'admin_menu', [ $this, 'register_submenu' ] );
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
 		add_action( 'admin_init', [ $this, 'handle_post' ] );
+		add_shortcode( 'agency_nexus_thank_you', [ $this, 'render_thank_you_page' ] );
 	}
 
 	public function handle_post() {
@@ -203,21 +204,34 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 			<button type="button" class="page-title-action" id="generate-lead-form-btn"><?php _e( 'Generate Embed Code', 'agency-nexus' ); ?></button>
 			<hr class="wp-header-end">
 			<div id="embed-code-container" style="display: none; background: #fff; border: 1px solid #ccd0d4; padding: 20px; margin-bottom: 20px;">
-				<h3><?php _e('External Capture Form Code', 'agency-nexus'); ?></h3>
-				<p><?php _e('Copy and paste this HTML code onto any page (even outside this WordPress site) to capture leads directly into Agency Nexus.', 'agency-nexus'); ?></p>
-				<textarea class="large-text" rows="12" readonly><?php
+				<h3><?php _e('Generate Capture Form & Thank You Page', 'agency-nexus'); ?></h3>
+
+				<div style="background: #fdfaf0; border-left: 4px solid #f0b849; padding: 15px; margin-bottom: 20px;">
+					<p><strong><?php _e('Step 1: Create your Thank You Page', 'agency-nexus'); ?></strong></p>
+					<p><?php _e('Create a new Page in WordPress and use this shortcode to display a high-converting confirmation message:', 'agency-nexus'); ?></p>
+					<code>[agency_nexus_thank_you product_name="Your Course Name" cta_url="https://your-upsell-link.com"]</code>
+				</div>
+
+				<div style="margin-bottom: 15px;">
+					<label><strong><?php _e('Step 2: Enter Redirect URL (Full URL to your Thank You page):', 'agency-nexus'); ?></strong></label><br>
+					<input type="url" id="lead-redirect-url" class="large-text" placeholder="https://your-site.com/thank-you/">
+				</div>
+
+				<p><strong><?php _e('Step 3: Copy the Embed Code', 'agency-nexus'); ?></strong></p>
+				<textarea id="lead-embed-textarea" class="large-text" rows="14" readonly><?php
 					$api_url = get_rest_url( null, 'agency-nexus/v1/leads/capture' );
 					echo esc_textarea('<form action="' . $api_url . '" method="POST">
     <div>
         <label>Name:</label><br>
-        <input type="text" name="name" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+        <input type="text" name="name" required style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px;">
     </div>
     <div>
         <label>Email:</label><br>
-        <input type="email" name="email" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+        <input type="email" name="email" required style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px;">
     </div>
     <input type="hidden" name="source" value="Website Embed">
-    <button type="submit" style="background: #0073aa; color: #fff; border: none; padding: 10px 20px; cursor: pointer;">Submit</button>
+    <input type="hidden" name="redirect_url" value="" class="an-redirect-field">
+    <button type="submit" style="background: #2271b1; color: #fff; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;">Submit & Get Access</button>
 </form>');
 				?></textarea>
 				<p><button type="button" class="button" onclick="jQuery('#embed-code-container').slideUp();">Close</button></p>
@@ -227,6 +241,14 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 			jQuery(document).ready(function($){
 				$('#generate-lead-form-btn').click(function(){
 					$('#embed-code-container').slideToggle();
+				});
+
+				$('#lead-redirect-url').on('input', function(){
+					var url = $(this).val();
+					var baseCode = $('#lead-embed-textarea').val();
+					// Simple update of value attribute in textarea content
+					var updatedCode = baseCode.replace(/name="redirect_url" value=".*?"/, 'name="redirect_url" value="' + url + '"');
+					$('#lead-embed-textarea').val(updatedCode);
 				});
 			});
 			</script>
@@ -334,6 +356,54 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 			</table>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Render high-converting Thank You page content via shortcode.
+	 * Usage: [agency_nexus_thank_you product_name="Awesome Course" cta_url="https://..."]
+	 */
+	public function render_thank_you_page( $atts ) {
+		$atts = shortcode_atts( [
+			'title'        => __( 'Your submission was successful!', 'agency-nexus' ),
+			'sub_title'    => __( 'We have received your details and will be in touch shortly.', 'agency-nexus' ),
+			'product_name' => __( 'our premium solutions', 'agency-nexus' ),
+			'cta_text'     => __( 'Check this out while you wait', 'agency-nexus' ),
+			'cta_url'      => '#',
+			'video_url'    => '', // Optional: Add a VSL (Video Sales Letter) URL
+		], $atts );
+
+		ob_start();
+		?>
+		<div class="an-thank-you-container" style="max-width: 800px; margin: 40px auto; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif; padding: 20px; border-radius: 12px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+			<div class="an-success-icon" style="width: 80px; height: 80px; background: #46b450; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 40px;">
+				✓
+			</div>
+
+			<h1 style="color: #1d2327; margin-bottom: 10px;"><?php echo esc_html( $atts['title'] ); ?></h1>
+			<p style="font-size: 18px; color: #646970; margin-bottom: 40px;"><?php echo esc_html( $atts['sub_title'] ); ?></p>
+
+			<div class="an-upsell-box" style="background: #f0f6fb; padding: 30px; border-radius: 8px; border-left: 5px solid #2271b1; text-align: left; margin-bottom: 30px;">
+				<h2 style="margin-top: 0; color: #2271b1;"><?php echo sprintf( __( 'Exclusive Offer: Get 20%% off %s', 'agency-nexus' ), esc_html( $atts['product_name'] ) ); ?></h2>
+				<p><?php _e( 'Since you are here, we want to give you a special head start. Most of our clients see immediate results by jumping on this limited-time offer.', 'agency-nexus' ); ?></p>
+
+				<?php if ( ! empty( $atts['video_url'] ) ) : ?>
+					<div style="margin: 20px 0; aspect-ratio: 16/9; background: #000; border-radius: 4px;">
+						<!-- Placeholder for video if provided -->
+						<iframe width="100%" height="100%" src="<?php echo esc_url( $atts['video_url'] ); ?>" frameborder="0" allowfullscreen></iframe>
+					</div>
+				<?php endif; ?>
+
+				<a href="<?php echo esc_url( $atts['cta_url'] ); ?>" class="button button-primary" style="display: inline-block; background: #2271b1; color: #fff; text-decoration: none; padding: 15px 30px; border-radius: 4px; font-weight: bold; font-size: 18px; margin-top: 10px;">
+					<?php echo esc_html( $atts['cta_text'] ); ?> &rarr;
+				</a>
+			</div>
+
+			<div class="an-social-proof" style="color: #8c8f94; font-size: 14px;">
+				<p><?php _e( 'Joined by 1,000+ professionals worldwide.', 'agency-nexus' ); ?></p>
+			</div>
+		</div>
+		<?php
+		return ob_get_clean();
 	}
 
 	public function render_dashboard_widget() {

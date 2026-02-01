@@ -141,7 +141,19 @@ class Agency_Nexus_API_Handler {
 			return new WP_Error( 'db_error', 'Failed to save lead.', [ 'status' => 500 ] );
 		}
 
-		return new WP_REST_Response( [ 'message' => 'Lead captured successfully.', 'id' => $wpdb->insert_id ], 200 );
+		$redirect_url = isset( $params['redirect_url'] ) ? esc_url_raw( $params['redirect_url'] ) : '';
+
+		// If this is a standard form submission (not AJAX), redirect if URL provided
+		if ( ! empty( $redirect_url ) && ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST || isset( $params['_wpnonce'] ) ) ) {
+			wp_redirect( $redirect_url );
+			exit;
+		}
+
+		return new WP_REST_Response( [
+			'message'      => 'Lead captured successfully.',
+			'id'           => $wpdb->insert_id,
+			'redirect_url' => $redirect_url
+		], 200 );
 	}
 
 	/**
