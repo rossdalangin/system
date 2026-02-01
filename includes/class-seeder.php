@@ -12,156 +12,129 @@ class Agency_Nexus_Seeder {
 	public static function seed() {
 		global $wpdb;
 
-		// 1. Create Sample Client User (Subscriber role usually)
-		$client_user_id = self::get_or_create_user( 'sample_client', 'client@example.com', 'subscriber', 'Sample Client' );
+		// Clear first to ensure fresh seed
+		self::clear_all();
 
-		// 2. Create Sample Team Member User (Author role for testing permissions)
-		$team_user_id = self::get_or_create_user( 'sample_team', 'team@example.com', 'author', 'Sample Team Member' );
-
-		// 3. Create an_clients entry
-		$table_clients = $wpdb->prefix . 'an_clients';
-		$client_id = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_clients WHERE email = %s", 'client@example.com' ) );
-		if ( ! $client_id ) {
-			$wpdb->insert( $table_clients, [
-				'name'    => 'Sample Client',
-				'email'   => 'client@example.com',
-				'company' => 'Example Corp',
-				'status'  => 'active'
-			] );
-			$client_id = $wpdb->insert_id;
+		// 1. Create Sample Users
+		$team_members = [];
+		for ( $i = 1; $i <= 5; $i++ ) {
+			$team_members[] = self::get_or_create_user( "team_member_$i", "team$i@example.com", 'author', "Team Member $i" );
 		}
 
-		// 4. Create Sample Project
-		$table_projects = $wpdb->prefix . 'an_projects';
-		$project_id = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_projects WHERE title = %s", 'Sample Web Design Project' ) );
-		if ( ! $project_id ) {
-			$wpdb->insert( $table_projects, [
+		// 2. Create 10+ Clients
+		$client_ids = [];
+		for ( $i = 1; $i <= 12; $i++ ) {
+			$wpdb->insert( $wpdb->prefix . 'an_clients', [
+				'name'    => "Client $i",
+				'email'   => "client$i@example.com",
+				'company' => "Company $i Ltd",
+				'status'  => 'active',
+				'created_at' => date('Y-m-d H:i:s', strtotime("-$i days"))
+			] );
+			$client_ids[] = $wpdb->insert_id;
+
+			// Occasionally create a WP user for the client
+			if ( $i % 3 === 0 ) {
+				self::get_or_create_user( "client_user_$i", "client$i@example.com", 'subscriber', "Client $i" );
+			}
+		}
+
+		// 3. Create 10+ Projects
+		$project_ids = [];
+		$statuses = ['planned', 'in_progress', 'on_hold', 'completed'];
+		for ( $i = 1; $i <= 15; $i++ ) {
+			$client_id = $client_ids[ array_rand($client_ids) ];
+			$team_id   = $team_members[ array_rand($team_members) ];
+			$status    = $statuses[ array_rand($statuses) ];
+
+			$wpdb->insert( $wpdb->prefix . 'an_projects', [
 				'client_id'   => $client_id,
-				'assigned_to' => $team_user_id,
-				'title'       => 'Sample Web Design Project',
-				'description' => 'A sample project to demonstrate Agency Nexus features.',
-				'budget'      => 5000.00,
-				'status'      => 'in_progress',
-				'start_date'  => date( 'Y-m-d' )
+				'assigned_to' => $team_id,
+				'title'       => "Project " . ($i <= 5 ? "Web Design $i" : ($i <= 10 ? "SEO Campaign $i" : "Social Media $i")),
+				'description' => "Sample project description for project $i.",
+				'budget'      => rand(1000, 10000),
+				'status'      => $status,
+				'start_date'  => date( 'Y-m-d', strtotime("-" . rand(1, 30) . " days") )
 			] );
 			$project_id = $wpdb->insert_id;
-		} else {
-			// Ensure it's assigned to the team member if it already exists
-			$wpdb->update( $table_projects, [ 'assigned_to' => $team_user_id ], [ 'id' => $project_id ] );
-		}
+			$project_ids[] = $project_id;
 
-		// 5. Create Sample Tasks
-		$table_tasks = $wpdb->prefix . 'an_tasks';
-		$tasks = [
-			[
-				'title' => 'Initial Discovery Call',
-				'status' => 'completed',
-				'assigned_to' => $team_user_id,
-				'start_date' => date('Y-m-d', strtotime('-5 days')),
-				'due_date' => date('Y-m-d', strtotime('-4 days'))
-			],
-			[
-				'title' => 'Homepage Wireframes',
-				'status' => 'todo',
-				'assigned_to' => $team_user_id,
-				'start_date' => date('Y-m-d'),
-				'due_date' => date('Y-m-d', strtotime('+3 days'))
-			],
-			[
-				'title' => 'Brand Identity Design',
-				'status' => 'todo',
-				'assigned_to' => 0,
-				'start_date' => date('Y-m-d', strtotime('+2 days')),
-				'due_date' => date('Y-m-d', strtotime('+7 days'))
-			],
-		];
+			// 4. Create Tasks for each project
+			for ( $j = 1; $j <= rand(3, 7); $j++ ) {
+				$wpdb->insert( $wpdb->prefix . 'an_tasks', [
+					'project_id'  => $project_id,
+					'title'       => "Task $j for Project $i",
+					'assigned_to' => (rand(0, 1) ? $team_id : 0),
+					'status'      => (rand(0, 1) ? 'todo' : 'completed'),
+					'priority'    => (rand(0, 1) ? 'high' : 'medium'),
+					'start_date'  => date('Y-m-d'),
+					'due_date'    => date('Y-m-d', strtotime('+' . rand(1, 14) . ' days'))
+				] );
+				$task_id = $wpdb->insert_id;
 
-		foreach ( $tasks as $task ) {
-			$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_tasks WHERE project_id = %d AND title = %s", $project_id, $task['title'] ) );
-			if ( ! $exists ) {
-				$wpdb->insert( $table_tasks, array_merge( $task, [ 'project_id' => $project_id, 'priority' => 'medium' ] ) );
+				// Log some time
+				if ( rand(0, 1) ) {
+					$wpdb->insert( $wpdb->prefix . 'an_time_entries', [
+						'task_id'  => $task_id,
+						'user_id'  => $team_id,
+						'duration' => rand(1, 8) * 3600,
+						'date'     => date('Y-m-d H:i:s'),
+						'note'     => "Worked on task $j"
+					] );
+				}
+			}
+
+			// 5. Create Invoices for some projects
+			if ( rand(0, 1) ) {
+				$wpdb->insert( $wpdb->prefix . 'an_invoices', [
+					'project_id' => $project_id,
+					'client_id'  => $client_id,
+					'number'     => "INV-" . str_pad($i, 4, '0', STR_PAD_LEFT),
+					'amount'     => rand(500, 3000),
+					'status'     => (rand(0, 1) ? 'paid' : 'sent'),
+					'due_date'   => date('Y-m-d', strtotime('+15 days')),
+					'created_at' => current_time('mysql')
+				] );
 			}
 		}
 
-		// 6. Create Sample Messages (ClientSync)
-		$table_messages = $wpdb->prefix . 'an_messages';
-		$messages = [
-			[ 'sender_id' => $team_user_id, 'message' => 'Hello! Welcome to our portal. We are starting on your project today.' ],
-			[ 'sender_id' => $client_user_id, 'message' => 'Thanks! I am excited to see the progress.' ],
-		];
-		foreach ( $messages as $msg ) {
-			$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_messages WHERE client_id = %d AND message = %s", $client_id, $msg['message'] ) );
-			if ( ! $exists ) {
-				$wpdb->insert( $table_messages, array_merge( $msg, [ 'client_id' => $client_id, 'created_at' => current_time('mysql') ] ) );
-			}
+		// 6. Create 10+ Leads
+		$lead_statuses = ['new', 'qualified', 'converted', 'lost'];
+		$sources = ['referral', 'google', 'linkedin', 'website'];
+		for ( $i = 1; $i <= 12; $i++ ) {
+			$wpdb->insert( $wpdb->prefix . 'an_leads', [
+				'name'             => "Prospective Lead $i",
+				'email'            => "lead$i@example.com",
+				'source'           => $sources[ array_rand($sources) ],
+				'status'           => $lead_statuses[ array_rand($lead_statuses) ],
+				'conversion_value' => rand(1000, 5000),
+				'created_at'       => date('Y-m-d H:i:s', strtotime("-" . rand(1, 60) . " days"))
+			] );
 		}
 
-		// 7. Create Sample Content (ContentMatrix / ApprovalFlow)
-		$table_content = $wpdb->prefix . 'an_content';
-		$contents = [
-			[ 'title' => 'Social Media Post #1', 'content' => 'Check out our new website design!', 'status' => 'pending_approval' ],
-			[ 'title' => 'Draft Blog Post', 'content' => '5 Tips for Better Web Design...', 'status' => 'draft' ],
+		// 7. Create Canned Responses
+		$responses = [
+			['Welcome Message', 'Hi there! Welcome to our agency. How can we help you today?'],
+			['Pricing Inquiry', 'Our standard rates start at $50/hr for most services.'],
+			['Onboarding Link', 'Please fill out this onboarding form to get started: [link]'],
+			['Meeting Request', 'I would love to hop on a call. Are you free tomorrow?'],
 		];
-		foreach ( $contents as $cnt ) {
-			$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_content WHERE project_id = %d AND title = %s", $project_id, $cnt['title'] ) );
-			if ( ! $exists ) {
-				$wpdb->insert( $table_content, array_merge( $cnt, [ 'project_id' => $project_id, 'platform' => 'instagram' ] ) );
-			}
-		}
-
-		// 8. Create Sample Expenses (MoneyFlow)
-		$table_expenses = $wpdb->prefix . 'an_expenses';
-		$expenses = [
-			[ 'amount' => 50.00, 'category' => 'software', 'note' => 'Subscription for design tools' ],
-			[ 'amount' => 200.00, 'category' => 'outsourcing', 'note' => 'Logo design draft' ],
-		];
-		foreach ( $expenses as $exp ) {
-			$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_expenses WHERE project_id = %d AND note = %s", $project_id, $exp['note'] ) );
-			if ( ! $exists ) {
-				$wpdb->insert( $table_expenses, array_merge( $exp, [ 'project_id' => $project_id, 'created_at' => current_time('mysql') ] ) );
-			}
-		}
-
-		// 9. Create Sample Invoices
-		$table_invoices = $wpdb->prefix . 'an_invoices';
-		$inv_number = 'INV-SAMPLE-001';
-		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_invoices WHERE number = %s", $inv_number ) );
-		if ( ! $exists ) {
-			$wpdb->insert( $table_invoices, [
-				'project_id' => $project_id,
-				'client_id'  => $client_id,
-				'number'     => $inv_number,
-				'amount'     => 1500.00,
-				'status'     => 'sent',
-				'due_date'   => date('Y-m-d', strtotime('+30 days')),
+		foreach ( $responses as $res ) {
+			$wpdb->insert( $wpdb->prefix . 'an_canned_responses', [
+				'title' => $res[0],
+				'content' => $res[1],
 				'created_at' => current_time('mysql')
 			] );
 		}
 
-		// 10. Create Sample Resources (FreebieFactory)
-		$table_resources = $wpdb->prefix . 'an_resources';
-		$resources = [
-			[ 'title' => 'Standard Services Agreement', 'type' => 'template', 'content' => 'Standard contract terms...' ],
-			[ 'title' => 'Marketing Email Swipe', 'type' => 'swipe', 'content' => 'Subject: How we can help...' ],
-		];
-		foreach ( $resources as $res ) {
-			$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_resources WHERE title = %s", $res['title'] ) );
-			if ( ! $exists ) {
-				$wpdb->insert( $table_resources, array_merge( $res, [ 'created_at' => current_time('mysql') ] ) );
-			}
-		}
-
-		// 11. Create Sample Leads (EngageTrack)
-		$table_leads = $wpdb->prefix . 'an_leads';
-		$leads = [
-			[ 'name' => 'Potential Lead #1', 'email' => 'lead1@example.com', 'source' => 'referral', 'status' => 'new', 'conversion_value' => 2000.00 ],
-			[ 'name' => 'Hot Lead #2', 'email' => 'lead2@example.com', 'source' => 'direct', 'status' => 'qualified', 'conversion_value' => 5000.00 ],
-		];
-		foreach ( $leads as $lead ) {
-			$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_leads WHERE email = %s", $lead['email'] ) );
-			if ( ! $exists ) {
-				$wpdb->insert( $table_leads, array_merge( $lead, [ 'created_at' => current_time('mysql') ] ) );
-			}
+		// 8. Create Resources
+		for ( $i = 1; $i <= 5; $i++ ) {
+			$wpdb->insert( $wpdb->prefix . 'an_resources', [
+				'title' => "Helpful Document $i",
+				'type' => (rand(0, 1) ? 'template' : 'swipe'),
+				'content' => "Sample content for resource $i...",
+				'created_at' => current_time('mysql')
+			] );
 		}
 
 		return true;
@@ -176,12 +149,20 @@ class Agency_Nexus_Seeder {
 			'an_payments', 'an_autopilot_rules'
 		];
 		foreach ( $tables as $table ) {
-			$wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}$table" );
+			$table_name = $wpdb->prefix . $table;
+			// Use DELETE if TRUNCATE fails or to be safer across all environments
+			$wpdb->query( "DELETE FROM $table_name" );
+			$wpdb->query( "ALTER TABLE $table_name AUTO_INCREMENT = 1" );
 		}
+
+		// Clean up sample users (optional but helpful for a truly "clear" state)
+		// We only delete users we created with our sample emails to be safe.
+		$wpdb->query( "DELETE FROM $wpdb->users WHERE user_email LIKE '%@example.com'" );
+		$wpdb->query( "DELETE FROM $wpdb->usermeta WHERE user_id NOT IN (SELECT ID FROM $wpdb->users)" );
 	}
 
 	private static function get_or_create_user( $username, $email, $role, $display_name ) {
-		$user = get_user_by( 'login', $username );
+		$user = get_user_by( 'email', $email );
 		if ( ! $user ) {
 			$user_id = wp_create_user( $username, 'password123', $email );
 			if ( ! is_wp_error( $user_id ) ) {

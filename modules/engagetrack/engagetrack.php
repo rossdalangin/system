@@ -29,6 +29,10 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 			if ( Agency_Nexus_Permissions::is_admin() ) {
 				$this->process_lead_actions();
 			}
+		} elseif ( 'an-lead-settings' === $page ) {
+			if ( Agency_Nexus_Permissions::is_admin() ) {
+				$this->process_settings_actions();
+			}
 		} elseif ( 'an-canned-responses' === $page ) {
 			if ( Agency_Nexus_Permissions::is_admin() ) {
 				$this->process_response_actions();
@@ -112,6 +116,15 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 
 			add_submenu_page(
 				'agency-nexus',
+				__( 'Lead Settings', 'agency-nexus' ),
+				__( 'Lead Settings', 'agency-nexus' ),
+				'read',
+				'an-lead-settings',
+				[ $this, 'render_lead_settings' ]
+			);
+
+			add_submenu_page(
+				'agency-nexus',
 				__( 'Canned Responses', 'agency-nexus' ),
 				__( 'Canned Responses', 'agency-nexus' ),
 				'read',
@@ -119,6 +132,75 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 				[ $this, 'render_canned_responses' ]
 			);
 		}
+	}
+
+	private function process_settings_actions() {
+		if ( isset( $_POST['an_save_thankyou_settings'] ) && check_admin_referer( 'an_save_thankyou_nonce' ) ) {
+			update_option( 'an_ty_title', sanitize_text_field( $_POST['an_ty_title'] ) );
+			update_option( 'an_ty_subtitle', sanitize_text_field( $_POST['an_ty_subtitle'] ) );
+			update_option( 'an_ty_product', sanitize_text_field( $_POST['an_ty_product'] ) );
+			update_option( 'an_ty_cta_text', sanitize_text_field( $_POST['an_ty_cta_text'] ) );
+			update_option( 'an_ty_cta_url', esc_url_raw( $_POST['an_ty_cta_url'] ) );
+			wp_redirect( admin_url( 'admin.php?page=an-lead-settings&msg=saved' ) );
+			exit;
+		}
+	}
+
+	public function render_lead_settings() {
+		if ( isset( $_GET['msg'] ) && 'saved' === $_GET['msg'] ) {
+			echo '<div class="updated"><p>' . __( 'Settings saved!', 'agency-nexus' ) . '</p></div>';
+		}
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Lead Intelligence Settings', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e( 'Customize your lead capture experience and the "Thank You" page content.', 'agency-nexus' ); ?></p>
+
+			<form method="post">
+				<?php wp_nonce_field( 'an_save_thankyou_nonce' ); ?>
+				<div class="postbox" style="padding: 20px;">
+					<h3><?php _e( 'Thank You Page Content (Shortcode Defaults)', 'agency-nexus' ); ?></h3>
+					<p class="description"><?php _e( 'These settings control the default output of the [agency_nexus_thank_you] shortcode.', 'agency-nexus' ); ?></p>
+
+					<table class="form-table">
+						<tr>
+							<th><label><?php _e( 'Main Title', 'agency-nexus' ); ?></label></th>
+							<td>
+								<input type="text" name="an_ty_title" value="<?php echo esc_attr( get_option( 'an_ty_title', __( 'Your submission was successful!', 'agency-nexus' ) ) ); ?>" class="regular-text">
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e( 'Sub-title', 'agency-nexus' ); ?></label></th>
+							<td>
+								<input type="text" name="an_ty_subtitle" value="<?php echo esc_attr( get_option( 'an_ty_subtitle', __( 'We have received your details and will be in touch shortly.', 'agency-nexus' ) ) ); ?>" class="regular-text">
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e( 'Offer/Product Name', 'agency-nexus' ); ?></label></th>
+							<td>
+								<input type="text" name="an_ty_product" value="<?php echo esc_attr( get_option( 'an_ty_product', __( 'our premium solutions', 'agency-nexus' ) ) ); ?>" class="regular-text">
+								<p class="description"><?php _e( 'This will appear in the exclusive offer box.', 'agency-nexus' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e( 'CTA Button Text', 'agency-nexus' ); ?></label></th>
+							<td>
+								<input type="text" name="an_ty_cta_text" value="<?php echo esc_attr( get_option( 'an_ty_cta_text', __( 'Check this out while you wait', 'agency-nexus' ) ) ); ?>" class="regular-text">
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e( 'CTA Button URL', 'agency-nexus' ); ?></label></th>
+							<td>
+								<input type="url" name="an_ty_cta_url" value="<?php echo esc_attr( get_option( 'an_ty_cta_url', '#' ) ); ?>" class="regular-text">
+							</td>
+						</tr>
+					</table>
+				</div>
+				<p class="submit">
+					<input type="submit" name="an_save_thankyou_settings" class="button button-primary" value="<?php _e( 'Save Settings', 'agency-nexus' ); ?>">
+				</p>
+			</form>
+		</div>
+		<?php
 	}
 
 	public function render_leads() {
@@ -377,11 +459,11 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 	 */
 	public function render_thank_you_page( $atts ) {
 		$atts = shortcode_atts( [
-			'title'        => __( 'Your submission was successful!', 'agency-nexus' ),
-			'sub_title'    => __( 'We have received your details and will be in touch shortly.', 'agency-nexus' ),
-			'product_name' => __( 'our premium solutions', 'agency-nexus' ),
-			'cta_text'     => __( 'Check this out while you wait', 'agency-nexus' ),
-			'cta_url'      => '#',
+			'title'        => get_option( 'an_ty_title', __( 'Your submission was successful!', 'agency-nexus' ) ),
+			'sub_title'    => get_option( 'an_ty_subtitle', __( 'We have received your details and will be in touch shortly.', 'agency-nexus' ) ),
+			'product_name' => get_option( 'an_ty_product', __( 'our premium solutions', 'agency-nexus' ) ),
+			'cta_text'     => get_option( 'an_ty_cta_text', __( 'Check this out while you wait', 'agency-nexus' ) ),
+			'cta_url'      => get_option( 'an_ty_cta_url', '#' ),
 			'video_url'    => '', // Optional: Add a VSL (Video Sales Letter) URL
 		], $atts );
 
