@@ -92,8 +92,9 @@ Track every dollar flowing in and out of your agency.
 ### 📈 EngageTrack (Leads & Sentiment)
 - View the widget on the main **Agency Nexus Dashboard**.
 - **Lead Management**: Navigate to **Agency Nexus > Leads** to track names, emails, sources, and potential values.
+- **Lead Capture Form**: Click the **Generate Embed Code** button on the Leads page. You can copy this HTML code and embed it on any external website to capture leads directly into your dashboard.
 - **Canned Responses**: Navigate to **Agency Nexus > Canned Responses** to save frequently used DM or email templates.
-- **Sentiment Analysis**: Gauge brand health based on social interaction data.
+- **Sentiment Analysis**: Gauge brand health based on social interaction data shown on the dashboard widget.
 
 ---
 
@@ -101,10 +102,11 @@ Track every dollar flowing in and out of your agency.
 
 ### ⚙️ Global Settings
 - Navigate to **Agency Nexus > Settings**.
+- **Agency Logo**: Upload your agency logo. This logo will be automatically displayed at the top of all generated invoices in the **MoneyFlow** module.
 - **Hourly Rate**: Set your agency's default hourly rate for ROI calculations.
 - **API Keys**: Configure your Stripe Secret Key and Zapier Webhook URL for external integrations.
 
-### 📱 Mobile App API
+### 📱 Mobile App API & External Integration
 - Agency Nexus provides a built-in REST API for custom mobile app development or integrations.
 - **Endpoints**: `/wp-json/agency-nexus/v1/projects`, `/tasks`, and `/messages`.
 
