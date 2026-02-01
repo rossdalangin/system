@@ -143,8 +143,9 @@ class Agency_Nexus_API_Handler {
 
 		$redirect_url = isset( $params['redirect_url'] ) ? esc_url_raw( $params['redirect_url'] ) : '';
 
-		// If this is a standard form submission (not AJAX), redirect if URL provided
-		if ( ! empty( $redirect_url ) && ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST || isset( $params['_wpnonce'] ) ) ) {
+		// If a redirect URL is provided, we perform a redirect.
+		// Standard HTML forms use this to send the user to a Thank You page.
+		if ( ! empty( $redirect_url ) ) {
 			wp_redirect( $redirect_url );
 			exit;
 		}
