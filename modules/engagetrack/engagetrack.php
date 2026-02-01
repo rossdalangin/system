@@ -245,10 +245,23 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 
 				$('#lead-redirect-url').on('input', function(){
 					var url = $(this).val();
-					var baseCode = $('#lead-embed-textarea').val();
-					// Simple update of value attribute in textarea content
-					var updatedCode = baseCode.replace(/name="redirect_url" value=".*?"/, 'name="redirect_url" value="' + url + '"');
-					$('#lead-embed-textarea').val(updatedCode);
+					var $textarea = $('#lead-embed-textarea');
+					// We use a clean template to avoid regex issues with multiple edits
+					var api_url = '<?php echo get_rest_url( null, "agency-nexus/v1/leads/capture" ); ?>';
+					var template = '<form action="' + api_url + '" method="POST">\n' +
+'    <div>\n' +
+'        <label>Name:</label><br>\n' +
+'        <input type="text" name="name" required style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px;">\n' +
+'    </div>\n' +
+'    <div>\n' +
+'        <label>Email:</label><br>\n' +
+'        <input type="email" name="email" required style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px;">\n' +
+'    </div>\n' +
+'    <input type="hidden" name="source" value="Website Embed">\n' +
+'    <input type="hidden" name="redirect_url" value="' + url + '">\n' +
+'    <button type="submit" style="background: #2271b1; color: #fff; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;">Submit & Get Access</button>\n' +
+'</form>';
+					$textarea.val(template);
 				});
 			});
 			</script>
