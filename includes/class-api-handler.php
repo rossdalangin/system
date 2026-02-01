@@ -54,6 +54,12 @@ class Agency_Nexus_API_Handler {
 			'callback'            => [ $this, 'get_messages' ],
 			'permission_callback' => [ $this, 'check_permission' ],
 		] );
+
+		register_rest_route( $this->namespace, '/leads/capture', [
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'capture_lead' ],
+			'permission_callback' => '__return_true',
+		] );
 	}
 
 	/**
@@ -102,6 +108,40 @@ class Agency_Nexus_API_Handler {
 			$messages = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_messages WHERE client_id = %d ORDER BY created_at DESC", $client_id ) );
 		}
 		return new WP_REST_Response( $messages, 200 );
+	}
+
+	/**
+	 * Capture a lead from an external form.
+	 */
+	public function capture_lead( $request ) {
+		$params = $request->get_params();
+
+		$name   = isset( $params['name'] ) ? sanitize_text_field( $params['name'] ) : '';
+		$email  = isset( $params['email'] ) ? sanitize_email( $params['email'] ) : '';
+		$source = isset( $params['source'] ) ? sanitize_text_field( $params['source'] ) : 'external_form';
+
+		if ( empty( $name ) || empty( $email ) ) {
+			return new WP_Error( 'missing_fields', 'Name and email are required.', [ 'status' => 400 ] );
+		}
+
+		global $wpdb;
+		$result = $wpdb->insert(
+			$wpdb->prefix . 'an_leads',
+			[
+				'name'             => $name,
+				'email'            => $email,
+				'source'           => $source,
+				'status'           => 'new',
+				'conversion_value' => 0.00,
+				'created_at'       => current_time( 'mysql' )
+			]
+		);
+
+		if ( false === $result ) {
+			return new WP_Error( 'db_error', 'Failed to save lead.', [ 'status' => 500 ] );
+		}
+
+		return new WP_REST_Response( [ 'message' => 'Lead captured successfully.', 'id' => $wpdb->insert_id ], 200 );
 	}
 
 	/**

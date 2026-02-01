@@ -22,6 +22,16 @@ class Agency_Nexus_Admin_Dashboard {
 		// Use priority 5 to ensure this fires before modules (default 10)
 		add_action( 'admin_menu', [ $this, 'register_menu' ], 5 );
 		add_action( 'admin_init', [ $this, 'handle_admin_actions' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+	}
+
+	/**
+	 * Enqueue scripts for the admin area.
+	 */
+	public function enqueue_scripts( $hook ) {
+		if ( 'agency-nexus_page_an-settings' === $hook ) {
+			wp_enqueue_media();
+		}
 	}
 
 	/**
@@ -41,6 +51,7 @@ class Agency_Nexus_Admin_Dashboard {
 			update_option( 'an_stripe_key', sanitize_text_field( $_POST['an_stripe_key'] ) );
 			update_option( 'an_zapier_webhook', esc_url_raw( $_POST['an_zapier_webhook'] ) );
 			update_option( 'an_hourly_rate', floatval( $_POST['an_hourly_rate'] ) );
+			update_option( 'an_agency_logo', esc_url_raw( $_POST['an_agency_logo'] ) );
 			wp_redirect( admin_url( 'admin.php?page=an-settings&msg=saved' ) );
 			exit;
 		}
@@ -1073,6 +1084,19 @@ class Agency_Nexus_Admin_Dashboard {
 				<?php wp_nonce_field( 'an_global_settings_nonce' ); ?>
 				<table class="form-table">
 					<tr>
+						<th><label for="an_agency_logo"><?php _e('Agency Logo', 'agency-nexus'); ?></label></th>
+						<td>
+							<input type="text" name="an_agency_logo" id="an_agency_logo" value="<?php echo esc_attr( get_option( 'an_agency_logo' ) ); ?>" class="regular-text">
+							<button type="button" id="upload_logo_btn" class="button"><?php _e('Select Logo', 'agency-nexus'); ?></button>
+							<p class="description"><?php _e('The agency logo to display on invoices. Best if uploaded with a white background.', 'agency-nexus'); ?></p>
+							<div id="logo-preview" style="margin-top: 10px;">
+								<?php if ( get_option( 'an_agency_logo' ) ) : ?>
+									<img src="<?php echo esc_url( get_option( 'an_agency_logo' ) ); ?>" style="max-width: 200px; height: auto; border: 1px solid #ddd; padding: 5px;">
+								<?php endif; ?>
+							</div>
+						</td>
+					</tr>
+					<tr>
 						<th><label for="an_hourly_rate">Default Hourly Rate ($)</label></th>
 						<td>
 							<input type="number" name="an_hourly_rate" id="an_hourly_rate" value="<?php echo esc_attr( get_option( 'an_hourly_rate', 50 ) ); ?>" class="regular-text">
@@ -1099,6 +1123,18 @@ class Agency_Nexus_Admin_Dashboard {
 				</p>
 			</form>
 		</div>
+		<script>
+		jQuery(document).ready(function($){
+			$('#upload_logo_btn').click(function(e) {
+				e.preventDefault();
+				var frame = wp.media({ title: 'Select Agency Logo', multiple: false }).open().on('select', function(e){
+					var uploaded_image = frame.state().get('selection').first().toJSON();
+					$('#an_agency_logo').val(uploaded_image.url);
+					$('#logo-preview').html('<img src="' + uploaded_image.url + '" style="max-width: 200px; height: auto; border: 1px solid #ddd; padding: 5px;">');
+				});
+			});
+		});
+		</script>
 		<?php
 	}
 

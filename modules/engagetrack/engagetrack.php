@@ -200,7 +200,37 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 			<h1 class="wp-heading-inline"><?php _e( 'Lead Intelligence System', 'agency-nexus' ); ?></h1>
 			<p><?php _e( 'Guidance: Track your sales pipeline here. Assign potential values to leads to help calculate your agency\'s projected revenue.', 'agency-nexus' ); ?></p>
 			<a href="?page=an-leads&action=add" class="page-title-action">Add New</a>
+			<button type="button" class="page-title-action" id="generate-lead-form-btn"><?php _e( 'Generate Embed Code', 'agency-nexus' ); ?></button>
 			<hr class="wp-header-end">
+			<div id="embed-code-container" style="display: none; background: #fff; border: 1px solid #ccd0d4; padding: 20px; margin-bottom: 20px;">
+				<h3><?php _e('External Capture Form Code', 'agency-nexus'); ?></h3>
+				<p><?php _e('Copy and paste this HTML code onto any page (even outside this WordPress site) to capture leads directly into Agency Nexus.', 'agency-nexus'); ?></p>
+				<textarea class="large-text" rows="12" readonly><?php
+					$api_url = get_rest_url( null, 'agency-nexus/v1/leads/capture' );
+					echo esc_textarea('<form action="' . $api_url . '" method="POST">
+    <div>
+        <label>Name:</label><br>
+        <input type="text" name="name" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+    </div>
+    <div>
+        <label>Email:</label><br>
+        <input type="email" name="email" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+    </div>
+    <input type="hidden" name="source" value="Website Embed">
+    <button type="submit" style="background: #0073aa; color: #fff; border: none; padding: 10px 20px; cursor: pointer;">Submit</button>
+</form>');
+				?></textarea>
+				<p><button type="button" class="button" onclick="jQuery('#embed-code-container').slideUp();">Close</button></p>
+			</div>
+
+			<script>
+			jQuery(document).ready(function($){
+				$('#generate-lead-form-btn').click(function(){
+					$('#embed-code-container').slideToggle();
+				});
+			});
+			</script>
+
 			<table class="wp-list-table widefat fixed striped">
 				<thead><tr><th>Name</th><th>Email</th><th>Source</th><th>Status</th><th>Value</th><th>Actions</th></tr></thead>
 				<tbody>

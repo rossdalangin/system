@@ -354,10 +354,17 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 
 		if ($action === 'print' && $id) {
 			$invoice = $wpdb->get_row($wpdb->prepare("SELECT i.*, c.name as client_name, c.email as client_email, p.title as project_title FROM $invoices_table i JOIN $clients_table c ON i.client_id = c.id JOIN $projects_table p ON i.project_id = p.id WHERE i.id = %d", $id));
+			$logo = get_option( 'an_agency_logo' );
 			?>
 			<div class="wrap" id="printable-invoice" style="background: white; padding: 40px; font-family: sans-serif;">
-				<div style="display:flex; justify-content: space-between;">
-					<h1>INVOICE</h1>
+				<div style="display:flex; justify-content: space-between; align-items: center;">
+					<div id="agency-info">
+						<?php if ( $logo ) : ?>
+							<img src="<?php echo esc_url( $logo ); ?>" style="max-width: 150px; height: auto; margin-bottom: 10px;">
+						<?php else : ?>
+							<h1>INVOICE</h1>
+						<?php endif; ?>
+					</div>
 					<div style="text-align:right;">
 						<strong><?php echo esc_html($invoice->number); ?></strong><br>
 						Date: <?php echo date('Y-m-d', strtotime($invoice->created_at)); ?><br>
