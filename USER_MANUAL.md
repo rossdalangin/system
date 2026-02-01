@@ -4,155 +4,148 @@ Welcome to **Agency Nexus**, the premium, all-in-one WordPress management suite 
 
 ---
 
+## 📑 Table of Contents
+- [🛠️ Quick Start](#🛠️-quick-start-exploring-with-sample-data)
+- [⚙️ Phase 1: Setup & Configuration](#1-phase-1-setup--configuration)
+- [🚀 Phase 2: Sales & Onboarding](#2-phase-2-sales--onboarding)
+- [📁 Phase 3: Project Operations](#3-phase-3-project-operations)
+- [📅 Phase 4: Content & Approval](#4-phase-4-content--approval)
+- [💬 Phase 5: Communication & Collaboration](#5-phase-5-communication--collaboration)
+- [💰 Phase 6: Financials & Growth](#6-phase-6-financials--growth)
+- [⏱️ Phase 7: Productivity & Health](#7-phase-7-productivity--health)
+- [🤖 Phase 8: Automation & Resources](#8-phase-8-automation--resources)
+- [👥 Roles & Permissions](#-roles--permissions)
+- [💡 Best Practices](#-best-practices-for-agency-success)
+- [❓ FAQ & Troubleshooting](#-faq--troubleshooting)
+
+---
+
 ## 🛠️ Quick Start: Exploring with Sample Data
 If you are new to the plugin, you can quickly explore its features by seeding it with sample data.
 1. Navigate to **Agency Nexus > Dashboard**.
 2. Click the **Seed Sample Data** button in the welcome panel.
-3. This will create:
-    - A **Sample Client** account (WP User + Client Record).
-    - A **Sample Team Member** account (WP User).
-    - A **Sample Project** with pre-populated tasks and history.
+3. This will instantly create:
+    - A **Sample Client** account.
+    - A **Sample Team Member** account.
+    - A **Sample Project** with tasks, time logs, and invoices.
 
 ---
 
-## 1. Getting Started: Core Data Management
-
-Before diving into the advanced features, you need to establish your agency's core data structure.
-
-### 👥 Client Management (The Foundation)
-Clients are the heart of your agency. Everything from projects to invoices is linked to a client record.
-- **How to register**: Navigate to **Agency Nexus > Clients** and click **Add New**.
-- **Best Practice**: Use the primary contact's email. If you want the client to have login access, create a standard WordPress user with the *same* email address. The system will automatically link them.
-
-### 📁 Project Management (The Engine)
-Projects house your tasks, time logs, and content plans.
-- **Creating a Project**: Go to **Agency Nexus > Projects > Add New**.
-- **Task Management**: Within any project's **View** page, you can create tasks and assign them to team members.
-- **Dynamic Timeline**: Use the **Start Date** and **Due Date** fields for tasks to automatically populate the **Timeline Visualizer (Gantt Chart)** at the bottom of the page.
-- **ROI Tracking**: Encourage your team to log their hours against specific tasks. This data flows directly into your **MoneyFlow** financial reports.
-
----
-
-## 2. Sales & Onboarding
-
-### 🚀 SmartOnboard: Standardizing Your Sales
-Avoid "scope creep" by using the **Scope Builder**.
-- **Interactive Scoping**: Define service types (SEO, Web Design) and scales (Small to Large) in the settings.
-- **One-Click Projects**: Once you build a scope, click **Create Project** to instantly move the prospect into your production pipeline with pre-defined deliverables.
-
----
-
-## 3. Content Operations & Approval
-
-### 📅 ContentMatrix: The Master Calendar
-Manage your agency's content output across all clients.
-- **Visual Planning**: Use the **Content Calendar** to drag-and-drop content items into specific dates.
-- **Platform Agnostic**: Track content for WordPress, Instagram, LinkedIn, or any custom platform.
-
-### ✍️ ApprovalFlow: Getting Client Sign-off
-No more chasing emails for approvals.
-- **Client Portal**: Clients see a list of items marked as **Pending Approval**.
-- **Audit Trail**: They can approve or request revisions with a single click, which updates the status in real-time on your calendar.
-
----
-
-## 4. Communication & Collaboration
-
-### 💬 ClientSync (Messaging Hub & File Sharing)
-- Navigate to **Agency Nexus > Messages**.
-- Select a client from the sidebar to open the chat window.
-- **Messages**: Chat in real-time with your clients. You can delete individual messages.
-- **Shared Files**: Use the "Shared Files" tab in the chat window to upload assets, deliverables, or contracts for your clients to download. Manage files by deleting them when no longer needed.
-
----
-
-## 5. Time & Productivity
-
-### ⏱️ TimeBlock Pro
-- Navigate to **Agency Nexus > Time Blocking**.
-- **Manage Blocks**: Add, edit, or delete your daily focus blocks.
-- View your daily schedule divided into **Deep Work**, **Shallow Work**, **Meetings**, and **Breaks**.
-- Check the **AI Suggestion** box for tips on optimizing your focus based on your cognitive load patterns.
-
-### 🛡️ BurnoutGuard (Workload Monitoring & Health Check)
-- View the widget on the main **Agency Nexus Dashboard** to monitor your **Workload Capacity**.
-- **Health Check**: Navigate to **Agency Nexus > Health Check** to log your daily stress levels and mental well-being notes.
-- Use the history table to track your burnout risk over time.
-
----
-
-## 6. Financials & Growth
-
-### 💰 MoneyFlow: Your Agency's Bottom Line
-Track every dollar flowing in and out of your agency.
-- **Invoicing**: Create professional, printable invoices directly from your projects.
-- **Expense Tracking**: Upload receipts for software, outsourcing, or travel.
-- **Profitability Intelligence**: The dashboard widget calculates your **True Profit** by subtracting labor costs (calculated from logged hours) and expenses from your project budgets.
-
-### 📈 EngageTrack (Leads & Conversion)
-- **Unified Lead Dashboard**: View the widget on the main Agency Nexus Dashboard for real-time ROI tracking.
-- **Lead Management**: Navigate to **Agency Nexus > Leads** to track names, emails, sources, and potential lifetime value projections.
-- **Advanced Lead Capture**: Click the **Generate Embed Code** button on the Leads page.
-    - **Step 1: Setup Redirects**: Enter a URL where leads should be redirected after successful submission (e.g., your thank you page).
-    - **Step 2: Generate Code**: The system produces high-converting HTML embed code you can place on any website.
-- **Thank You Page Builder**: Use the `[agency_nexus_thank_you]` shortcode on your WordPress pages to create a professional confirmation page. It features:
-    - Success checkmarks and personalized messages.
-    - Customizable upsell call-to-action buttons.
-    - Social proof sections to build immediate trust.
-- **Canned Responses**: Navigate to **Agency Nexus > Canned Responses** to save frequently used DM or email templates for rapid follow-ups.
-
----
-
-## 7. Configuration & API
+## 1. Phase 1: Setup & Configuration
 
 ### ⚙️ Global Settings
-- Navigate to **Agency Nexus > Settings**.
-- **Agency Logo**: Upload your agency logo. This logo will be automatically displayed at the top of all generated invoices in the **MoneyFlow** module.
-- **Hourly Rate**: Set your agency's default hourly rate for ROI calculations.
-- **API Keys**: Configure your Stripe Secret Key and Zapier Webhook URL for external integrations.
+Navigate to **Agency Nexus > Settings** to configure your agency's identity:
+- **Agency Logo**: Upload your logo. It will automatically appear on all professional invoices.
+- **Hourly Rate**: Set your default rate to power the ROI and profitability calculators.
+- **API Keys**: Connect Stripe for payments and Zapier/Make.com for external automations.
 
-### 📱 Mobile App API & External Integration
-- Agency Nexus provides a built-in REST API for custom mobile app development or integrations.
-- **Endpoints**: `/wp-json/agency-nexus/v1/projects`, `/tasks`, and `/messages`.
-
-## 8. Automation & Resources
-
-### 🤖 AutoPilot (Automation Center)
-- Navigate to **Agency Nexus > Automations**.
-- **Automation Rules**: Create custom IFTTT rules (e.g., IF Project Completed THEN Send Email).
-- Manage your rules by activating/deactivating, editing, or deleting them.
-- Configure your **Zapier/Make.com Webhook URL** for external integrations.
-
-### 📚 FreebieFactory (Resource Library)
-- Navigate to **Agency Nexus > Resource Library**.
-- **Manage Assets**: Add your own contract templates, SOWs, and marketing swipe files.
-- **File Support**: Upload PDFs, Docs, or Images directly to the library for easy access.
+### 👥 Client Management
+Clients are the heart of your agency.
+- **Registration**: Go to **Agency Nexus > Clients > Add New**.
+- **Pro Tip**: Use the client's primary email. If you create a standard WordPress user with the same email, the system automatically links their accounts for portal access.
 
 ---
 
-## 💡 Best Practices for Effectiveness
-1. **Log Time Daily**: Accurate time logging is the engine that drives MoneyFlow and BurnoutGuard.
-2. **Use the Scope Builder**: Standardize your pricing tiers to avoid scope creep.
-3. **Batch Content**: Create all your content for the week in ContentMatrix and drag them to their respective dates in one go.
-4. **Monitor Capacity**: If BurnoutGuard hits red, use the Resource Library (FreebieFactory) to find referral or overflow contract templates.
+## 2. Phase 2: Sales & Onboarding
+
+### 🚀 SmartOnboard: The Scope Builder
+Stop "scope creep" before it starts by standardizing your offers.
+- **Interactive Scoping**: Define your services (SEO, Design) and scales (Small, Large) in the settings.
+- **One-Click Conversion**: Once a scope is agreed upon, click **Create Project** to instantly move the prospect into production.
+
+### 📈 EngageTrack: Lead Intelligence
+- **Lead Management**: Track sources and potential lifetime value (LTV) in **Agency Nexus > Leads**.
+- **Advanced Lead Capture**:
+    1. Click **Generate Embed Code** on the Leads page.
+    2. Set a **Redirect URL** (e.g., your Thank You page).
+    3. Copy the HTML code to your external marketing site.
+- **Thank You Page Builder**: Use the `[agency_nexus_thank_you]` shortcode to create high-converting confirmation pages with social proof and upsells.
 
 ---
 
-## 9. Roles & Permissions
+## 3. Phase 3: Project Operations
 
-Agency Nexus utilizes a tiered permission system to ensure data security and a tailored user experience.
+### 📁 Project Management
+- **Central Hub**: Manage all tasks and deadlines in **Agency Nexus > Projects**.
+- **Task Delegation**: Assign tasks to team members and set specific start/due dates.
+- **Timeline Visualizer**: View an automated **Gantt Chart** at the bottom of every project page to track dependencies and milestones.
 
-- **Administrator**: Full access to all systems, global settings, and data management. Can see and manage everything across the agency.
-- **Team Member (Editor/Author)**: Access to internal agency tools (MoneyFlow, AutoPilot, Messaging) but strictly limited to **assigned projects and tasks**. They cannot see or manage data from projects they are not part of.
-- **Client (Subscriber/Linked Email)**: Access to a focused "Client Portal" view containing only their specific projects, messages, content approvals, and a shared resource library.
+---
 
-## 💡 Best Practices for Effectiveness
+## 4. Phase 4: Content & Approval
 
-1.  **Log Time Daily**: Accurate time logging is the engine that drives **MoneyFlow** profitability reports and **BurnoutGuard** capacity monitoring.
-2.  **Use the Scope Builder**: Standardize your pricing tiers and deliverables to avoid "scope creep" and improve project predictability.
-3.  **Batch Content**: Use the **ContentMatrix** calendar to plan and schedule an entire week's worth of content in one sitting, then drag items to their final dates.
-4.  **Monitor Capacity**: If your **BurnoutGuard** widget enters the "Red" zone, use the **FreebieFactory** to find referral or outsourcing contract templates to handle overflow.
-5.  **Centralize Communication**: Encourage clients to use the **Messaging Hub** instead of email to maintain a single, searchable source of truth for every project.
+### 📅 ContentMatrix: The Master Calendar
+- **Visual Planning**: Drag-and-drop content items onto the calendar.
+- **Platform Sync**: Track content for WordPress, Social Media, or Email Newsletters in one view.
+
+### ✍️ ApprovalFlow: Client Sign-offs
+- **One-Click Approval**: Clients can approve deliverables or request revisions directly from their portal.
+- **Audit Trail**: Every change and approval is timestamped, protecting your agency from disputes.
+
+---
+
+## 5. Phase 5: Communication & Collaboration
+
+### 💬 ClientSync: Messaging Hub
+- **Unified Chat**: Real-time communication with clients in **Agency Nexus > Messages**.
+- **Canned Responses**: Save time by using pre-written templates for common questions.
+- **Shared Files**: Securely exchange contracts, assets, and deliverables within the chat interface.
+
+---
+
+## 6. Phase 6: Financials & Growth
+
+### 💰 MoneyFlow: Profitability Tracking
+- **Smart Invoicing**: Generate professional, printable invoices directly from project data.
+- **Expense Tracking**: Log receipts and overhead costs.
+- **Profitability Intelligence**: The dashboard widget automatically calculates your **True Profit** by comparing budgets against labor costs (hours x rate) and expenses.
+
+---
+
+## 7. Phase 7: Productivity & Health
+
+### ⏱️ TimeBlock Pro: Intelligent Scheduling
+- **Focus Blocks**: Divide your day into Deep Work, Shallow Work, and Meetings.
+- **AI Suggestions**: Get personalized tips on how to optimize your schedule based on your cognitive load.
+
+### 🛡️ BurnoutGuard: Sustainability
+- **Capacity Monitoring**: Track your workload in real-time on the main dashboard.
+- **Mental Health Check**: Log daily stress levels to identify burnout patterns before they happen.
+
+---
+
+## 8. Phase 8: Automation & Resources
+
+### 🤖 AutoPilot: The Automation Center
+- **Custom Rules**: Build "If-This-Then-That" workflows (e.g., *IF Project Completed THEN Send Onboarding Gift*).
+- **Integrations**: Connect to 5,000+ apps via Zapier or Make.com.
+
+### 📚 FreebieFactory: Resource Library
+- **Swipe Files**: Store your best-performing email templates and ad copy.
+- **Contract Clauses**: Maintain a library of legal snippets for quick assembly.
+
+---
+
+## 👥 Roles & Permissions
+Agency Nexus uses a strict tiered system to keep your data safe:
+- **Administrator**: Full agency-wide access.
+- **Team Member**: Can only see and manage **assigned** projects, tasks, and messages.
+- **Client**: Limited to their specific projects, approvals, and shared files.
+
+---
+
+## 💡 Best Practices for Agency Success
+1. **Log Time Daily**: This powers both your **MoneyFlow** profit reports and **BurnoutGuard** health metrics.
+2. **Standardize Scopes**: Use the Scope Builder for every new lead to ensure predictable margins.
+3. **Batch Your Content**: Plan the entire month in **ContentMatrix** in one sitting to save hours of context-switching.
+4. **Centralize Chat**: Move all client communication out of email and into **ClientSync** for a single source of truth.
+
+---
+
+## ❓ FAQ & Troubleshooting
+- **Why can't my client see their project?** Ensure the client record email matches the email of their WordPress user account.
+- **How do I change the currency?** Currency settings are inherited from your WordPress site settings or can be customized in Global Settings.
+- **Is my data encrypted?** Yes, all client messaging and financial data are handled with standard industry encryption protocols within your database.
 
 ---
 *Built for Agencies, by Agencies.*
