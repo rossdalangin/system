@@ -31,6 +31,7 @@ class Agency_Nexus_Store {
 	public function __construct() {
 		add_action( 'init', [ $this, 'init' ] );
 		add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
+		add_action( 'admin_init', [ $this, 'handle_license_actions' ] );
 		add_shortcode( 'an_pricing_table', [ $this, 'render_pricing_table' ] );
 
 		register_activation_hook( __FILE__, [ $this, 'activate' ] );
@@ -132,12 +133,112 @@ class Agency_Nexus_Store {
 		<?php
 	}
 
+	public function handle_license_actions() {
+		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
+		if ( 'an-store-licenses' !== $page ) {
+			return;
+		}
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_issued_licenses';
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		if ( 'delete' === $action && $id ) {
+			check_admin_referer( 'an_delete_license_' . $id );
+			$wpdb->delete( $table_name, [ 'id' => $id ] );
+			$wpdb->delete( $wpdb->prefix . 'an_license_activations', [ 'license_id' => $id ] );
+			wp_redirect( admin_url( 'admin.php?page=an-store-licenses&msg=deleted' ) );
+			exit;
+		}
+
+		if ( 'suspend' === $action && $id ) {
+			check_admin_referer( 'an_suspend_license_' . $id );
+			$wpdb->update( $table_name, [ 'status' => 'suspended' ], [ 'id' => $id ] );
+			wp_redirect( admin_url( 'admin.php?page=an-store-licenses&msg=suspended' ) );
+			exit;
+		}
+
+		if ( 'unsuspend' === $action && $id ) {
+			check_admin_referer( 'an_unsuspend_license_' . $id );
+			$wpdb->update( $table_name, [ 'status' => 'active' ], [ 'id' => $id ] );
+			wp_redirect( admin_url( 'admin.php?page=an-store-licenses&msg=unsuspended' ) );
+			exit;
+		}
+
+		if ( isset( $_POST['an_manual_create_license'] ) && check_admin_referer( 'an_create_license_nonce' ) ) {
+			$tier = sanitize_text_field( $_POST['tier'] );
+			$email = sanitize_email( $_POST['email'] );
+
+			$prefix = ( $tier === 'pro' ) ? 'PRO-' : 'AGY-';
+			$key = $prefix . strtoupper( bin2hex( random_bytes( 8 ) ) );
+
+			$wpdb->insert( $table_name, [
+				'license_key' => $key,
+				'user_email'  => $email,
+				'tier'        => $tier,
+				'status'      => 'active'
+			] );
+
+			wp_redirect( admin_url( 'admin.php?page=an-store-licenses&msg=created' ) );
+			exit;
+		}
+	}
+
 	public function render_licenses_list() {
 		global $wpdb;
 		$licenses = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_issued_licenses ORDER BY created_at DESC" );
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+
+		if ( isset( $_GET['msg'] ) ) {
+			$m = '';
+			switch($_GET['msg']) {
+				case 'created': $m = 'License created successfully!'; break;
+				case 'deleted': $m = 'License deleted!'; break;
+				case 'suspended': $m = 'License suspended!'; break;
+				case 'unsuspended': $m = 'License activated!'; break;
+			}
+			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
+		}
+
+		if ( 'add' === $action ) {
+			?>
+			<div class="wrap">
+				<h1>Create License Manually</h1>
+				<form method="post">
+					<?php wp_nonce_field( 'an_create_license_nonce' ); ?>
+					<table class="form-table">
+						<tr>
+							<th>Email Address</th>
+							<td><input type="email" name="email" required class="regular-text"></td>
+						</tr>
+						<tr>
+							<th>Tier</th>
+							<td>
+								<select name="tier">
+									<option value="pro">Pro</option>
+									<option value="agency">Agency</option>
+								</select>
+							</td>
+						</tr>
+					</table>
+					<input type="submit" name="an_manual_create_license" class="button button-primary" value="Generate License">
+					<a href="?page=an-store-licenses" class="button">Cancel</a>
+				</form>
+			</div>
+			<?php
+			return;
+		}
 		?>
 		<div class="wrap">
-			<h1>Issued Licenses</h1>
+			<h1 class="wp-heading-inline">Issued Licenses</h1>
+			<a href="?page=an-store-licenses&action=add" class="page-title-action">Add New</a>
+			<hr class="wp-header-end">
+
 			<table class="wp-list-table widefat fixed striped">
 				<thead>
 					<tr>
@@ -158,7 +259,11 @@ class Agency_Nexus_Store {
 							<td><code><?php echo esc_html($l->license_key); ?></code></td>
 							<td><?php echo esc_html($l->user_email); ?></td>
 							<td><?php echo strtoupper($l->tier); ?></td>
-							<td><?php echo esc_html($l->status); ?></td>
+							<td>
+								<span class="badge" style="background: <?php echo $l->status === 'active' ? '#46b450' : '#dc3232'; ?>; color:#fff; padding: 2px 8px; border-radius: 4px;">
+									<?php echo esc_html(ucfirst($l->status)); ?>
+								</span>
+							</td>
 							<td>
 								<strong><?php echo $act_count; ?></strong>
 								<?php if ($sites) : ?>
@@ -166,6 +271,15 @@ class Agency_Nexus_Store {
 								<?php endif; ?>
 							</td>
 							<td><?php echo esc_html($l->created_at); ?></td>
+							<td>
+								<?php if ($l->status === 'active') : ?>
+									<a href="<?php echo wp_nonce_url('?page=an-store-licenses&action=suspend&id=' . $l->id, 'an_suspend_license_' . $l->id); ?>" style="color:orange;">Suspend</a>
+								<?php else : ?>
+									<a href="<?php echo wp_nonce_url('?page=an-store-licenses&action=unsuspend&id=' . $l->id, 'an_unsuspend_license_' . $l->id); ?>" style="color:green;">Unsuspend</a>
+								<?php endif; ?>
+								|
+								<a href="<?php echo wp_nonce_url('?page=an-store-licenses&action=delete&id=' . $l->id, 'an_delete_license_' . $l->id); ?>" style="color:red;" onclick="return confirm('Delete this license and all its activations?')">Delete</a>
+							</td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>
