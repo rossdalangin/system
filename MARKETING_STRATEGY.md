@@ -20,11 +20,25 @@ Agency Nexus solves the three biggest pain points for agencies:
 
 ---
 
-## 3. Pricing Strategy (The "Value-Based" Model)
-Don't sell for $49. Agency owners value time and professionalism.
-- **The Freemium Hook**: Give away the Client Management and Project Tracking for free on the WP Repo.
-- **Pro Tier ($199 - $399/year)**: Lock the "MoneyFlow" (ROI/Profitability) and "AutoPilot" (Automations) behind the paywall.
-- **Agency Tier ($999/lifetime)**: Offer white-labeling and priority support.
+## 3. Pricing Strategy (The "Rule of Three")
+Yes, having 3 pricing options is the industry gold standard. It leverages the "Decoy Effect" and the "Center Stage Effect" to guide users toward your most profitable tier.
+
+### **The 3-Tier Breakdown:**
+
+#### **Tier 1: The Starter / Free (The "Hook")**
+- **Goal**: User acquisition and trust-building.
+- **Focus**: Core project and client management.
+- **Psychology**: Removes the barrier to entry. It gets your plugin installed on their site, making it "sticky."
+
+#### **Tier 2: The Pro (The "Sweet Spot")**
+- **Goal**: Your main revenue driver.
+- **Focus**: MoneyFlow (ROI tracking), AutoPilot (Automations), and Lead Intelligence.
+- **Psychology**: Positioned as the "Best Value." This tier solves the actual business problems (profit and time) that agency owners are willing to pay for.
+
+#### **Tier 3: The Agency / Elite (The "Anchor")**
+- **Goal**: Revenue maximization and "price anchoring."
+- **Focus**: White-labeling (removing Agency Nexus branding), unlimited projects/clients, and priority support.
+- **Psychology**: By having a high-priced tier (e.g., $999 lifetime), you make the Pro tier ($199/year) look like a bargain. It also captures high-budget agencies who want the premium "VIP" treatment.
 
 ---
 

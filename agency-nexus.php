@@ -58,6 +58,7 @@ class Agency_Nexus {
 		require_once AGENCY_NEXUS_PATH . 'includes/class-db-manager.php';
 		require_once AGENCY_NEXUS_PATH . 'includes/class-permissions.php';
 		require_once AGENCY_NEXUS_PATH . 'includes/class-seeder.php';
+		require_once AGENCY_NEXUS_PATH . 'includes/class-license-manager.php';
 		require_once AGENCY_NEXUS_PATH . 'includes/class-base-module.php';
 		require_once AGENCY_NEXUS_PATH . 'includes/class-api-handler.php';
 

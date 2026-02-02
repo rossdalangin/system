@@ -65,6 +65,24 @@ class Agency_Nexus_Admin_Dashboard {
 			exit;
 		}
 
+		if ( 'an-license' === $page ) {
+			if ( isset( $_POST['an_activate_license'] ) && check_admin_referer( 'an_license_nonce' ) ) {
+				$key = sanitize_text_field( $_POST['license_key'] );
+				$result = Agency_Nexus_License_Manager::get_instance()->activate_license( $key );
+				if ( is_wp_error( $result ) ) {
+					wp_redirect( admin_url( 'admin.php?page=an-license&msg=error&error_msg=' . urlencode($result->get_error_message()) ) );
+				} else {
+					wp_redirect( admin_url( 'admin.php?page=an-license&msg=activated' ) );
+				}
+				exit;
+			}
+			if ( isset( $_POST['an_deactivate_license'] ) && check_admin_referer( 'an_license_nonce' ) ) {
+				Agency_Nexus_License_Manager::get_instance()->deactivate_license();
+				wp_redirect( admin_url( 'admin.php?page=an-license&msg=deactivated' ) );
+				exit;
+			}
+		}
+
 		if ( isset( $_POST['an_seed_data'] ) && check_admin_referer( 'an_seed_data_nonce' ) ) {
 			Agency_Nexus_Seeder::seed();
 			wp_redirect( admin_url( 'admin.php?page=agency-nexus&msg=seeded' ) );
@@ -327,6 +345,15 @@ class Agency_Nexus_Admin_Dashboard {
 				'manage_options',
 				'an-settings',
 				[ $this, 'render_settings' ]
+			);
+
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Licensing', 'agency-nexus' ),
+				__( 'Licensing', 'agency-nexus' ),
+				'manage_options',
+				'an-license',
+				[ $this, 'render_license' ]
 			);
 		}
 	}
@@ -1207,6 +1234,79 @@ class Agency_Nexus_Admin_Dashboard {
 
 			<div class="agency-nexus-widgets" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px;">
 				<?php do_action( 'agency_nexus_dashboard_widgets' ); ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render the license management page.
+	 */
+	public function render_license() {
+		$license_manager = Agency_Nexus_License_Manager::get_instance();
+		$tier = $license_manager->get_tier();
+		$license_data = get_option( 'an_license_data' );
+
+		if ( isset( $_GET['msg'] ) ) {
+			if ( 'activated' === $_GET['msg'] ) {
+				echo '<div class="updated"><p>License activated successfully! You are now on the ' . ucfirst($tier) . ' tier.</p></div>';
+			} elseif ( 'deactivated' === $_GET['msg'] ) {
+				echo '<div class="updated"><p>License deactivated. Reverted to Free tier.</p></div>';
+			} elseif ( 'error' === $_GET['msg'] ) {
+				echo '<div class="error"><p>' . esc_html( $_GET['error_msg'] ) . '</p></div>';
+			}
+		}
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Agency Nexus Licensing', 'agency-nexus' ); ?></h1>
+
+			<div style="display: flex; gap: 30px; margin-top: 20px;">
+				<div style="flex: 1; background: #fff; padding: 25px; border: 1px solid #ccd0d4; border-radius: 8px;">
+					<h3><?php _e( 'Current License Status', 'agency-nexus' ); ?></h3>
+					<div style="margin: 20px 0;">
+						<span class="badge" style="font-size: 1.2rem; padding: 5px 15px; background: <?php echo $tier === 'free' ? '#666' : ($tier === 'pro' ? 'var(--an-indigo-600)' : 'var(--an-amber-500)'); ?>; color: #fff;">
+							<?php echo strtoupper( $tier ); ?> TIER
+						</span>
+					</div>
+
+					<?php if ( $tier === 'free' ) : ?>
+						<p><?php _e( 'Unlock advanced features like MoneyFlow Profit Intelligence, AutoPilot Automations, and White-Labeling by upgrading to Pro or Agency.', 'agency-nexus' ); ?></p>
+						<form method="post">
+							<?php wp_nonce_field( 'an_license_nonce' ); ?>
+							<table class="form-table">
+								<tr>
+									<td>
+										<input type="text" name="license_key" placeholder="Enter License Key" class="large-text" required>
+										<p class="description"><?php _e( 'Sample keys: PRO-1234 or AGY-1234', 'agency-nexus' ); ?></p>
+									</td>
+								</tr>
+							</table>
+							<p><input type="submit" name="an_activate_license" class="button button-primary" value="Activate License"></p>
+						</form>
+					<?php else : ?>
+						<p><strong>License Key:</strong> <code><?php echo esc_html( $license_data['key'] ); ?></code></p>
+						<p><strong>Activated on:</strong> <?php echo esc_html( $license_data['activated'] ); ?></p>
+						<p><strong>Expires on:</strong> <?php echo esc_html( $license_data['expires'] ); ?></p>
+
+						<form method="post" style="margin-top: 20px;">
+							<?php wp_nonce_field( 'an_license_nonce' ); ?>
+							<input type="submit" name="an_deactivate_license" class="button" value="Deactivate License" onclick="return confirm('Are you sure? This will disable Pro features.')">
+						</form>
+					<?php endif; ?>
+				</div>
+
+				<div style="flex: 1;">
+					<div class="card" style="background: #f9f9f9; padding: 25px; border: 1px solid #ddd; border-radius: 8px;">
+						<h3><?php _e( 'Why Upgrade?', 'agency-nexus' ); ?></h3>
+						<ul style="list-style: check; margin-left: 20px;">
+							<li><strong>MoneyFlow Intelligence:</strong> Automated project profitability and ROI tracking.</li>
+							<li><strong>AutoPilot Pro:</strong> Create unlimited automation rules and Zapier integrations.</li>
+							<li><strong>Lead Management:</strong> Full access to the lead capture system and redirect builder.</li>
+							<li><strong>White Label:</strong> Remove "Agency Nexus" branding from client portals and invoices (Agency Tier).</li>
+						</ul>
+						<a href="#" class="button button-secondary" style="margin-top: 15px;"><?php _e( 'Browse Tiers & Pricing', 'agency-nexus' ); ?></a>
+					</div>
+				</div>
 			</div>
 		</div>
 		<?php
