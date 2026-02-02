@@ -60,20 +60,59 @@ class Agency_Nexus_License_Manager {
 
 	/**
 	 * Validate a license key with a remote server.
-	 * (This is a skeleton for actual implementation)
 	 */
 	public function activate_license( $key ) {
-		// In a real implementation, you would make a wp_remote_post call to your licensing server
-		// $response = wp_remote_post( 'https://your-site.com/api/license/activate', [ ... ] );
+		$store_url = get_option( 'an_store_url' );
 
-		// Simulation: Any key starting with 'PRO-' is Pro, 'AGY-' is Agency.
+		if ( empty( $store_url ) ) {
+			// Fallback to simulation if no store URL is set, for demo purposes
+			return $this->simulate_activation( $key );
+		}
+
+		$api_url = trailingslashit( $store_url ) . 'wp-json/agency-nexus-store/v1/validate';
+
+		$response = wp_remote_post( $api_url, [
+			'body' => [
+				'license_key' => $key,
+				'site_url'    => get_site_url()
+			]
+		] );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( $code !== 200 ) {
+			$message = isset( $body['message'] ) ? $body['message'] : 'Invalid response from licensing server.';
+			return new WP_Error( 'activation_failed', $message );
+		}
+
+		$license_data = [
+			'key'        => $key,
+			'status'     => $body['status'],
+			'tier'       => $body['tier'],
+			'activated'  => $body['activated'],
+			'expires'    => $body['expires']
+		];
+
+		update_option( 'an_license_data', $license_data );
+		return true;
+	}
+
+	/**
+	 * Simulated activation for testing when no store URL is configured.
+	 */
+	private function simulate_activation( $key ) {
 		$tier = 'free';
 		if ( strpos( $key, 'PRO-' ) === 0 ) {
 			$tier = 'pro';
 		} elseif ( strpos( $key, 'AGY-' ) === 0 ) {
 			$tier = 'agency';
 		} else {
-			return new WP_Error( 'invalid_key', 'The license key provided is invalid.' );
+			return new WP_Error( 'invalid_key', 'The license key provided is invalid. (Simulated)' );
 		}
 
 		$license_data = [

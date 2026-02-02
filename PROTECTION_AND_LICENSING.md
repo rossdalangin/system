@@ -38,5 +38,22 @@ As implemented in Agency Nexus, we recommend:
 
 ---
 
-## 4. Final Recommendation
+## 4. Setting Up Your Store (The Main Domain)
+To sell Agency Nexus on your main domain, we have provided a companion plugin: **Agency Nexus Store & Licensing**.
+
+### **Setup Instructions:**
+1.  **Install**: Zip and install the `agency-nexus-store` directory on your main domain as a WordPress plugin.
+2.  **Configure Pricing**: Go to **AN Store > Settings** and set your Pro and Agency tier prices.
+3.  **Download Link**: Provide the URL where the Pro version of the plugin is hosted (e.g., your Amazon S3 link or local server path).
+4.  **Display Pricing**: Use the `[an_pricing_table]` shortcode on your landing page to show the 3 pricing tiers.
+5.  **Payment**: The checkout is pre-integrated with a simulated Stripe/PayPal flow. Users will enter their email and receive a generated license key and download link instantly after "paying."
+
+### **Connecting the Plugins:**
+-   On the client's site, go to **Agency Nexus > Settings**.
+-   Enter your main domain URL in the **Main Domain Store URL** field.
+-   Now, when the client enters their key in **Agency Nexus > Licensing**, it will validate instantly against your store's database.
+
+---
+
+## 5. Final Recommendation
 Don't waste time fighting "piracy." Focus on making the Pro version so valuable and the updates so frequent that it's "cheaper" to pay for the license than to deal with a nulled version.

@@ -57,6 +57,7 @@ class Agency_Nexus_Admin_Dashboard {
 			if ( ! current_user_can( 'manage_options' ) ) {
 				return;
 			}
+			update_option( 'an_store_url', esc_url_raw( $_POST['an_store_url'] ) );
 			update_option( 'an_stripe_key', sanitize_text_field( $_POST['an_stripe_key'] ) );
 			update_option( 'an_zapier_webhook', esc_url_raw( $_POST['an_zapier_webhook'] ) );
 			update_option( 'an_hourly_rate', floatval( $_POST['an_hourly_rate'] ) );
@@ -1153,6 +1154,13 @@ class Agency_Nexus_Admin_Dashboard {
 									<img src="<?php echo esc_url( get_option( 'an_agency_logo' ) ); ?>" style="max-width: 200px; height: auto; border: 1px solid #ddd; padding: 5px;">
 								<?php endif; ?>
 							</div>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="an_store_url"><?php _e('Main Domain Store URL', 'agency-nexus'); ?></label></th>
+						<td>
+							<input type="url" name="an_store_url" id="an_store_url" value="<?php echo esc_url( get_option( 'an_store_url' ) ); ?>" class="large-text">
+							<p class="description"><?php _e('The URL of your main domain where the Agency Nexus Store plugin is installed. e.g., https://yourmaindomain.com', 'agency-nexus'); ?></p>
 						</td>
 					</tr>
 					<tr>
