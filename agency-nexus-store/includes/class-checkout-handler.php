@@ -33,6 +33,14 @@ class Agency_Nexus_Checkout_Handler {
 	}
 
 	private function render_checkout_page($tier) {
+		$gateway_pref = isset($_GET['gateway']) ? sanitize_text_field($_GET['gateway']) : 'both';
+
+		// If success token is present, show success page
+		if ( isset( $_GET['an_success'] ) ) {
+			$this->render_success_page($_GET['an_success']);
+			return;
+		}
+
 		if ( isset( $_POST['process_payment'] ) ) {
 			$this->process_simulated_payment($tier);
 			return;
@@ -50,12 +58,37 @@ class Agency_Nexus_Checkout_Handler {
 			<p style="font-size: 24px; font-weight: bold;">Total: $<?php echo esc_html($price); ?></p>
 
 			<form method="post" style="margin-top: 30px;">
-				<div style="margin-bottom: 15px;">
-					<label>Email Address:</label><br>
-					<input type="email" name="customer_email" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+				<div style="margin-bottom: 20px;">
+					<label style="font-weight: bold;">Email Address:</label><br>
+					<input type="email" name="customer_email" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-top: 5px;">
 				</div>
-				<p><small>(Simulation: Click below to "pay" via Stripe/PayPal)</small></p>
-				<button type="submit" name="process_payment" style="background: #6366f1; color: #fff; border: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">Pay with Stripe / PayPal</button>
+
+				<div style="margin-bottom: 25px;">
+					<label style="font-weight: bold;">Select Payment Method:</label><br>
+					<div style="margin-top: 10px;">
+						<?php if ( $gateway_pref === 'both' || $gateway_pref === 'stripe' ) : ?>
+							<label style="display: block; margin-bottom: 10px; cursor: pointer;">
+								<input type="radio" name="selected_gateway" value="stripe" checked>
+								<span style="margin-left: 10px;">💳 Pay with Credit Card (Stripe)</span>
+							</label>
+						<?php endif; ?>
+
+						<?php if ( $gateway_pref === 'both' || $gateway_pref === 'paypal' ) : ?>
+							<label style="display: block; cursor: pointer;">
+								<input type="radio" name="selected_gateway" value="paypal" <?php echo ($gateway_pref === 'paypal' ? 'checked' : ''); ?>>
+								<span style="margin-left: 10px;">🅿️ Pay with PayPal</span>
+							</label>
+						<?php endif; ?>
+					</div>
+				</div>
+
+				<p style="background: #fff8e1; padding: 10px; border-left: 4px solid #ffc107; font-size: 13px;">
+					<strong>Note:</strong> This is a secure checkout. Once payment is confirmed, you will receive your license key and download link immediately.
+				</p>
+
+				<button type="submit" name="process_payment" style="background: #6366f1; color: #fff; border: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px;">
+					Proceed to Secure Payment &rarr;
+				</button>
 			</form>
 		</div>
 		<?php
@@ -64,6 +97,7 @@ class Agency_Nexus_Checkout_Handler {
 
 	private function process_simulated_payment($tier) {
 		$email = sanitize_email( $_POST['customer_email'] );
+		$gateway = isset($_POST['selected_gateway']) ? sanitize_text_field($_POST['selected_gateway']) : 'stripe';
 
 		// Generate Key
 		$prefix = 'PRO-';
@@ -90,27 +124,64 @@ class Agency_Nexus_Checkout_Handler {
 			'license_key'    => $key,
 			'amount'         => floatval($price),
 			'currency'       => 'USD',
-			'gateway'        => 'simulated',
-			'transaction_id' => 'SIM-' . time()
+			'gateway'        => $gateway,
+			'transaction_id' => strtoupper($gateway[0]) . '-' . time()
 		] );
 
+		// Generate a success token (session-based for simulation)
+		$token = bin2hex(random_bytes(16));
+		set_transient('an_success_' . $token, [
+			'key'   => $key,
+			'email' => $email,
+			'tier'  => $tier
+		], 3600); // Valid for 1 hour
+
+		// Redirect to success page to prevent resubmission and ensure "paid" state
+		wp_redirect( add_query_arg( [
+			'an_checkout' => $tier,
+			'an_success'  => $token
+		], home_url('/') ) );
+		exit;
+	}
+
+	private function render_success_page($token) {
+		$data = get_transient('an_success_' . $token);
+
+		if ( ! $data ) {
+			get_header();
+			echo '<div style="max-width: 600px; margin: 100px auto; text-align: center; font-family: sans-serif;">';
+			echo '<h2>Session Expired</h2>';
+			echo '<p>We could not verify your payment session. If you have already paid, please check your email or contact support.</p>';
+			echo '</div>';
+			get_footer();
+			return;
+		}
+
+		$key = $data['key'];
 		$download_url = get_option( 'an_download_url' );
 
 		get_header();
 		?>
 		<div style="max-width: 800px; margin: 50px auto; padding: 40px; border: 1px solid #46b450; border-radius: 12px; font-family: sans-serif; text-align: center;">
-			<h2 style="color: #46b450;">🎉 Purchase Successful!</h2>
-			<p>Thank you for joining Agency Nexus. Your agency is about to become much more profitable.</p>
+			<div style="font-size: 60px; margin-bottom: 20px;">✅</div>
+			<h2 style="color: #46b450; font-size: 32px; margin-top: 0;">Purchase Successful!</h2>
+			<p style="font-size: 18px; color: #555;">Thank you for your purchase. Your license for <strong>Agency Nexus <?php echo ucfirst($data['tier']); ?></strong> is now active.</p>
 
-			<div style="background: #f0fdf4; padding: 30px; border-radius: 8px; margin: 30px 0; border: 1px solid #bbf7d0;">
-				<p><strong>Your License Key:</strong></p>
-				<code style="font-size: 24px; color: #166534;"><?php echo esc_html($key); ?></code>
-				<p><small>Save this key! You will need to enter it in your WordPress dashboard.</small></p>
+			<div style="background: #f0fdf4; padding: 30px; border-radius: 8px; margin: 30px 0; border: 1px solid #bbf7d0; position: relative;">
+				<p style="margin-top: 0; color: #166534; font-weight: bold;">YOUR LICENSE KEY</p>
+				<code style="font-size: 28px; color: #166534; letter-spacing: 2px;"><?php echo esc_html($key); ?></code>
+				<p style="margin-bottom: 0;"><small>Enter this key in your WordPress Dashboard > Agency Nexus > Settings to activate premium features.</small></p>
 			</div>
 
-			<a href="<?php echo esc_url($download_url); ?>" style="display: inline-block; background: #2271b1; color: #fff; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; font-size: 18px;">Download Agency Nexus Plugin (.zip) &darr;</a>
+			<div style="margin-top: 40px;">
+				<a href="<?php echo esc_url($download_url); ?>" style="display: inline-block; background: #2271b1; color: #fff; text-decoration: none; padding: 18px 45px; border-radius: 8px; font-weight: bold; font-size: 20px; box-shadow: 0 4px 12px rgba(34,113,177,0.3);">
+					Download Agency Nexus Plugin (.zip) &darr;
+				</a>
+				<p style="color: #666; font-size: 14px; margin-top: 15px;">Version 1.0.0 | Compatible with WordPress 5.8+</p>
+			</div>
 
-			<p style="margin-top: 30px;"><a href="/">Return to Homepage</a></p>
+			<hr style="margin: 40px 0; border: 0; border-top: 1px solid #eee;">
+			<p><a href="<?php echo home_url('/'); ?>" style="color: #6366f1; text-decoration: none; font-weight: bold;">&larr; Return to Dashboard</a></p>
 		</div>
 		<?php
 		get_footer();

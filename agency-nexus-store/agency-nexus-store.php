@@ -124,6 +124,11 @@ class Agency_Nexus_Store {
 			update_option( 'an_starter_price', sanitize_text_field( $_POST['an_starter_price'] ) );
 			update_option( 'an_pro_price', sanitize_text_field( $_POST['an_pro_price'] ) );
 			update_option( 'an_agency_price', sanitize_text_field( $_POST['an_agency_price'] ) );
+
+			update_option( 'an_starter_gateway', sanitize_text_field( $_POST['an_starter_gateway'] ) );
+			update_option( 'an_pro_gateway', sanitize_text_field( $_POST['an_pro_gateway'] ) );
+			update_option( 'an_agency_gateway', sanitize_text_field( $_POST['an_agency_gateway'] ) );
+
 			update_option( 'an_download_url', esc_url_raw( $_POST['an_download_url'] ) );
 
 			// Payment Gateway Credentials
@@ -137,6 +142,11 @@ class Agency_Nexus_Store {
 		$starter_price = get_option( 'an_starter_price', '0' );
 		$pro_price = get_option( 'an_pro_price', '199' );
 		$agency_price = get_option( 'an_agency_price', '999' );
+
+		$starter_gateway = get_option( 'an_starter_gateway', 'both' );
+		$pro_gateway = get_option( 'an_pro_gateway', 'both' );
+		$agency_gateway = get_option( 'an_agency_gateway', 'both' );
+
 		$download_url = get_option( 'an_download_url', '' );
 
 		$stripe_pub = get_option( 'an_store_stripe_publishable_key', '' );
@@ -148,16 +158,40 @@ class Agency_Nexus_Store {
 			<form method="post">
 				<table class="form-table">
 					<tr>
-						<th>Starter Tier Price ($)</th>
-						<td><input type="text" name="an_starter_price" value="<?php echo esc_attr($starter_price); ?>" class="regular-text"></td>
+						<th>Starter Tier</th>
+						<td>
+							Price ($): <input type="text" name="an_starter_price" value="<?php echo esc_attr($starter_price); ?>" class="small-text">
+							&nbsp;&nbsp; Gateway:
+							<select name="an_starter_gateway">
+								<option value="both" <?php selected($starter_gateway, 'both'); ?>>Both Stripe & PayPal</option>
+								<option value="stripe" <?php selected($starter_gateway, 'stripe'); ?>>Stripe Only</option>
+								<option value="paypal" <?php selected($starter_gateway, 'paypal'); ?>>PayPal Only</option>
+							</select>
+						</td>
 					</tr>
 					<tr>
-						<th>Pro Tier Price ($)</th>
-						<td><input type="text" name="an_pro_price" value="<?php echo esc_attr($pro_price); ?>" class="regular-text"></td>
+						<th>Pro Tier</th>
+						<td>
+							Price ($): <input type="text" name="an_pro_price" value="<?php echo esc_attr($pro_price); ?>" class="small-text">
+							&nbsp;&nbsp; Gateway:
+							<select name="an_pro_gateway">
+								<option value="both" <?php selected($pro_gateway, 'both'); ?>>Both Stripe & PayPal</option>
+								<option value="stripe" <?php selected($pro_gateway, 'stripe'); ?>>Stripe Only</option>
+								<option value="paypal" <?php selected($pro_gateway, 'paypal'); ?>>PayPal Only</option>
+							</select>
+						</td>
 					</tr>
 					<tr>
-						<th>Agency Tier Price ($)</th>
-						<td><input type="text" name="an_agency_price" value="<?php echo esc_attr($agency_price); ?>" class="regular-text"></td>
+						<th>Agency Tier</th>
+						<td>
+							Price ($): <input type="text" name="an_agency_price" value="<?php echo esc_attr($agency_price); ?>" class="small-text">
+							&nbsp;&nbsp; Gateway:
+							<select name="an_agency_gateway">
+								<option value="both" <?php selected($agency_gateway, 'both'); ?>>Both Stripe & PayPal</option>
+								<option value="stripe" <?php selected($agency_gateway, 'stripe'); ?>>Stripe Only</option>
+								<option value="paypal" <?php selected($agency_gateway, 'paypal'); ?>>PayPal Only</option>
+							</select>
+						</td>
 					</tr>
 					<tr>
 						<th>Plugin Download Link (.zip)</th>
@@ -269,6 +303,7 @@ class Agency_Nexus_Store {
 						<th>Amount</th>
 						<th>Gateway</th>
 						<th>Transaction ID</th>
+						<th>Status</th>
 						<th>Date</th>
 					</tr>
 				</thead>
@@ -279,8 +314,13 @@ class Agency_Nexus_Store {
 							<td><?php echo esc_html($p->customer_email); ?></td>
 							<td><code><?php echo esc_html($p->license_key); ?></code></td>
 							<td><strong>$<?php echo number_format($p->amount, 2); ?></strong></td>
-							<td><?php echo esc_html(ucfirst($p->gateway)); ?></td>
+							<td>
+								<span style="display:inline-block; padding: 2px 6px; border-radius: 3px; background: <?php echo $p->gateway === 'stripe' ? '#6366f1' : '#0070ba'; ?>; color: #fff; font-size: 11px; font-weight: bold;">
+									<?php echo esc_html(strtoupper($p->gateway)); ?>
+								</span>
+							</td>
 							<td><small><?php echo esc_html($p->transaction_id); ?></small></td>
+							<td><span style="color: #46b450; font-weight: bold;">Completed</span></td>
 							<td><?php echo esc_html($p->created_at); ?></td>
 						</tr>
 					<?php endforeach; else : ?>
@@ -397,6 +437,10 @@ class Agency_Nexus_Store {
 		$pro_price = get_option( 'an_pro_price', '199' );
 		$agency_price = get_option( 'an_agency_price', '999' );
 
+		$starter_gw = get_option( 'an_starter_gateway', 'both' );
+		$pro_gw = get_option( 'an_pro_gateway', 'both' );
+		$agency_gw = get_option( 'an_agency_gateway', 'both' );
+
 		ob_start();
 		?>
 		<style>
@@ -435,7 +479,7 @@ class Agency_Nexus_Store {
 					<li>✓ Lead Intelligence</li>
 					<li>✓ Priority Support</li>
 				</ul>
-				<a href="?an_checkout=pro" class="an-buy-btn">Buy Pro Now</a>
+				<a href="?an_checkout=pro&gateway=<?php echo esc_attr($pro_gw); ?>" class="an-buy-btn">Buy Pro Now</a>
 			</div>
 
 			<div class="an-pricing-card">
@@ -448,7 +492,7 @@ class Agency_Nexus_Store {
 					<li>✓ Dedicated Account Manager</li>
 					<li>✓ Early Beta Access</li>
 				</ul>
-				<a href="?an_checkout=agency" class="an-buy-btn">Buy Agency Now</a>
+				<a href="?an_checkout=agency&gateway=<?php echo esc_attr($agency_gw); ?>" class="an-buy-btn">Buy Agency Now</a>
 			</div>
 		</div>
 		<?php
