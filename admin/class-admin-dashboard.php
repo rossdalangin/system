@@ -1168,12 +1168,13 @@ class Agency_Nexus_Admin_Dashboard {
 						<?php _e( 'Your central command center for agency operations. Monitor project health, team productivity, and financial performance at a glance.', 'agency-nexus' ); ?>
 					</p>
 				</div>
-				<div class="an-dashboard-header-actions">
+				<div class="an-dashboard-header-actions" style="display:flex; gap: 10px;">
 					<?php if ( $is_admin ) : ?>
-						<form method="post" style="display:flex; gap: 10px;">
+						<form method="post">
 							<?php wp_nonce_field('an_seed_data_nonce'); ?>
 							<input type="submit" name="an_seed_data" class="button button-primary" value="Seed Sample Data">
-
+						</form>
+						<form method="post">
 							<?php wp_nonce_field('an_reset_data_nonce'); ?>
 							<input type="submit" name="an_reset_data" class="button button-link-delete" value="Clear Data" onclick="return confirm('Delete ALL records?')">
 						</form>
