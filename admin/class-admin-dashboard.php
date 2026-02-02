@@ -1174,7 +1174,7 @@ class Agency_Nexus_Admin_Dashboard {
 							<?php wp_nonce_field('an_seed_data_nonce'); ?>
 							<input type="submit" name="an_seed_data" class="button button-primary" value="Seed Sample Data">
 
-							<?php wp_nonce_field('an_reset_data_nonce', 'an_reset_data_nonce'); ?>
+							<?php wp_nonce_field('an_reset_data_nonce'); ?>
 							<input type="submit" name="an_reset_data" class="button button-link-delete" value="Clear Data" onclick="return confirm('Delete ALL records?')">
 						</form>
 					<?php endif; ?>
