@@ -117,8 +117,34 @@ Stop "scope creep" before it starts by standardizing your offers.
 ## 8. Phase 8: Automation & Resources
 
 ### 🤖 AutoPilot: The Automation Center
-- **Custom Rules**: Build "If-This-Then-That" workflows (e.g., *IF Project Completed THEN Send Onboarding Gift*).
-- **Integrations**: Connect to 5,000+ apps via Zapier or Make.com.
+Mastering AutoPilot allows you to scale your agency by removing yourself from repetitive workflows.
+
+#### **How to Set Up an Automation**
+1.  Navigate to **Agency Nexus > Automations**.
+2.  Click **Add New Rule**.
+3.  **Define Trigger**: Select the event that should start the process (e.g., "Project Completed").
+4.  **Define Action**: Select what should happen (e.g., "Trigger Zapier Webhook").
+5.  **Activate**: Ensure the "Active" checkbox is checked and save.
+
+#### **Common Agency Use Cases**
+-   **Client Onboarding**:
+    -   *Trigger*: New lead recorded in EngageTrack.
+    -   *Action*: Trigger Zapier Webhook.
+    -   *Result*: Your Zap can automatically create a folder in Google Drive, send a HelloSign contract, and add the client to your bookkeeping software.
+-   **Service Delivery**:
+    -   *Trigger*: Content item approved in ApprovalFlow.
+    -   *Action*: Send email to Client.
+    -   *Result*: Automatically notify the client that the project is moving to the next stage, reducing manual follow-ups.
+-   **Account Management**:
+    -   *Trigger*: Invoice becomes overdue.
+    -   *Action*: Create task in 'Follow-up' project.
+    -   *Result*: Instantly alerts your team to contact the client regarding payment without you having to check bank statements daily.
+
+#### **Connecting External Apps (Zapier/Make.com)**
+1.  In **Zapier**, create a new Zap with the "Webhooks by Zapier" trigger.
+2.  Copy the **Webhook URL** provided by Zapier.
+3.  Back in **Agency Nexus > Automations**, paste this into the **External Integration** sidebar and click **Update Settings**.
+4.  Now, any automation set to "Trigger Zapier Webhook" will send a data payload to that URL whenever the trigger event occurs.
 
 ### 📚 FreebieFactory: Resource Library
 - **Swipe Files**: Store your best-performing email templates and ad copy.
