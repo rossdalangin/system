@@ -1,6 +1,16 @@
 <div class="wrap">
 	<h1><?php _e( 'Smart Content Calendar', 'agency-nexus' ); ?></h1>
-	<p><?php _e( 'Guidance: Plan and schedule your content by dragging items onto the calendar. Items are color-coded by project.', 'agency-nexus' ); ?></p>
+
+	<div style="background: #fff; border-left: 4px solid #2196f3; padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+		<h3><?php _e( 'How to Manage Your Content Strategy', 'agency-nexus' ); ?></h3>
+		<p><?php _e( 'Use this calendar to visualize your agency\'s content output across all clients. This helps you spot gaps in your strategy and ensures a consistent posting schedule.', 'agency-nexus' ); ?></p>
+		<ul style="list-style: disc; margin-left: 20px;">
+			<li><strong>Draft & Store:</strong> Create content items using the form below. They will appear in the "Unscheduled" section.</li>
+			<li><strong>Schedule:</strong> Drag items from the "Unscheduled" section or between dates to set their publishing schedule.</li>
+			<li><strong>Edit & Approve:</strong> Click "edit" on any item to refine the copy or send it to the client for approval via <strong>ApprovalFlow</strong>.</li>
+		</ul>
+	</div>
+
 	<p><a href="<?php echo admin_url('admin.php?page=an-content-list'); ?>" class="button"><?php _e('View Content List for Editing', 'agency-nexus'); ?></a></p>
 
 	<?php wp_nonce_field( 'an_calendar_nonce', 'security' ); ?>

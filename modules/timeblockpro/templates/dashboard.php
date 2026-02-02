@@ -1,6 +1,15 @@
 <div class="agency-nexus-wrap">
 	<h1><?php _e( 'Intelligent Time Blocking', 'agency-nexus' ); ?></h1>
-	<p><?php _e( 'Guidance: Use time blocks to protect your focus. Schedule "Deep Work" for intensive tasks and "Shallow Work" for administrative duties like emails.', 'agency-nexus' ); ?></p>
+
+	<div style="background: #fff; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+		<h3><?php _e( 'Design Your High-Performance Day', 'agency-nexus' ); ?></h3>
+		<p><?php _e( 'Time blocking is the practice of planning every part of your day. By creating distinct blocks for different types of work, you eliminate context-switching and protect your most valuable asset: your focus.', 'agency-nexus' ); ?></p>
+		<ul style="list-style: disc; margin-left: 20px;">
+			<li><strong>Deep Work:</strong> Intense, focused work without distractions (e.g., coding, writing, designing).</li>
+			<li><strong>Shallow Work:</strong> Administrative tasks, emails, and meetings.</li>
+			<li><strong>AI Suggestions:</strong> Look at the sidebar for personalized tips on how to optimize your schedule based on your productivity patterns.</li>
+		</ul>
+	</div>
 
 	<div style="display: flex; gap: 20px; margin-top: 20px;">
 		<div id="time-blocks-list" style="flex: 2; background: #fff; padding: 20px; border: 1px solid #ccd0d4;">

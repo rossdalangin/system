@@ -1,6 +1,15 @@
 <div class="wrap">
 	<h1><?php _e( 'Client Sign-off Portal', 'agency-nexus' ); ?></h1>
-	<p><?php _e( 'Guidance: Use this portal to finalize content with your team or clients. Approved items are marked as ready for publishing in the Content Calendar.', 'agency-nexus' ); ?></p>
+
+	<div style="background: #fff; border-left: 4px solid #ffb900; padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+		<h3><?php _e( 'How to Use the Portal', 'agency-nexus' ); ?></h3>
+		<p><?php _e( 'This portal acts as the final checkpoint before content goes live. It ensures your agency maintains high quality and avoids disputes by obtaining formal client sign-off.', 'agency-nexus' ); ?></p>
+		<ul style="list-style: disc; margin-left: 20px;">
+			<li><strong>Review:</strong> Carefully read through the draft content shown in the cards below.</li>
+			<li><strong>Approve:</strong> Click "Approve" if the content is ready for publishing. This marks the item as "Approved" in your content history.</li>
+			<li><strong>Request Changes:</strong> Click "Request Changes" to send the item back to your team for revision.</li>
+		</ul>
+	</div>
 
 	<div style="margin-top: 20px;">
 		<?php if ($pending_items) : foreach ($pending_items as $item) : ?>

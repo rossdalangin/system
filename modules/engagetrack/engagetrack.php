@@ -281,7 +281,17 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		?>
 		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Lead Intelligence System', 'agency-nexus' ); ?></h1>
-			<p><?php _e( 'Guidance: Track your sales pipeline here. Assign potential values to leads to help calculate your agency\'s projected revenue.', 'agency-nexus' ); ?></p>
+
+			<div style="background: #fff; border-left: 4px solid #46b450; padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+				<h3><?php _e( 'Fuel Your Agency\'s Growth', 'agency-nexus' ); ?></h3>
+				<p><?php _e( 'This system allows you to capture and manage prospects throughout your sales pipeline. Tracking potential values helps you forecast revenue and prioritize high-value deals.', 'agency-nexus' ); ?></p>
+				<ul style="list-style: disc; margin-left: 20px;">
+					<li><strong>Capture:</strong> Use the "Generate Embed Code" button to create a form for your marketing site.</li>
+					<li><strong>Convert:</strong> Update a lead\'s status to "Converted" once they sign a contract.</li>
+					<li><strong>Automate:</strong> Connect leads to <strong>AutoPilot</strong> to trigger onboarding emails instantly upon capture.</li>
+				</ul>
+			</div>
+
 			<a href="?page=an-leads&action=add" class="page-title-action">Add New</a>
 			<button type="button" class="page-title-action" id="generate-lead-form-btn"><?php _e( 'Generate Embed Code', 'agency-nexus' ); ?></button>
 			<hr class="wp-header-end">

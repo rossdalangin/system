@@ -126,7 +126,17 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 		?>
 		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e( 'Health & Sustainability System', 'agency-nexus' ); ?></h1>
-			<p><?php _e( 'Guidance: Use this system to monitor your mental well-being and agency capacity. Regular check-ins help identify burnout risks early.', 'agency-nexus' ); ?></p>
+
+			<div style="background: #fff; border-left: 4px solid #dc3232; padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+				<h3><?php _e( 'Agency Work is a Marathon, Not a Sprint', 'agency-nexus' ); ?></h3>
+				<p><?php _e( 'BurnoutGuard tracks your team\'s mental well-being alongside their actual workload. By monitoring these metrics, you can identify projects that are too stressful and make adjustments before they impact your agency\'s health.', 'agency-nexus' ); ?></p>
+				<ul style="list-style: disc; margin-left: 20px;">
+					<li><strong>Daily Log:</strong> Record your stress levels and mental state. Trends help identify root causes of exhaustion.</li>
+					<li><strong>Workload Sync:</strong> This system automatically pulls data from your time logs to visualize current capacity.</li>
+					<li><strong>Preventative Care:</strong> If the gauge hits "Red", it\'s a clear signal to delegate tasks or extend deadlines.</li>
+				</ul>
+			</div>
+
 			<a href="?page=an-health-check&action=add" class="page-title-action">New Check-in</a>
 			<hr class="wp-header-end">
 

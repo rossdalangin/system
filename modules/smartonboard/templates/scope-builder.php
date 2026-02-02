@@ -1,6 +1,15 @@
 <div class="agency-nexus-wrap">
 	<h1><?php _e( 'Interactive Scope Builder', 'agency-nexus' ); ?></h1>
-	<p><?php _e( 'Guidance: Use this tool to quickly define a project scope and create a corresponding project record. Select a client, service type, and project scale to auto-calculate the budget.', 'agency-nexus' ); ?></p>
+
+	<div style="background: #fff; border-left: 4px solid #f0b849; padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+		<h3><?php _e( 'Stop Scope Creep Before It Starts', 'agency-nexus' ); ?></h3>
+		<p><?php _e( 'The Scope Builder helps you standardize your service offerings and pricing tiers. By choosing from preset scales and service types, you ensure every project starts with a clear budget and set of deliverables.', 'agency-nexus' ); ?></p>
+		<ul style="list-style: disc; margin-left: 20px;">
+			<li><strong>Standardize:</strong> Choose from Small, Medium, or Large tiers to keep pricing consistent.</li>
+			<li><strong>Automate:</strong> Deliverables are automatically suggested based on the service type.</li>
+			<li><strong>Convert:</strong> Clicking "Create Project" instantly transforms this scope into an active project for your team.</li>
+		</ul>
+	</div>
 
 	<div id="an-scope-builder-app" style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; margin-top: 20px;">
 		<form id="an-scope-form">

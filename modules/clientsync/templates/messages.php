@@ -1,6 +1,15 @@
 <div class="agency-nexus-wrap">
 	<h1><?php _e( 'Unified Communication Hub', 'agency-nexus' ); ?></h1>
-	<p><?php _e( 'Guidance: Select a client from the left to start a conversation. You can share files or use canned responses to speed up your communication.', 'agency-nexus' ); ?></p>
+
+	<div style="background: #fff; border-left: 4px solid #0073aa; padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+		<h3><?php _e( 'Centralize Your Client Conversations', 'agency-nexus' ); ?></h3>
+		<p><?php _e( 'Move your client communication out of messy email threads and into this unified hub. All messages and files are securely linked to the client record.', 'agency-nexus' ); ?></p>
+		<ul style="list-style: disc; margin-left: 20px;">
+			<li><strong>Real-Time Chat:</strong> Select a client from the left to start a secure conversation thread.</li>
+			<li><strong>Canned Responses:</strong> (Staff only) Use the dropdown to insert pre-written templates and speed up your workflow.</li>
+			<li><strong>Shared Files:</strong> Switch to the "Shared Files" tab to securely exchange assets and deliverables.</li>
+		</ul>
+	</div>
 
 	<div style="display: flex; height: 600px; border: 1px solid #ccd0d4; background: #fff; margin-top: 20px;">
 		<div id="client-list" style="width: 250px; border-right: 1px solid #eee; overflow-y: auto;">

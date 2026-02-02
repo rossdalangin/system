@@ -273,7 +273,16 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			<h1 class="wp-heading-inline"><?php _e( 'Expense Management', 'agency-nexus' ); ?></h1>
 			<a href="?page=an-expenses&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
 			<hr class="wp-header-end">
-			<p><?php _e( 'Guidance: Track your agency and project-specific expenses here. You can upload receipts to keep your records organized for tax season.', 'agency-nexus' ); ?></p>
+
+			<div style="background: #fff; border-left: 4px solid #dc3232; padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+				<h3><?php _e( 'Maintain Healthy Margins', 'agency-nexus' ); ?></h3>
+				<p><?php _e( 'Tracking expenses is crucial for calculating the true ROI of your projects. By logging every cost (software, outsourcing, etc.), you get an accurate picture of your agency\'s health.', 'agency-nexus' ); ?></p>
+				<ul style="list-style: disc; margin-left: 20px;">
+					<li><strong>Categorize:</strong> Assign expenses to categories to simplify tax preparation.</li>
+					<li><strong>Link to Projects:</strong> Specific project costs are subtracted from the project budget in your <strong>True Profit</strong> calculation.</li>
+					<li><strong>Digital Paper Trail:</strong> Upload receipts immediately so they are never lost.</li>
+				</ul>
+			</div>
 
 			<h2><?php _e( 'Expense History', 'agency-nexus' ); ?></h2>
 			<table class="wp-list-table widefat fixed striped">
@@ -487,8 +496,18 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		?>
 		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e('Invoices', 'agency-nexus'); ?></h1>
-			<p><?php _e( 'Guidance: Create and manage client invoices. You can track payments against each invoice and print professional reports for your clients.', 'agency-nexus' ); ?></p>
 			<a href="?page=an-invoices&action=add" class="page-title-action">Add New</a>
+			<hr class="wp-header-end">
+
+			<div style="background: #fff; border-left: 4px solid #46b450; padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+				<h3><?php _e( 'Streamline Your Cashflow', 'agency-nexus' ); ?></h3>
+				<p><?php _e( 'Professional invoicing helps you get paid faster. MoneyFlow automates the generation of invoices based on your project data.', 'agency-nexus' ); ?></p>
+				<ul style="list-style: disc; margin-left: 20px;">
+					<li><strong>Professional Branding:</strong> Every invoice automatically pulls your logo from the Global Settings.</li>
+					<li><strong>Payment Tracking:</strong> Record partial or full payments to keep your accounts receivable up to date.</li>
+					<li><strong>Print & Save:</strong> Use the "Print" action to generate high-quality invoices for your clients.</li>
+				</ul>
+			</div>
 			<hr class="wp-header-end">
 
 			<table class="wp-list-table widefat fixed striped">

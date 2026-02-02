@@ -463,7 +463,15 @@ class Agency_Nexus_Admin_Dashboard {
 			<a href="?page=an-clients&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
 			<?php endif; ?>
 			<hr class="wp-header-end">
-			<p><?php _e('Guidance: These records are for internal project management. If you want a client to be able to log in, create a WordPress user for them and ensure their email matches here.', 'agency-nexus'); ?></p>
+
+			<div style="background: #fff; border-left: 4px solid var(--an-indigo-600); padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+				<h3><?php _e( 'Manage Your Clients', 'agency-nexus' ); ?></h3>
+				<p><?php _e( 'Clients are the heart of your agency. Every project, invoice, and message is linked to a client record.', 'agency-nexus' ); ?></p>
+				<ul style="list-style: disc; margin-left: 20px;">
+					<li><strong>Portal Access:</strong> To give a client access to their dashboard, create a WordPress user with the **same email address** as their client record here.</li>
+					<li><strong>Profiles:</strong> Click on a client\'s name to view their full history, including active projects and outstanding invoices.</li>
+				</ul>
+			</div>
 
 			<table class="wp-list-table widefat fixed striped">
 				<thead>
@@ -524,8 +532,14 @@ class Agency_Nexus_Admin_Dashboard {
 			<a href="<?php echo admin_url('user-new.php'); ?>" class="page-title-action"><?php _e('Add New Team Member', 'agency-nexus'); ?></a>
 			<hr class="wp-header-end">
 
-			<p><?php _e('Guidance: Manage your team members and monitor their workload and productivity. Agency Nexus uses standard WordPress users for team members. Click "Add New Team Member" to create a new WordPress user for your team.', 'agency-nexus'); ?></p>
-			<p><strong><?php _e('How to assign tasks:', 'agency-nexus'); ?></strong> <?php _e('Navigate to a specific Project, and use the "Add Task" form to create and assign tasks to any of the team members listed below. Any WordPress user role (Subscriber to Administrator) can be assigned tasks.', 'agency-nexus'); ?></p>
+			<div style="background: #fff; border-left: 4px solid var(--an-indigo-600); padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+				<h3><?php _e( 'Your Agency Workforce', 'agency-nexus' ); ?></h3>
+				<p><?php _e( 'Monitor your team\'s productivity and workload across all active projects. Agency Nexus leverages standard WordPress users for seamless task assignment.', 'agency-nexus' ); ?></p>
+				<ul style="list-style: disc; margin-left: 20px;">
+					<li><strong>Delegation:</strong> Assign tasks directly within any Project view to see them reflected here.</li>
+					<li><strong>Productivity:</strong> Click "View Profile" to see a detailed breakdown of a team member\'s logged hours and assigned responsibilities.</li>
+				</ul>
+			</div>
 
 			<table class="wp-list-table widefat fixed striped">
 				<thead><tr><th>User</th><th>Email</th><th>Lead Projects</th><th>Active Tasks</th><th>Productivity</th></tr></thead>
@@ -978,6 +992,15 @@ class Agency_Nexus_Admin_Dashboard {
 			<a href="?page=an-projects&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
 			<?php endif; ?>
 			<hr class="wp-header-end">
+
+			<div style="background: #fff; border-left: 4px solid var(--an-indigo-600); padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+				<h3><?php _e( 'The Agency Fulfillment Engine', 'agency-nexus' ); ?></h3>
+				<p><?php _e( 'Manage your client projects from start to finish. Track tasks, timelines, and budgets in one centralized location.', 'agency-nexus' ); ?></p>
+				<ul style="list-style: disc; margin-left: 20px;">
+					<li><strong>Visual Timelines:</strong> Use the Gantt chart inside any project to visualize milestones and task dependencies.</li>
+					<li><strong>ROI Focus:</strong> By logging time against projects, the system automatically calculates your project profitability.</li>
+				</ul>
+			</div>
 
 			<table class="wp-list-table widefat fixed striped">
 				<thead>

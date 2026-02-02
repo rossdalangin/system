@@ -169,7 +169,16 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 			<a href="?page=an-resources&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
 			<?php endif; ?>
 			<hr class="wp-header-end">
-			<p><?php _e( 'Guidance: Store and organize your agency assets here. Keep contract templates and marketing swipe files easily accessible for your team.', 'agency-nexus' ); ?></p>
+
+			<div style="background: #fff; border-left: 4px solid #fbc02d; padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+				<h3><?php _e( 'Scale Your Agency with IP', 'agency-nexus' ); ?></h3>
+				<p><?php _e( 'A resource library is your agency\'s competitive advantage. By storing reusable assets, you reduce "reinventing the wheel" for every client project.', 'agency-nexus' ); ?></p>
+				<ul style="list-style: disc; margin-left: 20px;">
+					<li><strong>Templates:</strong> Standardize your workflows with reusable project plans, contracts, and questionnaires.</li>
+					<li><strong>Swipe Files:</strong> Create a "hall of fame" for your best-performing ad copy, emails, and designs.</li>
+					<li><strong>Easy Access:</strong> Your team can quickly find and download the latest versions of any asset.</li>
+				</ul>
+			</div>
 
 			<table class="wp-list-table widefat fixed striped">
 				<thead>
