@@ -56,9 +56,11 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 				if ( $id ) {
 					$wpdb->update( $table_name, $data, [ 'id' => $id ] );
 					$msg = 'updated';
+					do_action( 'agency_nexus_content_status_updated', $id, $data['status'] );
 				} else {
 					$wpdb->insert( $table_name, $data );
 					$msg = 'added';
+					do_action( 'agency_nexus_content_status_updated', $wpdb->insert_id, $data['status'] );
 				}
 				wp_redirect( admin_url( 'admin.php?page=an-content-list&msg=' . $msg ) );
 				exit;

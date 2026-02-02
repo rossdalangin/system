@@ -183,6 +183,15 @@ Scale your agency by automating repetitive workflows using "Trigger & Action" lo
 4.  **THEN Do This (Action)**: Select the response (e.g., "Send Email to Client").
 5.  **External Integration**: Connect Zapier or Make.com in the sidebar to trigger workflows in 5,000+ other apps.
 
+#### **Connecting External Apps (Zapier/Make.com)**
+1.  In **Zapier**, create a new Zap with the "Webhooks by Zapier" trigger.
+2.  Copy the **Webhook URL** provided by Zapier.
+3.  Back in **Agency Nexus > Automations**, paste this into the **External Integration** sidebar and click **Update Settings**.
+4.  **Is it Automatic?** Yes. You do *not* need to set up any external cron jobs or technical triggers. Agency Nexus handles everything automatically:
+    -   *Instant Triggers*: (e.g., Project Completion, New Leads, Content Approval) fire the moment the event happens.
+    -   *Background Triggers*: (e.g., Overdue Invoices) are checked once per day by the plugin's built-in scheduler.
+5.  Now, any automation set to "Trigger Zapier Webhook" will send a data payload to that URL whenever the trigger event occurs.
+
 ### 📚 FreebieFactory: Resource Library
 Maintain your agency's "Intellectual Property" and reusable assets.
 

@@ -141,6 +141,9 @@ class Agency_Nexus_API_Handler {
 			return new WP_Error( 'db_error', 'Failed to save lead.', [ 'status' => 500 ] );
 		}
 
+		$lead_id = $wpdb->insert_id;
+		do_action( 'agency_nexus_new_lead_captured', $lead_id );
+
 		$redirect_url = isset( $params['redirect_url'] ) ? esc_url_raw( $params['redirect_url'] ) : '';
 
 		// If a redirect URL is provided, we perform a redirect.

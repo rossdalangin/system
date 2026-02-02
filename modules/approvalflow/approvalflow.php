@@ -86,6 +86,8 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 			[ 'id' => $item_id ]
 		);
 
+		do_action( 'agency_nexus_content_status_updated', $item_id, 'approved' );
+
 		wp_send_json_success();
 	}
 
@@ -106,6 +108,8 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 			[ 'id' => $item_id ]
 		);
 
+		do_action( 'agency_nexus_content_status_updated', $item_id, 'draft' );
+
 		wp_send_json_success();
 	}
 
@@ -125,6 +129,8 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 			[ 'status' => 'pending_approval' ],
 			[ 'id' => $item_id ]
 		);
+
+		do_action( 'agency_nexus_content_status_updated', $item_id, 'pending_approval' );
 
 		wp_send_json_success();
 	}

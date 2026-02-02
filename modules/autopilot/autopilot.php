@@ -16,6 +16,13 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
 		add_action( 'admin_init', [ $this, 'handle_post' ] );
 		add_action( 'agency_nexus_project_status_updated', [ $this, 'maybe_trigger_project_automations' ], 10, 2 );
+		add_action( 'agency_nexus_new_lead_captured', [ $this, 'maybe_trigger_lead_automations' ] );
+		add_action( 'agency_nexus_content_status_updated', [ $this, 'maybe_trigger_content_automations' ], 10, 2 );
+		add_action( 'an_daily_overdue_check', [ $this, 'check_overdue_invoices' ] );
+
+		if ( ! wp_next_scheduled( 'an_daily_overdue_check' ) ) {
+			wp_schedule_event( time(), 'daily', 'an_daily_overdue_check' );
+		}
 	}
 
 	public function handle_post() {
@@ -164,12 +171,13 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 
 			<div style="background: #fff; border-left: 4px solid #0073aa; padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
 				<h3><?php _e( 'How it Works', 'agency-nexus' ); ?></h3>
-				<p><?php _e( 'AutoPilot helps you automate repetitive tasks using simple **Trigger & Action** logic.', 'agency-nexus' ); ?></p>
+				<p><?php _e( 'AutoPilot helps you automate repetitive tasks using simple **Trigger & Action** logic. No manual cron setup is required.', 'agency-nexus' ); ?></p>
 				<ul style="list-style: disc; margin-left: 20px;">
-					<li><strong>Trigger:</strong> The event that starts the automation (e.g., a project is completed).</li>
-					<li><strong>Action:</strong> The task that is automatically performed (e.g., sending a thank you email).</li>
+					<li><strong>Instant Triggers:</strong> Events like "Project Completed", "New Lead", and "Content Approved" happen the moment the action occurs in your dashboard.</li>
+					<li><strong>Background Triggers:</strong> Events like "Invoice Overdue" are checked automatically by the system once per day.</li>
+					<li><strong>Action:</strong> The task that is automatically performed (e.g., sending data to Zapier).</li>
 				</ul>
-				<p><em><?php _e( 'Example: IF Project status changes to "Completed" THEN Trigger Zapier Webhook (to send a contract or update your CRM).', 'agency-nexus' ); ?></em></p>
+				<p><em><?php _e( 'Note: Zapier automations are triggered automatically by the plugin based on your rules. Ensure your Zapier Webhook URL is set in the sidebar.', 'agency-nexus' ); ?></em></p>
 			</div>
 
 			<div style="display: flex; gap: 20px; margin-top: 20px;">
@@ -243,24 +251,90 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 		) );
 
 		foreach ( $rules as $rule ) {
-			$this->execute_action( $rule, $project_id );
+			$this->execute_action( $rule, [ 'project_id' => $project_id ] );
+		}
+	}
+
+	/**
+	 * Trigger automations when a new lead is captured.
+	 */
+	public function maybe_trigger_lead_automations( $lead_id ) {
+		global $wpdb;
+		$rules = $wpdb->get_results( $wpdb->prepare(
+			"SELECT * FROM {$wpdb->prefix}an_autopilot_rules WHERE trigger_evt = %s AND is_active = 1",
+			'new_lead'
+		) );
+
+		foreach ( $rules as $rule ) {
+			$this->execute_action( $rule, [ 'lead_id' => $lead_id ] );
+		}
+	}
+
+	/**
+	 * Trigger automations when content status changes.
+	 */
+	public function maybe_trigger_content_automations( $item_id, $new_status ) {
+		global $wpdb;
+		if ( 'approved' !== $new_status ) return;
+
+		$rules = $wpdb->get_results( $wpdb->prepare(
+			"SELECT * FROM {$wpdb->prefix}an_autopilot_rules WHERE trigger_evt = %s AND is_active = 1",
+			'content_approved'
+		) );
+
+		foreach ( $rules as $rule ) {
+			$this->execute_action( $rule, [ 'content_id' => $item_id ] );
+		}
+	}
+
+	/**
+	 * Background check for overdue invoices.
+	 */
+	public function check_overdue_invoices() {
+		global $wpdb;
+		$today = date('Y-m-d');
+		$overdue_invoices = $wpdb->get_results( $wpdb->prepare(
+			"SELECT * FROM {$wpdb->prefix}an_invoices WHERE status != 'paid' AND due_date < %s",
+			$today
+		) );
+
+		if ( ! $overdue_invoices ) return;
+
+		$rules = $wpdb->get_results( $wpdb->prepare(
+			"SELECT * FROM {$wpdb->prefix}an_autopilot_rules WHERE trigger_evt = %s AND is_active = 1",
+			'invoice_overdue'
+		) );
+
+		foreach ( $overdue_invoices as $invoice ) {
+			foreach ( $rules as $rule ) {
+				$this->execute_action( $rule, [ 'invoice_id' => $invoice->id ] );
+			}
 		}
 	}
 
 	/**
 	 * Execute the action defined in the rule.
 	 */
-	private function execute_action( $rule, $project_id ) {
+	private function execute_action( $rule, $data_payload ) {
 		// Simulation of action execution.
 		// In a real plugin, this would send emails, Slack messages, or hit Zapier.
-		error_log( sprintf( "[AutoPilot] Executing automation '%s' for Project ID %d", $rule->title, $project_id ) );
+		error_log( sprintf( "[AutoPilot] Executing automation '%s'", $rule->title ) );
 
 		if ( 'zapier_hook' === $rule->action_evt ) {
 			$webhook = get_option( 'an_zapier_webhook' );
 			if ( $webhook ) {
-				wp_remote_post( $webhook, [ 'body' => [ 'project_id' => $project_id, 'event' => $rule->trigger_evt ] ] );
+				wp_remote_post( $webhook, [
+					'body' => array_merge( $data_payload, [
+						'rule_title' => $rule->title,
+						'trigger'    => $rule->trigger_evt
+					] )
+				] );
 			}
 		}
+
+		// Logic for other actions (slack_msg, email_client, create_task) would go here.
+		// For now, we log the intent.
+		error_log( "[AutoPilot] Action type: " . $rule->action_evt );
 	}
 
 	public function render_dashboard_widget() {
