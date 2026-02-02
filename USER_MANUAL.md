@@ -203,22 +203,30 @@ Maintain your agency's "Intellectual Property" and reusable assets.
 ---
 
 ## 🔑 Licensing & Tiers
-Agency Nexus uses a tiered licensing system to provide the best value for every stage of your agency's growth.
+Agency Nexus uses a tiered licensing system to provide the best value for every stage of your agency's growth. Each tier unlocks specific modules designed to help you scale.
 
 ### **Tier 1: Starter (Free)**
-Included with every install. Perfect for getting started.
--   **Features**: Project & Client Management, Messaging Hub, Content Calendar, Time Blocking, BurnoutGuard.
--   **Sites**: Unlimited.
-
-### **Tier 2: Pro**
-For serious freelancers looking to maximize profitability and automate workflows.
--   **Features**: Everything in Starter + **MoneyFlow** (ROI & Profit Tracking), **AutoPilot** (Automations & Zapier), **Lead Intelligence** (Capture forms & Thank You pages).
+Perfect for solo freelancers getting organized.
+-   **Project & Client Management**: Full CRUD for tracking your work.
+-   **Communication Hub**: Real-time chat and file sharing.
+-   **Content Operations**: Basic Content Calendar and Approval Portal.
+-   **Productivity Tools**: Time Blocking and BurnoutGuard logs.
 -   **Sites**: Limited to **1 active site** per license key.
 
-### **Tier 3: Agency VIP**
-For established agencies that want a fully branded, premium experience.
--   **Features**: Everything in Pro + **Full White-Labeling** (Remove Agency Nexus branding) and **Multi-Site Support**.
--   **Sites**: Use a single license key across multiple WordPress installations.
+### **Tier 2: Pro ($199/yr)**
+For serious freelancers looking to automate and maximize profit.
+-   **Includes everything in Starter.**
+-   **MoneyFlow Intelligence**: Access project profitability reports, expense tracking, and branded invoicing.
+-   **AutoPilot Center**: Create unlimited automation rules and connect to Zapier/Make.com.
+-   **Lead Intelligence**: Generate embeddable lead forms and custom high-converting Thank You pages.
+-   **Sites**: Limited to **1 active site** per license key.
+
+### **Tier 3: Agency VIP ($999/lifetime)**
+For established agencies that want a premium, white-labeled experience.
+-   **Includes everything in Pro.**
+-   **Full White-Labeling**: Remove "Agency Nexus" branding and replace it with your own **Agency Logo** on all invoices and portals.
+-   **Multi-Site Support**: Use a single license key across unlimited WordPress installations for your entire agency portfolio.
+-   **Priority Support**: Direct access to our technical account managers.
 
 ---
 

@@ -25,20 +25,20 @@ Yes, having 3 pricing options is the industry gold standard. It leverages the "D
 
 ### **The 3-Tier Breakdown:**
 
-#### **Tier 1: The Starter / Free (The "Hook")**
-- **Goal**: User acquisition and trust-building.
-- **Focus**: Core project and client management.
-- **Psychology**: Removes the barrier to entry. It gets your plugin installed on their site, making it "sticky."
+#### **Tier 1: The Starter / Free (The "Lead Magnet")**
+- **Goal**: Rapid user acquisition and "site-stickiness."
+- **Focus**: Essential operations (Project/Client Management, Messaging, Basic Calendar).
+- **Psychology**: This removes all financial risk for the user. It allows them to transition their agency operations into your ecosystem. Once they have 5+ projects inside, the "switching cost" becomes high, making them prime for an upgrade.
 
-#### **Tier 2: The Pro (The "Sweet Spot")**
-- **Goal**: Your main revenue driver.
-- **Focus**: MoneyFlow (ROI tracking), AutoPilot (Automations), and Lead Intelligence.
-- **Psychology**: Positioned as the "Best Value." This tier solves the actual business problems (profit and time) that agency owners are willing to pay for.
+#### **Tier 2: The Pro (The "Profit Driver")**
+- **Goal**: Your primary recurring revenue stream.
+- **Focus**: Business Growth tools (**MoneyFlow**, **AutoPilot**, **Leads**).
+- **Psychology**: We position this as the tier that "pays for itself." By showing them their true ROI and automating 10+ hours of work, the $199/yr price point becomes a no-brainer for any serious freelancer.
 
-#### **Tier 3: The Agency / Elite (The "Anchor")**
-- **Goal**: Revenue maximization and "price anchoring."
-- **Focus**: White-labeling (removing Agency Nexus branding), multi-site support, and priority support.
-- **Psychology**: By having a high-priced tier (e.g., $999 lifetime), you make the Pro tier ($199/year) look like a bargain. This is the only tier that allows using a single license key across multiple WordPress installations, making it perfect for growing agencies.
+#### **Tier 3: The Agency VIP (The "Professional Anchor")**
+- **Goal**: Revenue maximization and branding control.
+- **Focus**: White-labeling, Multi-site activation, and Lifetime access.
+- **Psychology**: This tier appeals to the ego and the established agency's need for professional presentation. By anchoring this at $999 (Lifetime), you make the $199/yr Pro tier feel extremely accessible, while simultaneously capturing high-ticket sales from agencies who want to "own" their tools forever.
 
 ---
 

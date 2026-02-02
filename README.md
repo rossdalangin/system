@@ -9,37 +9,53 @@ Agency Nexus is a powerful, modular WordPress plugin designed specifically for f
 - **Milestone Tracking**: Keep track of key deliverables.
 
 ### 2. ContentMatrix (Content Planning)
-- **Pillar Content Architect**: Map out topic clusters and keyword gaps.
 - **Smart Calendar**: Drag-and-drop scheduling for cross-platform content.
+- **Project Sync**: Link content items directly to agency projects.
 
 ### 3. ApprovalFlow (Posting & Approval)
-- **Multi-Stage Draft System**: Role-based access for team and clients.
-- **Revision Workflow**: Side-by-side comparison and annotation tools.
+- **Client Portal**: One-click approvals or revision requests for deliverables.
+- **Audit Trail**: Full history of sign-offs for legal protection.
 
 ### 4. EngageTrack (Engagement System)
-- **Unified Social Dashboard**: Aggregate comments and sentiment analysis.
-- **Lead Intelligence**: ROI analytics and lead scoring.
+- **Lead Intelligence**: Automated lead capture and conversion tracking.
+- **Canned Responses**: Reusable templates for rapid client support.
 
 ### 5. TimeBlock Pro (Time Management)
-- **Intelligent Scheduling**: AI-powered time block suggestions.
-- **Focus Mode**: Website/app blocker and Pomodoro timer.
+- **Intelligent Scheduling**: Focus blocks for Deep Work and administrative duties.
+- **AI Suggestions**: Personalized tips to optimize your daily productivity.
 
 ### 6. MoneyFlow (Financial Dashboard)
-- **Profitability Analysis**: Real-time project ROI and expense tracking.
-- **Tax Estimation**: Stay on top of your financial obligations.
+- **Profitability Intelligence**: Real-time project ROI tracking (Budget vs Labor vs Expenses).
+- **Smart Invoicing**: Professional, branded invoices generated from project data.
 
 ### 7. ClientSync (Communication Hub)
-- **Unified Messaging**: Integration with Email, Slack, and Dashboard.
-- **Meeting Scheduler**: Timezone-aware scheduling.
+- **Unified Messaging Hub**: Secure, real-time chat with clients.
+- **Shared File Repository**: Secure asset exchange within the chat interface.
 
 ### 8. FreebieFactory (Resource Library)
-- **Template Marketplace**: Store and reuse contracts, questionnaires, and swipe files.
+- **Agency IP Library**: Store and reuse contract templates, SOWs, and swipe files.
 
 ### 9. AutoPilot (Automation Center)
-- **Custom Workflows**: If-this-then-that automation for common agency tasks.
+- **Trigger & Action Engine**: Automate repetitive tasks and connect to 5,000+ apps via Zapier.
 
 ### 10. BurnoutGuard (Health & Sustainability)
-- **Workload Monitoring**: Capacity tracking and stress level prompts.
+- **Workload Capacity Monitoring**: Real-time tracking of team bandwidth based on logged hours.
+- **Mental Well-being Logs**: Daily health check-ins to prevent agency burnout.
+
+## Pricing Tiers & Feature Comparison
+
+| Feature | Starter (Free) | Pro ($199/yr) | Agency VIP ($999/LTD) |
+| :--- | :---: | :---: | :---: |
+| Project & Task Management | ✓ | ✓ | ✓ |
+| Client CRM & Messaging Hub | ✓ | ✓ | ✓ |
+| Content Calendar & Approvals | ✓ | ✓ | ✓ |
+| Time Blocking & BurnoutGuard | ✓ | ✓ | ✓ |
+| **MoneyFlow (ROI & Invoicing)** | - | ✓ | ✓ |
+| **AutoPilot (Automations)** | - | ✓ | ✓ |
+| **Lead Intelligence System** | - | ✓ | ✓ |
+| **White-Labeling (Logo Replace)** | - | - | ✓ |
+| **Multi-Site License Support** | - | - | ✓ |
+| Site Limit | 1 Site | 1 Site | Unlimited |
 
 ## Technical Architecture
 
@@ -53,14 +69,6 @@ Agency Nexus is a powerful, modular WordPress plugin designed specifically for f
 1. Upload the `agency-nexus` folder to the `/wp-content/plugins/` directory.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
 3. Navigate to 'Agency Nexus' in the admin sidebar to start managing your agency.
-
-## Developer Info
-
-### Adding a New Module
-1. Create a new directory in `modules/`.
-2. Create a main PHP file with the same name.
-3. Define a class extending `Agency_Nexus_Base_Module` following the naming convention `Agency_Nexus_Module_{Name}`.
-4. Implement the `init()` method.
 
 ---
 Built with ❤️ for Agency Owners.

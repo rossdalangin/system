@@ -57,7 +57,11 @@ This is a 30-day "Awareness to Sale" cycle designed for LinkedIn, Facebook, and 
 ### **Day 22: LinkedIn (The Professional Future)**
 - **Hook**: 2025 is the year of the "Operating System."
 - **Body**: Vendors use tools. Partners use systems. Which one are you?
-- **CTA**: Get Agency Nexus Pro for a special launch price.
+- **The Options**:
+    - *Starter*: Get organized (Free).
+    - *Pro*: Automate and track ROI ($199/yr).
+    - *Agency VIP*: Full White-Label + Unlimited Sites ($999 LTD).
+- **CTA**: Choose your tier and start scaling. [Link]
 
 ### **Day 25: TikTok (The Lifestyle)**
 - **Visual**: You closing your laptop at 4 PM.

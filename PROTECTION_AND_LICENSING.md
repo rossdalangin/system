@@ -30,11 +30,26 @@ Move the most valuable logic to your own server (API-based).
 
 ---
 
-## 3. Implementing the "Rule of Three" Pricing
-As implemented in Agency Nexus, we recommend:
-1.  **Starter (Free)**: Core CRM and Project features. Distributed on WP.org to build a massive user base.
-2.  **Pro (Paid)**: Advanced Business Logic (MoneyFlow, Automations, Leads). This is for serious freelancers.
-3.  **Agency (VIP)**: White-labeling and multi-site support. This is for established agencies.
+## 3. Tier-Based Feature Gating
+Agency Nexus uses the `Agency_Nexus_License_Manager` class to dynamically enable or disable features based on the validated key.
+
+### **Tier Comparison Matrix:**
+
+| Module | Starter (Free) | Pro | Agency VIP |
+| :--- | :---: | :---: | :---: |
+| Project Management | **Enabled** | **Enabled** | **Enabled** |
+| Client CRM | **Enabled** | **Enabled** | **Enabled** |
+| Messaging Hub | **Enabled** | **Enabled** | **Enabled** |
+| Content Calendar | **Enabled** | **Enabled** | **Enabled** |
+| MoneyFlow (ROI) | Disabled | **Enabled** | **Enabled** |
+| AutoPilot (Rules) | Disabled | **Enabled** | **Enabled** |
+| Lead Intel (Embeds) | Disabled | **Enabled** | **Enabled** |
+| White-Labeling | Disabled | Disabled | **Enabled** |
+| Multi-Site Support | Disabled | Disabled | **Enabled** |
+
+### **Technical Enforcement:**
+-   **License Validation**: On activation, the plugin performs a `POST` request to your main domain store. The store returns the tier and site limit.
+-   **Activation Tracking**: The `an_license_activations` table in your store database records every unique `site_url` to prevent Starter/Pro keys from being shared across multiple sites.
 
 ---
 

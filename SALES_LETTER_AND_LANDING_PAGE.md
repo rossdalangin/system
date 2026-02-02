@@ -54,10 +54,19 @@ Bring your operations home to WordPress.
 - **Copy**: "Used by 1,000+ freelancers to look like 7-figure agencies."
 - **Visual**: Customer logos or a success checkmark list.
 
-### **Section 5: Pricing (The Anchor)**
-- **Option 1 (Starter)**: Project & Task tracking (Free).
-- **Option 2 (Pro - RECOMMENDED)**: Full MoneyFlow, AutoPilot, and Lead Intelligence ($199/year).
-- **Option 3 (Lifetime)**: Never pay a subscription again. White-label included ($999).
+### **Section 5: Pricing (The Rule of Three)**
+
+#### **Starter: $0 (forever)**
+- Includes: Project & Client Management, Messaging Hub, Basic Content Ops.
+- *Best for: Solo freelancers looking to get organized.*
+
+#### **Pro: $199/year (RECOMMENDED)**
+- Includes: Everything in Starter + **MoneyFlow** ROI tracking, **AutoPilot** Automations, and **Lead Intelligence**.
+- *Best for: Scaling freelancers who want to maximize profit.*
+
+#### **Agency VIP: $999 (Lifetime)**
+- Includes: Everything in Pro + **Full White-Labeling**, **Multi-Site Support**, and **Priority Direct Support**.
+- *Best for: Established agencies with multiple client sites.*
 
 ### **Section 6: FAQ**
 - "Is it secure?" (Explain the database encryption).
