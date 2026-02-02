@@ -58,10 +58,12 @@ To sell Agency Nexus on your main domain, we have provided a companion plugin: *
 
 ### **Setup Instructions:**
 1.  **Install**: Zip and install the `agency-nexus-store` directory on your main domain as a WordPress plugin.
-2.  **Configure Pricing**: Go to **AN Store > Settings** and set your Pro and Agency tier prices.
-3.  **Download Link**: Provide the URL where the Pro version of the plugin is hosted (e.g., your Amazon S3 link or local server path).
-4.  **Display Pricing**: Use the `[an_pricing_table]` shortcode on your landing page to show the 3 pricing tiers.
-5.  **Payment**: The checkout is pre-integrated with a simulated Stripe/PayPal flow. Users will enter their email and receive a generated license key and download link instantly after "paying."
+2.  **Configure Pricing**: Go to **AN Store > Settings** and set your Starter, Pro, and Agency tier prices.
+3.  **Payment Credentials**: In the same Settings page, enter your **Stripe Publishable/Secret Keys** or **PayPal Business Email** to start receiving real payments.
+4.  **Download Link**: Provide the URL where the Pro version of the plugin is hosted (e.g., your Amazon S3 link or local server path).
+5.  **Display Pricing**: Use the `[an_pricing_table]` shortcode on your landing page to show the 3 pricing tiers.
+6.  **Payment & Fulfillment**: The checkout handles payment processing and automatically generates a license key and provides the download link to the customer upon success.
+7.  **Transaction Tracking**: View all sales and issued keys in the **AN Store > Payments** and **AN Store > Licenses** tabs.
 
 ### **Connecting the Plugins:**
 -   On the client's site, go to **Agency Nexus > Settings**.

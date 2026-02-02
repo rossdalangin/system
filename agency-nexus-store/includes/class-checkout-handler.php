@@ -80,6 +80,20 @@ class Agency_Nexus_Checkout_Handler {
 			'status'      => 'active'
 		] );
 
+		// Record the Payment
+		$price = get_option( 'an_pro_price', '199' );
+		if ( $tier === 'starter' ) $price = get_option( 'an_starter_price', '0' );
+		if ( $tier === 'agency' )  $price = get_option( 'an_agency_price', '999' );
+
+		$wpdb->insert( $wpdb->prefix . 'an_store_payments', [
+			'customer_email' => $email,
+			'license_key'    => $key,
+			'amount'         => floatval($price),
+			'currency'       => 'USD',
+			'gateway'        => 'simulated',
+			'transaction_id' => 'SIM-' . time()
+		] );
+
 		$download_url = get_option( 'an_download_url' );
 
 		get_header();

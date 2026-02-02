@@ -64,9 +64,24 @@ class Agency_Nexus_Store {
 			PRIMARY KEY  (id)
 		) $charset_collate;";
 
+		// Store Payments Table
+		$table_payments = $wpdb->prefix . 'an_store_payments';
+		$sql_payments = "CREATE TABLE $table_payments (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			customer_email varchar(100) NOT NULL,
+			license_key varchar(100) NOT NULL,
+			amount decimal(10,2) NOT NULL,
+			currency varchar(10) DEFAULT 'USD',
+			gateway varchar(50) DEFAULT 'simulated',
+			transaction_id varchar(100) DEFAULT '',
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id)
+		) $charset_collate;";
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql_licenses );
 		dbDelta( $sql_activations );
+		dbDelta( $sql_payments );
 	}
 
 	public function init() {
@@ -93,6 +108,15 @@ class Agency_Nexus_Store {
 			'an-store-licenses',
 			[ $this, 'render_licenses_list' ]
 		);
+
+		add_submenu_page(
+			'an-store',
+			'Payments',
+			'Payments',
+			'manage_options',
+			'an-store-payments',
+			[ $this, 'render_payments_list' ]
+		);
 	}
 
 	public function render_settings() {
@@ -101,6 +125,12 @@ class Agency_Nexus_Store {
 			update_option( 'an_pro_price', sanitize_text_field( $_POST['an_pro_price'] ) );
 			update_option( 'an_agency_price', sanitize_text_field( $_POST['an_agency_price'] ) );
 			update_option( 'an_download_url', esc_url_raw( $_POST['an_download_url'] ) );
+
+			// Payment Gateway Credentials
+			update_option( 'an_store_stripe_publishable_key', sanitize_text_field( $_POST['an_store_stripe_publishable_key'] ) );
+			update_option( 'an_store_stripe_secret_key', sanitize_text_field( $_POST['an_store_stripe_secret_key'] ) );
+			update_option( 'an_store_paypal_email', sanitize_email( $_POST['an_store_paypal_email'] ) );
+
 			echo '<div class="updated"><p>Settings saved!</p></div>';
 		}
 
@@ -108,6 +138,10 @@ class Agency_Nexus_Store {
 		$pro_price = get_option( 'an_pro_price', '199' );
 		$agency_price = get_option( 'an_agency_price', '999' );
 		$download_url = get_option( 'an_download_url', '' );
+
+		$stripe_pub = get_option( 'an_store_stripe_publishable_key', '' );
+		$stripe_sec = get_option( 'an_store_stripe_secret_key', '' );
+		$paypal_email = get_option( 'an_store_paypal_email', '' );
 		?>
 		<div class="wrap">
 			<h1>Agency Nexus Store Settings</h1>
@@ -133,6 +167,27 @@ class Agency_Nexus_Store {
 						</td>
 					</tr>
 				</table>
+				</table>
+
+				<hr>
+				<h2>Payment Gateways</h2>
+				<p class="description">Enter your credentials below to receive payments from customers. Currently supports Stripe and PayPal.</p>
+
+				<table class="form-table">
+					<tr>
+						<th>Stripe Publishable Key</th>
+						<td><input type="text" name="an_store_stripe_publishable_key" value="<?php echo esc_attr($stripe_pub); ?>" class="large-text" placeholder="pk_live_..."></td>
+					</tr>
+					<tr>
+						<th>Stripe Secret Key</th>
+						<td><input type="password" name="an_store_stripe_secret_key" value="<?php echo esc_attr($stripe_sec); ?>" class="large-text" placeholder="sk_live_..."></td>
+					</tr>
+					<tr>
+						<th>PayPal Business Email</th>
+						<td><input type="email" name="an_store_paypal_email" value="<?php echo esc_attr($paypal_email); ?>" class="regular-text" placeholder="billing@yourdomain.com"></td>
+					</tr>
+				</table>
+
 				<input type="submit" name="an_save_store_settings" class="button button-primary" value="Save Settings">
 			</form>
 		</div>
@@ -196,6 +251,45 @@ class Agency_Nexus_Store {
 			wp_redirect( admin_url( 'admin.php?page=an-store-licenses&msg=created' ) );
 			exit;
 		}
+	}
+
+	public function render_payments_list() {
+		global $wpdb;
+		$payments = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_store_payments ORDER BY created_at DESC" );
+		?>
+		<div class="wrap">
+			<h1>Store Payments</h1>
+			<p class="description">List of all successful transactions processed through your main domain store.</p>
+			<table class="wp-list-table widefat fixed striped">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Customer</th>
+						<th>License Key</th>
+						<th>Amount</th>
+						<th>Gateway</th>
+						<th>Transaction ID</th>
+						<th>Date</th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php if ($payments) : foreach ( $payments as $p ) : ?>
+						<tr>
+							<td><?php echo $p->id; ?></td>
+							<td><?php echo esc_html($p->customer_email); ?></td>
+							<td><code><?php echo esc_html($p->license_key); ?></code></td>
+							<td><strong>$<?php echo number_format($p->amount, 2); ?></strong></td>
+							<td><?php echo esc_html(ucfirst($p->gateway)); ?></td>
+							<td><small><?php echo esc_html($p->transaction_id); ?></small></td>
+							<td><?php echo esc_html($p->created_at); ?></td>
+						</tr>
+					<?php endforeach; else : ?>
+						<tr><td colspan="7">No payments recorded yet.</td></tr>
+					<?php endif; ?>
+				</tbody>
+			</table>
+		</div>
+		<?php
 	}
 
 	public function render_licenses_list() {
