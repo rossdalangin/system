@@ -36,8 +36,9 @@ class Agency_Nexus_License_Server {
 	 * Validate a license key.
 	 */
 	public function validate_license( $request ) {
-		$params = $request->get_params();
-		$key    = isset( $params['license_key'] ) ? sanitize_text_field( $params['license_key'] ) : '';
+		$params   = $request->get_params();
+		$key      = isset( $params['license_key'] ) ? sanitize_text_field( $params['license_key'] ) : '';
+		$site_url = isset( $params['site_url'] ) ? esc_url_raw( $params['site_url'] ) : '';
 
 		if ( empty( $key ) ) {
 			return new WP_Error( 'missing_key', 'License key is required.', [ 'status' => 400 ] );
@@ -55,6 +56,34 @@ class Agency_Nexus_License_Server {
 
 		if ( $license->status !== 'active' ) {
 			return new WP_Error( 'inactive_key', 'This license is no longer active.', [ 'status' => 403 ] );
+		}
+
+		// Check Site Activations
+		$activations = $wpdb->get_results( $wpdb->prepare(
+			"SELECT * FROM {$wpdb->prefix}an_license_activations WHERE license_id = %d",
+			$license->id
+		) );
+
+		$already_active = false;
+		foreach ( $activations as $act ) {
+			if ( trailingslashit($act->site_url) === trailingslashit($site_url) ) {
+				$already_active = true;
+				break;
+			}
+		}
+
+		if ( ! $already_active ) {
+			// Check Limits
+			$limit = ( $license->tier === 'pro' ) ? 1 : 9999; // Pro = 1, Agency = Unlimited
+			if ( count($activations) >= $limit ) {
+				return new WP_Error( 'limit_reached', 'This license key has reached its maximum activation limit. Upgrade to Agency for multi-site support.', [ 'status' => 403 ] );
+			}
+
+			// Record new activation
+			$wpdb->insert( $wpdb->prefix . 'an_license_activations', [
+				'license_id' => $license->id,
+				'site_url'   => $site_url
+			] );
 		}
 
 		return new WP_REST_Response( [

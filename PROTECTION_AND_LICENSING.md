@@ -14,9 +14,9 @@ In the WordPress world, you aren't just selling code; you are selling **peace of
 ## 2. Technical Protection Methods
 
 ### **A. Licensing Servers (The Industry Standard)**
-Connect your plugin to a remote server (like Freemius, WooCommerce Software Subscriptions, or a custom API).
--   *How it works*: On activation, the plugin sends the site URL and key to your server. Your server returns a signed token.
--   *The Benefit*: You can remote-deactivate keys if a refund is requested or a subscription cancels.
+Connect your plugin to a remote server (like the provided **Agency Nexus Store** plugin).
+-   *How it works*: On activation, the plugin sends the site URL and key to your server. Your server checks the database and records the activation.
+-   *The Benefit*: You can enforce site limits. For example, our **Pro** tier is limited to 1 site, while the **Agency VIP** tier allows unlimited site activations.
 
 ### **B. Obfuscation (The "Hard" Method)**
 If you have proprietary logic you don't want competitors to read:

@@ -38,10 +38,11 @@ class Agency_Nexus_Store {
 
 	public function activate() {
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'an_issued_licenses';
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$sql = "CREATE TABLE $table_name (
+		// Licenses Table
+		$table_licenses = $wpdb->prefix . 'an_issued_licenses';
+		$sql_licenses = "CREATE TABLE $table_licenses (
 			id bigint(20) NOT NULL AUTO_INCREMENT,
 			license_key varchar(100) NOT NULL,
 			user_email varchar(100) NOT NULL,
@@ -52,8 +53,19 @@ class Agency_Nexus_Store {
 			UNIQUE KEY license_key (license_key)
 		) $charset_collate;";
 
+		// Activations Table (Multi-site tracking)
+		$table_activations = $wpdb->prefix . 'an_license_activations';
+		$sql_activations = "CREATE TABLE $table_activations (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			license_id bigint(20) NOT NULL,
+			site_url varchar(255) NOT NULL,
+			activated_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id)
+		) $charset_collate;";
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta( $sql );
+		dbDelta( $sql_licenses );
+		dbDelta( $sql_activations );
 	}
 
 	public function init() {
@@ -133,16 +145,26 @@ class Agency_Nexus_Store {
 						<th>Email</th>
 						<th>Tier</th>
 						<th>Status</th>
+						<th>Activations</th>
 						<th>Date</th>
 					</tr>
 				</thead>
 				<tbody>
-					<?php foreach ( $licenses as $l ) : ?>
+					<?php foreach ( $licenses as $l ) :
+						$act_count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}an_license_activations WHERE license_id = %d", $l->id ) );
+						$sites = $wpdb->get_col( $wpdb->prepare( "SELECT site_url FROM {$wpdb->prefix}an_license_activations WHERE license_id = %d", $l->id ) );
+					?>
 						<tr>
 							<td><code><?php echo esc_html($l->license_key); ?></code></td>
 							<td><?php echo esc_html($l->user_email); ?></td>
 							<td><?php echo strtoupper($l->tier); ?></td>
 							<td><?php echo esc_html($l->status); ?></td>
+							<td>
+								<strong><?php echo $act_count; ?></strong>
+								<?php if ($sites) : ?>
+									<br><small><?php echo implode(', ', array_map('esc_html', $sites)); ?></small>
+								<?php endif; ?>
+							</td>
 							<td><?php echo esc_html($l->created_at); ?></td>
 						</tr>
 					<?php endforeach; ?>

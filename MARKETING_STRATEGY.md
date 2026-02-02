@@ -37,8 +37,8 @@ Yes, having 3 pricing options is the industry gold standard. It leverages the "D
 
 #### **Tier 3: The Agency / Elite (The "Anchor")**
 - **Goal**: Revenue maximization and "price anchoring."
-- **Focus**: White-labeling (removing Agency Nexus branding), unlimited projects/clients, and priority support.
-- **Psychology**: By having a high-priced tier (e.g., $999 lifetime), you make the Pro tier ($199/year) look like a bargain. It also captures high-budget agencies who want the premium "VIP" treatment.
+- **Focus**: White-labeling (removing Agency Nexus branding), multi-site support, and priority support.
+- **Psychology**: By having a high-priced tier (e.g., $999 lifetime), you make the Pro tier ($199/year) look like a bargain. This is the only tier that allows using a single license key across multiple WordPress installations, making it perfect for growing agencies.
 
 ---
 

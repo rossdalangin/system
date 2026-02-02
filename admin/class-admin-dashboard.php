@@ -1146,14 +1146,22 @@ class Agency_Nexus_Admin_Dashboard {
 					<tr>
 						<th><label for="an_agency_logo"><?php _e('Agency Logo', 'agency-nexus'); ?></label></th>
 						<td>
-							<input type="text" name="an_agency_logo" id="an_agency_logo" value="<?php echo esc_attr( get_option( 'an_agency_logo' ) ); ?>" class="regular-text">
-							<button type="button" id="upload_logo_btn" class="button"><?php _e('Select Logo', 'agency-nexus'); ?></button>
-							<p class="description"><?php _e('The agency logo to display on invoices. Best if uploaded with a white background.', 'agency-nexus'); ?></p>
-							<div id="logo-preview" style="margin-top: 10px;">
-								<?php if ( get_option( 'an_agency_logo' ) ) : ?>
-									<img src="<?php echo esc_url( get_option( 'an_agency_logo' ) ); ?>" style="max-width: 200px; height: auto; border: 1px solid #ddd; padding: 5px;">
-								<?php endif; ?>
-							</div>
+							<?php if ( Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'white_label' ) ) : ?>
+								<input type="text" name="an_agency_logo" id="an_agency_logo" value="<?php echo esc_attr( get_option( 'an_agency_logo' ) ); ?>" class="regular-text">
+								<button type="button" id="upload_logo_btn" class="button"><?php _e('Select Logo', 'agency-nexus'); ?></button>
+								<p class="description"><?php _e('The agency logo to display on invoices. Best if uploaded with a white background.', 'agency-nexus'); ?></p>
+								<div id="logo-preview" style="margin-top: 10px;">
+									<?php if ( get_option( 'an_agency_logo' ) ) : ?>
+										<img src="<?php echo esc_url( get_option( 'an_agency_logo' ) ); ?>" style="max-width: 200px; height: auto; border: 1px solid #ddd; padding: 5px;">
+									<?php endif; ?>
+								</div>
+							<?php else : ?>
+								<input type="text" value="<?php echo esc_attr( get_option( 'an_agency_logo' ) ); ?>" class="regular-text" disabled>
+								<p class="description" style="color: #dc3232; font-weight: bold;">
+									<?php _e('White-labeling is only available for the **Agency VIP** tier. Upgrade to remove default branding.', 'agency-nexus'); ?>
+									<a href="<?php echo admin_url('admin.php?page=an-license'); ?>"><?php _e('Upgrade Now', 'agency-nexus'); ?></a>
+								</p>
+							<?php endif; ?>
 						</td>
 					</tr>
 					<tr>

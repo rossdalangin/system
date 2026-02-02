@@ -202,6 +202,26 @@ Maintain your agency's "Intellectual Property" and reusable assets.
 
 ---
 
+## 🔑 Licensing & Tiers
+Agency Nexus uses a tiered licensing system to provide the best value for every stage of your agency's growth.
+
+### **Tier 1: Starter (Free)**
+Included with every install. Perfect for getting started.
+-   **Features**: Project & Client Management, Messaging Hub, Content Calendar, Time Blocking, BurnoutGuard.
+-   **Sites**: Unlimited.
+
+### **Tier 2: Pro**
+For serious freelancers looking to maximize profitability and automate workflows.
+-   **Features**: Everything in Starter + **MoneyFlow** (ROI & Profit Tracking), **AutoPilot** (Automations & Zapier), **Lead Intelligence** (Capture forms & Thank You pages).
+-   **Sites**: Limited to **1 active site** per license key.
+
+### **Tier 3: Agency VIP**
+For established agencies that want a fully branded, premium experience.
+-   **Features**: Everything in Pro + **Full White-Labeling** (Remove Agency Nexus branding) and **Multi-Site Support**.
+-   **Sites**: Use a single license key across multiple WordPress installations.
+
+---
+
 ## 👥 Roles & Permissions
 Agency Nexus uses a strict tiered system to keep your data safe:
 - **Administrator**: Full agency-wide access. Can manage Team, Settings, and Finances.

@@ -129,6 +129,10 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 	}
 
 	public function register_submenu() {
+		if ( ! Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'money_flow' ) ) {
+			return;
+		}
+
 		if ( Agency_Nexus_Permissions::is_team_member() ) {
 			add_submenu_page(
 				'agency-nexus',
@@ -363,7 +367,10 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 
 		if ($action === 'print' && $id) {
 			$invoice = $wpdb->get_row($wpdb->prepare("SELECT i.*, c.name as client_name, c.email as client_email, p.title as project_title FROM $invoices_table i JOIN $clients_table c ON i.client_id = c.id JOIN $projects_table p ON i.project_id = p.id WHERE i.id = %d", $id));
-			$logo = get_option( 'an_agency_logo' );
+
+			$is_white_label = Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'white_label' );
+			$logo = $is_white_label ? get_option( 'an_agency_logo' ) : '';
+
 			?>
 			<div class="wrap" id="printable-invoice" style="background: white; padding: 40px; font-family: sans-serif;">
 				<div style="display:flex; justify-content: space-between; align-items: center;">
@@ -371,7 +378,8 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 						<?php if ( $logo ) : ?>
 							<img src="<?php echo esc_url( $logo ); ?>" style="max-width: 150px; height: auto; margin-bottom: 10px;">
 						<?php else : ?>
-							<h1>INVOICE</h1>
+							<h1 style="color: var(--an-indigo-600); margin: 0;">Agency Nexus</h1>
+							<p><small><?php _e( 'Powered by Agency Nexus - Professional Operations', 'agency-nexus' ); ?></small></p>
 						<?php endif; ?>
 					</div>
 					<div style="text-align:right;">
@@ -586,6 +594,10 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'money_flow' ) ) {
+			return;
+		}
+
 		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
 			return;
 		}

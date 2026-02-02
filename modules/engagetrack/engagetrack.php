@@ -104,6 +104,10 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 	}
 
 	public function register_submenu() {
+		if ( ! Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'lead_intelligence' ) ) {
+			return;
+		}
+
 		if ( Agency_Nexus_Permissions::is_admin() ) {
 			add_submenu_page(
 				'agency-nexus',
@@ -468,6 +472,10 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 	 * Usage: [agency_nexus_thank_you product_name="Awesome Course" cta_url="https://..."]
 	 */
 	public function render_thank_you_page( $atts ) {
+		if ( ! Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'lead_intelligence' ) ) {
+			return '<p style="color:red;">' . __( 'The Lead Intelligence feature requires a Pro or Agency license.', 'agency-nexus' ) . '</p>';
+		}
+
 		$atts = shortcode_atts( [
 			'title'        => get_option( 'an_ty_title', __( 'Your submission was successful!', 'agency-nexus' ) ),
 			'sub_title'    => get_option( 'an_ty_subtitle', __( 'We have received your details and will be in touch shortly.', 'agency-nexus' ) ),
@@ -512,6 +520,10 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'lead_intelligence' ) ) {
+			return;
+		}
+
 		if ( ! Agency_Nexus_Permissions::is_admin() ) {
 			return;
 		}
