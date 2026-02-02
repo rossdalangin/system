@@ -97,12 +97,14 @@ class Agency_Nexus_Store {
 
 	public function render_settings() {
 		if ( isset( $_POST['an_save_store_settings'] ) ) {
+			update_option( 'an_starter_price', sanitize_text_field( $_POST['an_starter_price'] ) );
 			update_option( 'an_pro_price', sanitize_text_field( $_POST['an_pro_price'] ) );
 			update_option( 'an_agency_price', sanitize_text_field( $_POST['an_agency_price'] ) );
 			update_option( 'an_download_url', esc_url_raw( $_POST['an_download_url'] ) );
 			echo '<div class="updated"><p>Settings saved!</p></div>';
 		}
 
+		$starter_price = get_option( 'an_starter_price', '0' );
 		$pro_price = get_option( 'an_pro_price', '199' );
 		$agency_price = get_option( 'an_agency_price', '999' );
 		$download_url = get_option( 'an_download_url', '' );
@@ -111,6 +113,10 @@ class Agency_Nexus_Store {
 			<h1>Agency Nexus Store Settings</h1>
 			<form method="post">
 				<table class="form-table">
+					<tr>
+						<th>Starter Tier Price ($)</th>
+						<td><input type="text" name="an_starter_price" value="<?php echo esc_attr($starter_price); ?>" class="regular-text"></td>
+					</tr>
 					<tr>
 						<th>Pro Tier Price ($)</th>
 						<td><input type="text" name="an_pro_price" value="<?php echo esc_attr($pro_price); ?>" class="regular-text"></td>
@@ -174,7 +180,10 @@ class Agency_Nexus_Store {
 			$tier = sanitize_text_field( $_POST['tier'] );
 			$email = sanitize_email( $_POST['email'] );
 
-			$prefix = ( $tier === 'pro' ) ? 'PRO-' : 'AGY-';
+			$prefix = 'PRO-';
+			if ( $tier === 'starter' ) $prefix = 'STR-';
+			if ( $tier === 'agency' )  $prefix = 'AGY-';
+
 			$key = $prefix . strtoupper( bin2hex( random_bytes( 8 ) ) );
 
 			$wpdb->insert( $table_name, [
@@ -220,8 +229,9 @@ class Agency_Nexus_Store {
 							<th>Tier</th>
 							<td>
 								<select name="tier">
+									<option value="starter">Starter (Free)</option>
 									<option value="pro">Pro</option>
-									<option value="agency">Agency</option>
+									<option value="agency">Agency (Lifetime)</option>
 								</select>
 							</td>
 						</tr>
@@ -289,6 +299,7 @@ class Agency_Nexus_Store {
 	}
 
 	public function render_pricing_table() {
+		$starter_price = get_option( 'an_starter_price', '0' );
 		$pro_price = get_option( 'an_pro_price', '199' );
 		$agency_price = get_option( 'an_agency_price', '999' );
 
@@ -310,7 +321,7 @@ class Agency_Nexus_Store {
 		<div class="an-pricing-container">
 			<div class="an-pricing-card">
 				<h3>Starter</h3>
-				<div class="an-price">$0<span>/forever</span></div>
+				<div class="an-price">$<?php echo esc_html($starter_price); ?><span>/forever</span></div>
 				<ul class="an-features">
 					<li>✓ Core Project Management</li>
 					<li>✓ Client CRM</li>

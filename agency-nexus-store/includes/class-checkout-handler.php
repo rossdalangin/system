@@ -38,7 +38,9 @@ class Agency_Nexus_Checkout_Handler {
 			return;
 		}
 
-		$price = ( $tier === 'pro' ) ? get_option( 'an_pro_price', '199' ) : get_option( 'an_agency_price', '999' );
+		$price = get_option( 'an_pro_price', '199' );
+		if ( $tier === 'starter' ) $price = get_option( 'an_starter_price', '0' );
+		if ( $tier === 'agency' )  $price = get_option( 'an_agency_price', '999' );
 
 		get_header();
 		?>
@@ -64,7 +66,10 @@ class Agency_Nexus_Checkout_Handler {
 		$email = sanitize_email( $_POST['customer_email'] );
 
 		// Generate Key
-		$prefix = ( $tier === 'pro' ) ? 'PRO-' : 'AGY-';
+		$prefix = 'PRO-';
+		if ( $tier === 'starter' ) $prefix = 'STR-';
+		if ( $tier === 'agency' )  $prefix = 'AGY-';
+
 		$key = $prefix . strtoupper( bin2hex( random_bytes( 8 ) ) );
 
 		global $wpdb;

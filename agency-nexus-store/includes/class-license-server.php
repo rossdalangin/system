@@ -74,7 +74,8 @@ class Agency_Nexus_License_Server {
 
 		if ( ! $already_active ) {
 			// Check Limits
-			$limit = ( $license->tier === 'pro' ) ? 1 : 9999; // Pro = 1, Agency = Unlimited
+			// Starter and Pro are limited to 1 site. Agency VIP is unlimited.
+			$limit = ( $license->tier === 'agency' ) ? 9999 : 1;
 			if ( count($activations) >= $limit ) {
 				return new WP_Error( 'limit_reached', 'This license key has reached its maximum activation limit. Upgrade to Agency for multi-site support.', [ 'status' => 403 ] );
 			}

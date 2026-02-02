@@ -39,12 +39,12 @@ class Agency_Nexus_License_Manager {
 		$tier = $this->get_tier();
 
 		$features = [
-			'project_management' => [ 'free', 'pro', 'agency' ],
-			'client_management'  => [ 'free', 'pro', 'agency' ],
-			'messaging'          => [ 'free', 'pro', 'agency' ],
-			'content_calendar'   => [ 'free', 'pro', 'agency' ],
-			'time_blocking'      => [ 'free', 'pro', 'agency' ],
-			'burnout_guard'      => [ 'free', 'pro', 'agency' ],
+			'project_management' => [ 'free', 'starter', 'pro', 'agency' ],
+			'client_management'  => [ 'free', 'starter', 'pro', 'agency' ],
+			'messaging'          => [ 'free', 'starter', 'pro', 'agency' ],
+			'content_calendar'   => [ 'free', 'starter', 'pro', 'agency' ],
+			'time_blocking'      => [ 'free', 'starter', 'pro', 'agency' ],
+			'burnout_guard'      => [ 'free', 'starter', 'pro', 'agency' ],
 			'money_flow'         => [ 'pro', 'agency' ],
 			'autopilot'          => [ 'pro', 'agency' ],
 			'lead_intelligence'  => [ 'pro', 'agency' ],
@@ -107,7 +107,9 @@ class Agency_Nexus_License_Manager {
 	 */
 	private function simulate_activation( $key ) {
 		$tier = 'free';
-		if ( strpos( $key, 'PRO-' ) === 0 ) {
+		if ( strpos( $key, 'STR-' ) === 0 ) {
+			$tier = 'starter';
+		} elseif ( strpos( $key, 'PRO-' ) === 0 ) {
 			$tier = 'pro';
 		} elseif ( strpos( $key, 'AGY-' ) === 0 ) {
 			$tier = 'agency';

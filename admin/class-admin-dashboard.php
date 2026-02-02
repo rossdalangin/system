@@ -1280,7 +1280,7 @@ class Agency_Nexus_Admin_Dashboard {
 				<div style="flex: 1; background: #fff; padding: 25px; border: 1px solid #ccd0d4; border-radius: 8px;">
 					<h3><?php _e( 'Current License Status', 'agency-nexus' ); ?></h3>
 					<div style="margin: 20px 0;">
-						<span class="badge" style="font-size: 1.2rem; padding: 5px 15px; background: <?php echo $tier === 'free' ? '#666' : ($tier === 'pro' ? 'var(--an-indigo-600)' : 'var(--an-amber-500)'); ?>; color: #fff;">
+						<span class="badge" style="font-size: 1.2rem; padding: 5px 15px; background: <?php echo ($tier === 'free' || $tier === 'starter') ? '#666' : ($tier === 'pro' ? 'var(--an-indigo-600)' : 'var(--an-amber-500)'); ?>; color: #fff;">
 							<?php echo strtoupper( $tier ); ?> TIER
 						</span>
 					</div>
@@ -1293,7 +1293,7 @@ class Agency_Nexus_Admin_Dashboard {
 								<tr>
 									<td>
 										<input type="text" name="license_key" placeholder="Enter License Key" class="large-text" required>
-										<p class="description"><?php _e( 'Sample keys: PRO-1234 or AGY-1234', 'agency-nexus' ); ?></p>
+										<p class="description"><?php _e( 'Sample keys: STR-1234 (Starter), PRO-1234 (Pro), or AGY-1234 (Agency)', 'agency-nexus' ); ?></p>
 									</td>
 								</tr>
 							</table>
