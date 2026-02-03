@@ -16,6 +16,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
 		add_action( 'admin_init', [ $this, 'handle_post' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'template_redirect', [ $this, 'handle_client_payment' ] );
 	}
 
 	public function handle_post() {
@@ -76,6 +77,13 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		$payments_table = $wpdb->prefix . 'an_payments';
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
 		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		// Client is paying via Gateway
+		if ( isset( $_POST['an_pay_invoice_gateway'] ) ) {
+			$gateway = sanitize_text_field( $_POST['gateway'] );
+			$this->initiate_gateway_payment( $id, $gateway );
+			return;
+		}
 
 		if ( 'delete' === $action && $id ) {
 			check_admin_referer( 'an_delete_invoice_' . $id );
@@ -341,6 +349,99 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		<?php
 	}
 
+	public function handle_client_payment() {
+		if ( ! isset( $_GET['an_invoice_return'] ) ) {
+			return;
+		}
+
+		global $wpdb;
+		$gateway = sanitize_text_field( $_GET['an_invoice_return'] );
+		$invoice_id = intval( $_GET['invoice_id'] );
+		$token = sanitize_text_field( $_GET['token'] );
+
+		// Verify token to prevent spoofing
+		$saved_token = get_transient( 'an_inv_pay_' . $invoice_id );
+		if ( $token !== $saved_token ) {
+			wp_die( 'Invalid payment session.' );
+		}
+
+		// Mark invoice as paid
+		$wpdb->update( $wpdb->prefix . 'an_invoices', [ 'status' => 'paid' ], [ 'id' => $invoice_id ] );
+
+		// Record payment
+		$amount = $wpdb->get_var( $wpdb->prepare( "SELECT amount FROM {$wpdb->prefix}an_invoices WHERE id = %d", $invoice_id ) );
+		$wpdb->insert( $wpdb->prefix . 'an_payments', [
+			'invoice_id'     => $invoice_id,
+			'amount'         => $amount,
+			'method'         => $gateway,
+			'transaction_id' => strtoupper( $gateway[0] ) . '-' . time(),
+			'created_at'     => current_time( 'mysql' )
+		] );
+
+		delete_transient( 'an_inv_pay_' . $invoice_id );
+
+		wp_redirect( admin_url( 'admin.php?page=an-invoices&msg=paid' ) );
+		exit;
+	}
+
+	private function initiate_gateway_payment( $invoice_id, $gateway ) {
+		global $wpdb;
+		$invoice = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_invoices WHERE id = %d", $invoice_id ) );
+		$client = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_clients WHERE id = %d", $invoice->client_id ) );
+
+		$token = bin2hex( random_bytes( 16 ) );
+		set_transient( 'an_inv_pay_' . $invoice_id, $token, 3600 );
+
+		$return_url = add_query_arg( [
+			'an_invoice_return' => $gateway,
+			'invoice_id'        => $invoice_id,
+			'token'             => $token
+		], admin_url( 'admin.php?page=an-invoices' ) );
+
+		if ( $gateway === 'stripe' ) {
+			$secret_key = get_option( 'an_stripe_key' );
+			if ( empty( $secret_key ) ) wp_die( 'Stripe not configured.' );
+
+			$response = wp_remote_post( 'https://api.stripe.com/v1/checkout/sessions', [
+				'headers' => [ 'Authorization' => 'Bearer ' . $secret_key ],
+				'body' => [
+					'success_url' => $return_url,
+					'cancel_url'  => admin_url( 'admin.php?page=an-invoices' ),
+					'mode'        => 'payment',
+					'customer_email' => $client->email,
+					'line_items[0][price_data][currency]' => 'usd',
+					'line_items[0][price_data][product_data][name]' => 'Invoice ' . $invoice->number,
+					'line_items[0][price_data][unit_amount]' => intval( $invoice->amount * 100 ),
+					'line_items[0][quantity]' => 1,
+				]
+			] );
+			$body = json_decode( wp_remote_retrieve_body( $response ), true );
+			if ( isset( $body['url'] ) ) {
+				wp_redirect( $body['url'] );
+				exit;
+			}
+		} else {
+			$paypal_email = get_option( 'an_paypal_email' );
+			if ( empty( $paypal_email ) ) wp_die( 'PayPal not configured.' );
+
+			$test_mode = get_option( 'an_payment_test_mode', 'yes' );
+			$paypal_url = ( $test_mode === 'yes' ) ? 'https://www.sandbox.paypal.com/cgi-bin/webscr' : 'https://www.paypal.com/cgi-bin/webscr';
+
+			$args = [
+				'cmd'           => '_xclick',
+				'business'      => $paypal_email,
+				'item_name'     => 'Invoice ' . $invoice->number,
+				'amount'        => $invoice->amount,
+				'currency_code' => 'USD',
+				'return'        => $return_url,
+				'cancel_return' => admin_url( 'admin.php?page=an-invoices' ),
+			];
+			wp_redirect( $paypal_url . '?' . http_build_query( $args ) );
+			exit;
+		}
+		wp_die( 'Payment initiation failed.' );
+	}
+
 	/**
 	 * Render the invoices management page.
 	 */
@@ -372,7 +473,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			$logo = $is_white_label ? get_option( 'an_agency_logo' ) : '';
 
 			?>
-			<div class="wrap" id="printable-invoice" style="background: white; padding: 40px; font-family: sans-serif;">
+			<div class="wrap" id="printable-invoice" style="background: white; padding: 40px; font-family: sans-serif; max-width: 800px; margin: 20px auto; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
 				<div style="display:flex; justify-content: space-between; align-items: center;">
 					<div id="agency-info">
 						<?php if ( $logo ) : ?>
@@ -383,34 +484,63 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 						<?php endif; ?>
 					</div>
 					<div style="text-align:right;">
+						<h2 style="margin:0;"><?php _e( 'INVOICE', 'agency-nexus' ); ?></h2>
 						<strong><?php echo esc_html($invoice->number); ?></strong><br>
 						Date: <?php echo date('Y-m-d', strtotime($invoice->created_at)); ?><br>
 						Due: <?php echo esc_html($invoice->due_date); ?>
 					</div>
 				</div>
-				<hr>
-				<div style="margin: 40px 0;">
-					<strong>Bill To:</strong><br>
-					<?php echo esc_html($invoice->client_name); ?><br>
-					<?php echo esc_html($invoice->client_email); ?>
+				<hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+				<div style="margin: 40px 0; display: flex; justify-content: space-between;">
+					<div>
+						<strong>Bill To:</strong><br>
+						<?php echo esc_html($invoice->client_name); ?><br>
+						<?php echo esc_html($invoice->client_email); ?>
+					</div>
+					<div style="text-align:right;">
+						<strong>Status:</strong><br>
+						<span style="font-size: 1.2rem; font-weight: bold; color: <?php echo $invoice->status === 'paid' ? '#46b450' : '#dc3232'; ?>;">
+							<?php echo strtoupper($invoice->status); ?>
+						</span>
+					</div>
 				</div>
-				<table style="width:100%; border-collapse: collapse;">
-					<thead><tr style="background:#eee;"><th style="padding:10px; text-align:left;">Description</th><th style="padding:10px; text-align:right;">Amount</th></tr></thead>
+				<table style="width:100%; border-collapse: collapse; margin-bottom: 40px;">
+					<thead><tr style="background:#f8fafc; border-bottom: 2px solid #e2e8f0;"><th style="padding:15px; text-align:left;">Description</th><th style="padding:15px; text-align:right;">Amount</th></tr></thead>
 					<tbody>
 						<tr>
-							<td style="padding:10px; border-bottom:1px solid #eee;"><?php echo esc_html($invoice->project_title); ?></td>
-							<td style="padding:10px; border-bottom:1px solid #eee; text-align:right;">$<?php echo number_format($invoice->amount, 2); ?></td>
+							<td style="padding:15px; border-bottom:1px solid #edf2f7;"><?php echo esc_html($invoice->project_title); ?></td>
+							<td style="padding:15px; border-bottom:1px solid #edf2f7; text-align:right;">$<?php echo number_format($invoice->amount, 2); ?></td>
 						</tr>
 					</tbody>
 					<tfoot>
-						<tr><td style="padding:10px; text-align:right;"><strong>Total:</strong></td><td style="padding:10px; text-align:right;"><strong>$<?php echo number_format($invoice->amount, 2); ?></strong></td></tr>
+						<tr><td style="padding:15px; text-align:right;"><strong>Total:</strong></td><td style="padding:15px; text-align:right;"><strong>$<?php echo number_format($invoice->amount, 2); ?></strong></td></tr>
 					</tfoot>
 				</table>
+
+				<?php if ( $invoice->status !== 'paid' ) : ?>
+					<div class="no-print" style="background: #f1f5f9; padding: 30px; border-radius: 12px; text-align: center;">
+						<h3><?php _e( 'Pay Securely Online', 'agency-nexus' ); ?></h3>
+						<p><?php _e( 'Choose your preferred payment method below to settle this invoice immediately.', 'agency-nexus' ); ?></p>
+						<div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+							<form method="post">
+								<?php wp_nonce_field('an_save_invoice_nonce'); ?>
+								<input type="hidden" name="gateway" value="stripe">
+								<input type="submit" name="an_pay_invoice_gateway" class="button button-primary" value="Pay with Credit Card (Stripe)" style="background: #6366f1; border: none; padding: 10px 25px;">
+							</form>
+							<form method="post">
+								<?php wp_nonce_field('an_save_invoice_nonce'); ?>
+								<input type="hidden" name="gateway" value="paypal">
+								<input type="submit" name="an_pay_invoice_gateway" class="button button-primary" value="Pay with PayPal" style="background: #0070ba; border: none; padding: 10px 25px;">
+							</form>
+						</div>
+					</div>
+				<?php endif; ?>
+
 				<div style="margin-top: 50px; text-align:center;">
-					<button onclick="window.print()" class="button button-primary no-print">Print Invoice</button>
-					<a href="?page=an-invoices" class="button no-print">Back</a>
+					<button onclick="window.print()" class="button no-print">Print PDF</button>
+					<a href="?page=an-invoices" class="button no-print">Back to Invoices</a>
 				</div>
-				<style>@media print { .no-print { display:none; } }</style>
+				<style>@media print { .no-print { display:none; } #printable-invoice { border:none; box-shadow:none; margin:0; width:100%; max-width:none; } }</style>
 			</div>
 			<?php
 			return;

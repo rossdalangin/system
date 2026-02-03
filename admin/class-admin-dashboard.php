@@ -59,6 +59,8 @@ class Agency_Nexus_Admin_Dashboard {
 			}
 			update_option( 'an_store_url', esc_url_raw( $_POST['an_store_url'] ) );
 			update_option( 'an_stripe_key', sanitize_text_field( $_POST['an_stripe_key'] ) );
+			update_option( 'an_paypal_email', sanitize_email( $_POST['an_paypal_email'] ) );
+			update_option( 'an_payment_test_mode', isset($_POST['an_payment_test_mode']) ? 'yes' : 'no' );
 			update_option( 'an_zapier_webhook', esc_url_raw( $_POST['an_zapier_webhook'] ) );
 			update_option( 'an_hourly_rate', floatval( $_POST['an_hourly_rate'] ) );
 			update_option( 'an_agency_logo', esc_url_raw( $_POST['an_agency_logo'] ) );
@@ -1182,7 +1184,23 @@ class Agency_Nexus_Admin_Dashboard {
 						<th><label for="an_stripe_key">Stripe Secret Key</label></th>
 						<td>
 							<input type="password" name="an_stripe_key" id="an_stripe_key" value="<?php echo esc_attr( get_option( 'an_stripe_key' ) ); ?>" class="regular-text">
-							<p class="description"><?php _e('Required for automating subscription payments and invoice processing.', 'agency-nexus'); ?></p>
+							<p class="description"><?php _e('Required for accepting credit card payments for invoices.', 'agency-nexus'); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="an_paypal_email">PayPal Business Email</label></th>
+						<td>
+							<input type="email" name="an_paypal_email" id="an_paypal_email" value="<?php echo esc_attr( get_option( 'an_paypal_email' ) ); ?>" class="regular-text">
+							<p class="description"><?php _e('Required for accepting PayPal payments for invoices.', 'agency-nexus'); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th>Test Mode / Sandbox</th>
+						<td>
+							<label>
+								<input type="checkbox" name="an_payment_test_mode" value="yes" <?php checked( get_option( 'an_payment_test_mode', 'yes' ), 'yes' ); ?>>
+								Enable Test Mode (Stripe Test Mode / PayPal Sandbox)
+							</label>
 						</td>
 					</tr>
 					<tr>

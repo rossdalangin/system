@@ -122,24 +122,26 @@ class Agency_Nexus_Checkout_Handler {
 	private function process_simulated_payment($tier) {
 		$email = sanitize_email( $_POST['customer_email'] );
 		$gateway = isset($_POST['selected_gateway']) ? sanitize_text_field($_POST['selected_gateway']) : 'stripe';
-		$test_mode = get_option('an_store_test_mode', 'yes');
 
-		if ( $test_mode === 'no' ) {
-			if ( $gateway === 'stripe' ) {
-				$this->initiate_stripe_checkout($tier, $email);
-				return;
-			} else {
-				$this->initiate_paypal_checkout($tier, $email);
-				return;
-			}
+		if ( $gateway === 'stripe' ) {
+			$this->initiate_stripe_checkout($tier, $email);
+			return;
+		} else {
+			$this->initiate_paypal_checkout($tier, $email);
+			return;
 		}
-
-		$this->complete_purchase($tier, $email, $gateway);
 	}
 
 	private function initiate_stripe_checkout($tier, $email) {
 		$secret_key = get_option('an_store_stripe_secret_key');
+		$test_mode = get_option('an_store_test_mode', 'yes');
+
 		if ( empty($secret_key) ) {
+			if ($test_mode === 'yes') {
+				// In test mode, if no key, we can still simulate, but user wants it to "go to stripe"
+				// Maybe they haven't provided the key? I should warn them.
+				wp_die('Stripe Secret Key (Test) not configured. Please enter your Stripe Test Secret Key in Store Settings.');
+			}
 			wp_die('Stripe Secret Key not configured.');
 		}
 
