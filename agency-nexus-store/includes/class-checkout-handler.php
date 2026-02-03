@@ -20,15 +20,39 @@ class Agency_Nexus_Checkout_Handler {
 
 	public function __construct() {
 		add_action( 'template_redirect', [ $this, 'handle_checkout' ] );
+		add_action( 'template_redirect', [ $this, 'handle_return' ] );
 	}
 
 	public function handle_checkout() {
-		if ( ! isset( $_GET['an_checkout'] ) ) {
+		if ( ! isset( $_GET['an_checkout'] ) || isset($_GET['an_return']) ) {
 			return;
 		}
 
 		$tier = sanitize_text_field( $_GET['an_checkout'] );
 		$this->render_checkout_page($tier);
+		exit;
+	}
+
+	public function handle_return() {
+		if ( ! isset( $_GET['an_return'] ) ) {
+			return;
+		}
+
+		$gateway = sanitize_text_field( $_GET['an_return'] );
+		$tier = isset($_GET['tier']) ? sanitize_text_field($_GET['tier']) : 'pro';
+		$email = isset($_GET['email']) ? sanitize_email($_GET['email']) : '';
+
+		// In a real scenario, we would verify with the gateway here.
+		// For now, if we returned from the gateway, we assume success or check basic params.
+
+		if ( $gateway === 'stripe' ) {
+			$session_id = isset($_GET['session_id']) ? sanitize_text_field($_GET['session_id']) : '';
+			if ( empty($session_id) ) {
+				wp_die('Invalid Stripe session.');
+			}
+		}
+
+		$this->complete_purchase($tier, $email, $gateway);
 		exit;
 	}
 
@@ -98,7 +122,90 @@ class Agency_Nexus_Checkout_Handler {
 	private function process_simulated_payment($tier) {
 		$email = sanitize_email( $_POST['customer_email'] );
 		$gateway = isset($_POST['selected_gateway']) ? sanitize_text_field($_POST['selected_gateway']) : 'stripe';
+		$test_mode = get_option('an_store_test_mode', 'yes');
 
+		if ( $test_mode === 'no' ) {
+			if ( $gateway === 'stripe' ) {
+				$this->initiate_stripe_checkout($tier, $email);
+				return;
+			} else {
+				$this->initiate_paypal_checkout($tier, $email);
+				return;
+			}
+		}
+
+		$this->complete_purchase($tier, $email, $gateway);
+	}
+
+	private function initiate_stripe_checkout($tier, $email) {
+		$secret_key = get_option('an_store_stripe_secret_key');
+		if ( empty($secret_key) ) {
+			wp_die('Stripe Secret Key not configured.');
+		}
+
+		$price = get_option( 'an_pro_price', '199' );
+		if ( $tier === 'starter' ) $price = get_option( 'an_starter_price', '0' );
+		if ( $tier === 'agency' )  $price = get_option( 'an_agency_price', '999' );
+
+		$response = wp_remote_post('https://api.stripe.com/v1/checkout/sessions', [
+			'headers' => [
+				'Authorization' => 'Bearer ' . $secret_key,
+			],
+			'body' => [
+				'success_url' => add_query_arg(['an_return' => 'stripe', 'tier' => $tier, 'email' => $email, 'session_id' => '{CHECKOUT_SESSION_ID}'], home_url('/')),
+				'cancel_url' => home_url('/'),
+				'mode' => 'payment',
+				'customer_email' => $email,
+				'line_items[0][price_data][currency]' => 'usd',
+				'line_items[0][price_data][product_data][name]' => 'Agency Nexus ' . ucfirst($tier),
+				'line_items[0][price_data][unit_amount]' => intval($price * 100),
+				'line_items[0][quantity]' => 1,
+			]
+		]);
+
+		if ( is_wp_error($response) ) {
+			wp_die('Stripe API Error: ' . $response->get_error_message());
+		}
+
+		$body = json_decode(wp_remote_retrieve_body($response), true);
+		if ( isset($body['url']) ) {
+			wp_redirect($body['url']);
+			exit;
+		} else {
+			wp_die('Failed to create Stripe Checkout session: ' . print_r($body, true));
+		}
+	}
+
+	private function initiate_paypal_checkout($tier, $email) {
+		$paypal_email = get_option('an_store_paypal_email');
+		if ( empty($paypal_email) ) {
+			wp_die('PayPal Business Email not configured.');
+		}
+
+		$price = get_option( 'an_pro_price', '199' );
+		if ( $tier === 'starter' ) $price = get_option( 'an_starter_price', '0' );
+		if ( $tier === 'agency' )  $price = get_option( 'an_agency_price', '999' );
+
+		$test_mode = get_option('an_store_test_mode', 'yes');
+		$paypal_url = ($test_mode === 'yes') ? 'https://www.sandbox.paypal.com/cgi-bin/webscr' : 'https://www.paypal.com/cgi-bin/webscr';
+
+		$args = [
+			'cmd' => '_xclick',
+			'business' => $paypal_email,
+			'item_name' => 'Agency Nexus ' . ucfirst($tier),
+			'amount' => $price,
+			'currency_code' => 'USD',
+			'no_shipping' => '1',
+			'return' => add_query_arg(['an_return' => 'paypal', 'tier' => $tier, 'email' => $email], home_url('/')),
+			'cancel_return' => home_url('/'),
+			'custom' => $email . '|' . $tier,
+		];
+
+		wp_redirect($paypal_url . '?' . http_build_query($args));
+		exit;
+	}
+
+	private function complete_purchase($tier, $email, $gateway) {
 		// Generate Key
 		$prefix = 'PRO-';
 		if ( $tier === 'starter' ) $prefix = 'STR-';

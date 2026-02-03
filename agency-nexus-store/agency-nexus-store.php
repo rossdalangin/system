@@ -135,6 +135,7 @@ class Agency_Nexus_Store {
 			update_option( 'an_store_stripe_publishable_key', sanitize_text_field( $_POST['an_store_stripe_publishable_key'] ) );
 			update_option( 'an_store_stripe_secret_key', sanitize_text_field( $_POST['an_store_stripe_secret_key'] ) );
 			update_option( 'an_store_paypal_email', sanitize_email( $_POST['an_store_paypal_email'] ) );
+			update_option( 'an_store_test_mode', isset($_POST['an_store_test_mode']) ? 'yes' : 'no' );
 
 			echo '<div class="updated"><p>Settings saved!</p></div>';
 		}
@@ -152,6 +153,7 @@ class Agency_Nexus_Store {
 		$stripe_pub = get_option( 'an_store_stripe_publishable_key', '' );
 		$stripe_sec = get_option( 'an_store_stripe_secret_key', '' );
 		$paypal_email = get_option( 'an_store_paypal_email', '' );
+		$test_mode = get_option( 'an_store_test_mode', 'yes' );
 		?>
 		<div class="wrap">
 			<h1>Agency Nexus Store Settings</h1>
@@ -219,6 +221,15 @@ class Agency_Nexus_Store {
 					<tr>
 						<th>PayPal Business Email</th>
 						<td><input type="email" name="an_store_paypal_email" value="<?php echo esc_attr($paypal_email); ?>" class="regular-text" placeholder="billing@yourdomain.com"></td>
+					</tr>
+					<tr>
+						<th>Test Mode / Sandbox</th>
+						<td>
+							<label>
+								<input type="checkbox" name="an_store_test_mode" value="yes" <?php checked($test_mode, 'yes'); ?>>
+								Enable Test Mode (Uses Stripe Test Keys / PayPal Sandbox / Local Simulation)
+							</label>
+						</td>
 					</tr>
 				</table>
 
