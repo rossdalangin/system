@@ -64,23 +64,71 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		}
 
 		if ( isset( $_POST['an_save_lead'] ) && check_admin_referer( 'an_save_lead_nonce' ) ) {
+			$status = sanitize_text_field( $_POST['status'] );
 			$data = [
 				'name'             => sanitize_text_field( $_POST['name'] ),
 				'email'            => sanitize_email( $_POST['email'] ),
 				'source'           => sanitize_text_field( $_POST['source'] ),
-				'status'           => sanitize_text_field( $_POST['status'] ),
+				'status'           => $status,
 				'conversion_value' => floatval( $_POST['conversion_value'] )
 			];
 			if ( $id ) {
 				$wpdb->update( $table_name, $data, [ 'id' => $id ] );
 				$msg = 'updated';
+
+				// If status was changed to converted, trigger conversion logic
+				if ( 'converted' === $status ) {
+					$this->process_convert_lead( $id );
+					return;
+				}
 			} else {
 				$wpdb->insert( $table_name, $data );
+				$id = $wpdb->insert_id;
 				$msg = 'added';
+
+				if ( 'converted' === $status ) {
+					$this->process_convert_lead( $id );
+					return;
+				}
 			}
 			wp_redirect( admin_url( 'admin.php?page=an-leads&msg=' . $msg ) );
 			exit;
 		}
+	}
+
+	private function process_convert_lead( $lead_id ) {
+		global $wpdb;
+		$lead = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_leads WHERE id = %d", $lead_id ) );
+
+		if ( $lead ) {
+			// Check if client already exists
+			$existing = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}an_clients WHERE email = %s", $lead->email ) );
+
+			if ( ! $existing ) {
+				$inserted = $wpdb->insert( $wpdb->prefix . 'an_clients', [
+					'name'       => $lead->name,
+					'email'      => $lead->email,
+					'address'    => '', // Required column
+					'notes'      => sprintf( __( 'Converted from lead source: %s', 'agency-nexus' ), $lead->source ),
+					'created_at' => current_time( 'mysql' )
+				] );
+				$client_id = $inserted ? $wpdb->insert_id : 0;
+			} else {
+				$client_id = $existing;
+			}
+
+			// Update lead status
+			$wpdb->update( $wpdb->prefix . 'an_leads', [ 'status' => 'converted' ], [ 'id' => $lead_id ] );
+
+			if ( $client_id ) {
+				wp_redirect( admin_url( 'admin.php?page=an-clients&action=view&id=' . $client_id . '&msg=added' ) );
+			} else {
+				wp_redirect( admin_url( 'admin.php?page=an-leads&msg=updated' ) );
+			}
+		} else {
+			wp_redirect( admin_url( 'admin.php?page=an-leads&msg=error' ) );
+		}
+		exit;
 	}
 
 	private function process_response_actions() {

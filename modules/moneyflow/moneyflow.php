@@ -389,7 +389,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		$invoice = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_invoices WHERE id = %d", $invoice_id ) );
 		$client = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_clients WHERE id = %d", $invoice->client_id ) );
 
-		$token = bin2hex( random_bytes( 16 ) );
+		$token = wp_generate_password( 32, false );
 		set_transient( 'an_inv_pay_' . $invoice_id, $token, 3600 );
 
 		$return_url = add_query_arg( [
