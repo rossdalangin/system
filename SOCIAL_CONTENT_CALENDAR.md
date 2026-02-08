@@ -1,74 +1,27 @@
-# Social Media Content Calendar: Agency Nexus Launch
+# Social Content Calendar: 30 Days to a Calibrated Agency
 
-This is a 30-day "Awareness to Sale" cycle designed for LinkedIn, Facebook, and TikTok.
+## WEEK 1: The Tool Friction Problem
+*   **Day 1 (LinkedIn/X):** "Is your agency tech stack a Frankenstein monster? 14 tabs open, $400/mo in fees. It’s time to calibrate."
+*   **Day 4 (LinkedIn):** "The cost of switching: Every time you jump from Slack to Asana to Stripe, you lose focus. How much margin is tool friction eating?"
 
----
+## WEEK 2: The ROI Intelligence Fix
+*   **Day 8 (X):** "Most agency owners don't know their real hourly profit. Are you working for $200/hr or $20/hr? MoneyFlow tells the truth."
+*   **Day 12 (LinkedIn):** "Data-driven scaling. Stop guessing which clients are your best. Use ROI Intelligence to double down on what works."
 
-## 🗓️ Week 1: The Agitation (Call out the problem)
+## WEEK 3: Professional Client Portals
+*   **Day 15 (X):** "First impressions matter. A branded, white-labeled client portal says 'Professional.' A messy email thread says 'Amateur.'"
+*   **Day 19 (LinkedIn):** "Client Sync: Why we built a Slack-like messaging hub inside WordPress. Secure, focused, and professional."
 
-### **Day 1: LinkedIn (The Professional Rant)**
-- **Hook**: Stop paying the "SaaS Tax."
-- **Body**: Most agency owners are paying $100+/month for 5 tools that don't talk to each other. Asana for tasks, Slack for chat, Stripe for money. It's context-switching madness.
-- **CTA**: There is a better way to run your agency on WordPress. [Link]
-- **Image**: A messy screenshot of 10+ open browser tabs.
+## WEEK 4: Automation & Freedom
+*   **Day 23 (X):** "If you’re still manually onboarding clients, you aren't scaling. You’re just working harder. Let AutoPilot handle the busy work."
+*   **Day 27 (LinkedIn):** "Agency Nexus is more than a plugin. It’s a Operating System for freelancers who want to become CEOs. Calibrate today."
 
-### **Day 3: Facebook (The Personal Angle)**
-- **Hook**: I was almost burned out by my own agency...
-- **Body**: I loved the work, but I hated the management. Chasing approvals was killing my vibe. Then I built a portal that handles it for me.
-- **CTA**: See the portal in action. [Link]
-- **Image**: A photo of you working at a clean desk with a coffee.
-
-### **Day 5: TikTok (The Rapid Fire)**
-- **Hook**: 3 tools killing your agency profit.
-- **Visual**: Text overlay popping up as you point. 1. Per-user SaaS fees. 2. Manual time tracking. 3. Hidden project expenses.
-- **Audio**: Fast-paced trending business music.
-
----
-
-## 🗓️ Week 2: The Logic (How it works)
-
-### **Day 8: LinkedIn (The ROI Proof)**
-- **Hook**: What is your "True Profit"?
-- **Body**: If you charge $5k for a project, but your team spends 40 hours on it—do you actually know your margin? Agency Nexus tells you instantly.
-- **Image**: Screenshot of the MoneyFlow Dashboard Widget.
-
-### **Day 10: TikTok (The Feature Showcase)**
-- **Visual**: Screen recording of the "Drag-and-Drop" Content Calendar.
-- **Voiceover**: "How I plan a whole month of client content in 10 minutes."
-- **CTA**: Link in bio.
-
----
-
-## 🗓️ Week 3: The Authority (Case Studies & IP)
-
-### **Day 15: LinkedIn (The Intellectual Property)**
-- **Hook**: Your agency is only as valuable as your "Library."
-- **Body**: Storing your contract templates and swipe files in Google Drive is where they go to die. Put them in your dashboard where your team actually works.
-- **Image**: Screenshot of the FreebieFactory Resource Library.
-
-### **Day 18: Facebook (The Community Ask)**
-- **Body**: Poll: "What's the #1 thing that causes you stress in your agency?" A) Chasing clients B) Managing team C) Cashflow.
-- **Comment**: Respond to every person explaining how Agency Nexus handles that specific pain.
-
----
-
-## 🗓️ Week 4: The Closing (Urgency & Offer)
-
-### **Day 22: LinkedIn (The Professional Future)**
-- **Hook**: 2025 is the year of the "Operating System."
-- **Body**: Vendors use tools. Partners use systems. Which one are you?
-- **The Options**:
-    - *Starter*: Get organized (Free).
-    - *Pro*: Automate and track ROI ($199/yr).
-    - *Agency VIP*: Full White-Label + Unlimited Sites ($999 LTD).
-- **CTA**: Choose your tier and start scaling. [Link]
-
-### **Day 25: TikTok (The Lifestyle)**
-- **Visual**: You closing your laptop at 4 PM.
-- **Text**: When your agency is automated via AutoPilot, you actually get to leave work on time.
-- **CTA**: Join the waiting list.
-
----
-
-## 💡 TikTok Strategy Tip:
-For TikTok, always use the **"Green Screen"** effect. Record yourself standing in front of the Agency Nexus Dashboard to make it feel tangible and real to the viewer.
+## Sample Post Content (LinkedIn):
+"I used to spend 5 hours a week just syncing data between my PM tool and my invoicing app.
+It was exhausting. It was uncalibrated.
+I built Agency Nexus to solve my own problem.
+Lead capture -> Scope Building -> Project Management -> Invoicing.
+All in one dashboard.
+WordPress native.
+One-time price.
+Join the movement: [Link]"

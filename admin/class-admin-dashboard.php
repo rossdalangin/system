@@ -117,7 +117,7 @@ class Agency_Nexus_Admin_Dashboard {
 				$this->handle_client_user_creation();
 			}
 			$this->process_client_actions();
-		} elseif ( 'an-projects' === $page ) {
+		} elseif ( 'an-projects' === $page || 'an-edit-task' === $page ) {
 			$this->process_project_actions();
 		}
 	}
@@ -216,6 +216,7 @@ class Agency_Nexus_Admin_Dashboard {
 		$time_table     = $wpdb->prefix . 'an_time_entries';
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
 		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+		$task_id = isset( $_GET['task_id'] ) ? intval( $_GET['task_id'] ) : 0;
 
 		// Handle Deletion - Admin Only
 		if ( 'delete' === $action && $id ) {
@@ -284,16 +285,57 @@ class Agency_Nexus_Admin_Dashboard {
 			exit;
 		}
 
+		// Handle Task Delete
+		if ( 'delete_task' === $action && $task_id ) {
+			if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+				wp_die( 'Unauthorized' );
+			}
+			check_admin_referer( 'an_delete_task_' . $task_id );
+			$wpdb->delete( $tasks_table, [ 'id' => $task_id ] );
+			$wpdb->delete( $time_table, [ 'task_id' => $task_id ] );
+			wp_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . $id . '&msg=task_deleted' ) );
+			exit;
+		}
+
+		// Handle Task Edit Save
+		if ( isset( $_POST['an_save_task_edit'] ) && check_admin_referer( 'an_edit_task_nonce' ) ) {
+			if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+				return;
+			}
+			$wpdb->update( $tasks_table, [
+				'title'       => sanitize_text_field( $_POST['title'] ),
+				'description' => sanitize_textarea_field( $_POST['description'] ),
+				'assigned_to' => intval( $_POST['assigned_to'] ),
+				'priority'    => sanitize_text_field( $_POST['priority'] ),
+				'status'      => sanitize_text_field( $_POST['status'] ),
+				'start_date'  => sanitize_text_field( $_POST['start_date'] ),
+				'due_date'    => sanitize_text_field( $_POST['due_date'] )
+			], [ 'id' => intval( $_POST['task_id'] ) ] );
+			wp_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . $id . '&msg=task_updated' ) );
+			exit;
+		}
+
 		// Handle Time Logging
 		if ( isset( $_POST['an_log_time'] ) && check_admin_referer( 'an_log_time_nonce' ) ) {
 			$wpdb->insert( $time_table, [
 				'task_id'  => intval( $_POST['task_id'] ),
 				'user_id'  => get_current_user_id(),
-				'duration' => intval( $_POST['hours'] ) * 3600,
+				'duration' => floatval( $_POST['hours'] ) * 3600,
 				'date'     => current_time( 'mysql' ),
 				'note'     => sanitize_textarea_field( $_POST['note'] )
 			] );
 			wp_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . $id . '&msg=time_logged' ) );
+			exit;
+		}
+
+		// Handle Time Entry Delete
+		if ( 'delete_time' === $action && $id ) { // Note: id here is used as time_entry_id in the link
+			if ( ! Agency_Nexus_Permissions::is_team_member() ) {
+				wp_die( 'Unauthorized' );
+			}
+			check_admin_referer( 'an_delete_time_' . $id );
+			$wpdb->delete( $time_table, [ 'id' => $id ] );
+			wp_redirect( admin_url( 'admin.php?page=an-edit-task&task_id=' . $task_id . '&id=' . intval($_GET['project_id']) . '&msg=time_deleted' ) );
 			exit;
 		}
 	}
@@ -373,6 +415,15 @@ class Agency_Nexus_Admin_Dashboard {
 				[ $this, 'render_license' ]
 			);
 		}
+
+		add_submenu_page(
+			null, // Hidden from menu
+			__( 'Edit Task', 'agency-nexus' ),
+			__( 'Edit Task', 'agency-nexus' ),
+			'read',
+			'an-edit-task',
+			[ $this, 'render_task_edit_view' ]
+		);
 	}
 
 	/**
@@ -824,6 +875,7 @@ class Agency_Nexus_Admin_Dashboard {
 				case 'deleted': $m = 'Project deleted!'; break;
 				case 'task_added': $m = 'Task added!'; break;
 				case 'task_updated': $m = 'Task updated!'; break;
+				case 'task_deleted': $m = 'Task deleted!'; break;
 				case 'time_logged': $m = 'Time logged!'; break;
 			}
 			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
@@ -883,12 +935,17 @@ class Agency_Nexus_Admin_Dashboard {
 									<td><?php echo esc_html($task->status); ?></td>
 									<td><?php echo round($total_time / 3600, 2); ?> hrs</td>
 									<td>
-										<form method="post" style="display:flex; gap: 5px;">
-											<?php wp_nonce_field('an_log_time_nonce'); ?>
-											<input type="hidden" name="task_id" value="<?php echo $task->id; ?>">
-											<input type="number" name="hours" placeholder="Hrs" style="width: 50px;" required>
-											<input type="submit" name="an_log_time" class="button" value="Log">
-										</form>
+										<div style="display:flex; gap: 5px; align-items: center;">
+											<form method="post" style="display:flex; gap: 5px;">
+												<?php wp_nonce_field('an_log_time_nonce'); ?>
+												<input type="hidden" name="task_id" value="<?php echo $task->id; ?>">
+												<input type="number" step="0.1" name="hours" placeholder="Hrs" style="width: 50px;" required>
+												<input type="submit" name="an_log_time" class="button button-small" value="Log">
+											</form>
+											|
+											<a href="?page=an-edit-task&task_id=<?php echo $task->id; ?>&id=<?php echo $project->id; ?>"><?php _e('Edit', 'agency-nexus'); ?></a> |
+											<a href="<?php echo wp_nonce_url('?page=an-projects&action=delete_task&task_id=' . $task->id . '&id=' . $project->id, 'an_delete_task_' . $task->id); ?>" style="color:red;" onclick="return confirm('Delete this task and all its time logs?')"><?php _e('Delete', 'agency-nexus'); ?></a>
+										</div>
 									</td>
 								</tr>
 							<?php endforeach; ?>
@@ -1413,6 +1470,137 @@ class Agency_Nexus_Admin_Dashboard {
 							<li><strong>White Label:</strong> Remove "Agency Nexus" branding from client portals and invoices (Agency Tier).</li>
 						</ul>
 						<a href="#" class="button button-secondary" style="margin-top: 15px;"><?php _e( 'Browse Tiers & Pricing', 'agency-nexus' ); ?></a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render the task edit view.
+	 */
+	public function render_task_edit_view() {
+		global $wpdb;
+		$task_id = isset( $_GET['task_id'] ) ? intval( $_GET['task_id'] ) : 0;
+		$project_id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		if ( ! Agency_Nexus_Permissions::can_view_project( $project_id ) ) {
+			echo '<div class="error"><p>Unauthorized</p></div>'; return;
+		}
+
+		$task = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_tasks WHERE id = %d", $task_id ) );
+		if ( ! $task ) {
+			echo '<div class="error"><p>Task not found.</p></div>'; return;
+		}
+
+		if ( isset( $_GET['msg'] ) && 'time_deleted' === $_GET['msg'] ) {
+			echo '<div class="updated"><p>Time entry deleted.</p></div>';
+		}
+
+		$users = get_users();
+		$time_entries = $wpdb->get_results( $wpdb->prepare( "SELECT t.*, u.display_name FROM {$wpdb->prefix}an_time_entries t JOIN {$wpdb->users} u ON t.user_id = u.ID WHERE t.task_id = %d ORDER BY t.date DESC", $task_id ) );
+
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php echo sprintf( __( 'Edit Task: %s', 'agency-nexus' ), esc_html( $task->title ) ); ?></h1>
+			<p class="description"><?php _e( 'Update task instructions, assignment, and manage time logs.', 'agency-nexus' ); ?></p>
+
+			<div style="display: flex; gap: 20px; margin-top: 20px;">
+				<div style="flex: 1;">
+					<div class="postbox" style="padding: 20px;">
+						<h2><?php _e( 'Task Details', 'agency-nexus' ); ?></h2>
+						<form method="post">
+							<?php wp_nonce_field( 'an_edit_task_nonce' ); ?>
+							<input type="hidden" name="task_id" value="<?php echo $task->id; ?>">
+							<input type="hidden" name="project_id" value="<?php echo $project_id; ?>">
+
+							<table class="form-table">
+								<tr>
+									<th><label for="title"><?php _e( 'Title', 'agency-nexus' ); ?></label></th>
+									<td><input type="text" name="title" id="title" value="<?php echo esc_attr( $task->title ); ?>" class="regular-text" required></td>
+								</tr>
+								<tr>
+									<th><label for="description"><?php _e( 'Instructions / Description', 'agency-nexus' ); ?></label></th>
+									<td><textarea name="description" id="description" class="regular-text" rows="5"><?php echo esc_textarea( $task->description ); ?></textarea></td>
+								</tr>
+								<tr>
+									<th><label for="assigned_to"><?php _e( 'Assigned To', 'agency-nexus' ); ?></label></th>
+									<td>
+										<select name="assigned_to" id="assigned_to">
+											<option value="0"><?php _e( 'Unassigned', 'agency-nexus' ); ?></option>
+											<?php foreach ( $users as $u ) : ?>
+												<option value="<?php echo $u->ID; ?>" <?php selected( $task->assigned_to, $u->ID ); ?>><?php echo esc_html( $u->display_name ); ?></option>
+											<?php endforeach; ?>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<th><label for="priority"><?php _e( 'Priority', 'agency-nexus' ); ?></label></th>
+									<td>
+										<select name="priority" id="priority">
+											<option value="low" <?php selected( $task->priority, 'low' ); ?>><?php _e( 'Low', 'agency-nexus' ); ?></option>
+											<option value="medium" <?php selected( $task->priority, 'medium' ); ?>><?php _e( 'Medium', 'agency-nexus' ); ?></option>
+											<option value="high" <?php selected( $task->priority, 'high' ); ?>><?php _e( 'High', 'agency-nexus' ); ?></option>
+											<option value="urgent" <?php selected( $task->priority, 'urgent' ); ?>><?php _e( 'Urgent', 'agency-nexus' ); ?></option>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<th><label for="status"><?php _e( 'Status', 'agency-nexus' ); ?></label></th>
+									<td>
+										<select name="status" id="status">
+											<option value="todo" <?php selected( $task->status, 'todo' ); ?>><?php _e( 'To Do', 'agency-nexus' ); ?></option>
+											<option value="in_progress" <?php selected( $task->status, 'in_progress' ); ?>><?php _e( 'In Progress', 'agency-nexus' ); ?></option>
+											<option value="review" <?php selected( $task->status, 'review' ); ?>><?php _e( 'Review', 'agency-nexus' ); ?></option>
+											<option value="completed" <?php selected( $task->status, 'completed' ); ?>><?php _e( 'Completed', 'agency-nexus' ); ?></option>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<th><label for="start_date"><?php _e( 'Start Date', 'agency-nexus' ); ?></label></th>
+									<td><input type="date" name="start_date" id="start_date" value="<?php echo esc_attr( $task->start_date ); ?>"></td>
+								</tr>
+								<tr>
+									<th><label for="due_date"><?php _e( 'Due Date', 'agency-nexus' ); ?></label></th>
+									<td><input type="date" name="due_date" id="due_date" value="<?php echo esc_attr( $task->due_date ); ?>"></td>
+								</tr>
+							</table>
+							<p class="submit">
+								<input type="submit" name="an_save_task_edit" class="button button-primary" value="<?php _e( 'Save Task', 'agency-nexus' ); ?>">
+								<a href="?page=an-projects&action=view&id=<?php echo $project_id; ?>" class="button"><?php _e( 'Back to Project', 'agency-nexus' ); ?></a>
+							</p>
+						</form>
+					</div>
+				</div>
+
+				<div style="flex: 1;">
+					<div class="postbox" style="padding: 20px;">
+						<h2><?php _e( 'Time Logs', 'agency-nexus' ); ?></h2>
+						<table class="wp-list-table widefat fixed striped">
+							<thead>
+								<tr>
+									<th><?php _e( 'Date', 'agency-nexus' ); ?></th>
+									<th><?php _e( 'Member', 'agency-nexus' ); ?></th>
+									<th><?php _e( 'Hours', 'agency-nexus' ); ?></th>
+									<th><?php _e( 'Actions', 'agency-nexus' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php if ( $time_entries ) : foreach ( $time_entries as $entry ) : ?>
+									<tr>
+										<td><?php echo esc_html( $entry->date ); ?></td>
+										<td><?php echo esc_html( $entry->display_name ); ?></td>
+										<td><?php echo round( $entry->duration / 3600, 2 ); ?></td>
+										<td>
+											<a href="<?php echo wp_nonce_url( '?page=an-edit-task&action=delete_time&id=' . $entry->id . '&task_id=' . $task_id . '&project_id=' . $project_id, 'an_delete_time_' . $entry->id ); ?>" style="color:red;" onclick="return confirm('Delete this time log?')"><?php _e( 'Delete', 'agency-nexus' ); ?></a>
+										</td>
+									</tr>
+								<?php endforeach; else : ?>
+									<tr><td colspan="4"><?php _e( 'No time logged for this task.', 'agency-nexus' ); ?></td></tr>
+								<?php endif; ?>
+							</tbody>
+						</table>
 					</div>
 				</div>
 			</div>
