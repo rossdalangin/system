@@ -30,11 +30,12 @@ Agency Nexus provides granular control over your agency's execution:
 
 ## 📄 Documentation & Marketing
 The repository includes a full suite of assets to help you scale:
-*   `USER_MANUAL.md`: Step-by-step feature guides.
-*   `MARKETING_STRATEGY.md`: Positioning and pricing advice.
-*   `SALES_VIDEO_SCRIPT.md`: High-converting video copy.
-*   `SOCIAL_CONTENT_CALENDAR.md`: 30 days of social media posts.
-*   `OUTREACH_SCRIPTS.md`: Cold and warm email templates.
+*   **User Guide:** `USER_MANUAL.md` - Step-by-step feature guides.
+*   **Strategy:** `MARKETING_STRATEGY.md` - Positioning and pricing advice.
+*   **Sales Page:** `SALES_LETTER_AND_LANDING_PAGE.md` - High-conversion copy.
+*   **Video Scripts:** `SALES_VIDEO_SCRIPT.md` (Short) and `VIDEO_SCRIPT.md` (Full Walkthrough).
+*   **Social & Emails:** `SOCIAL_CONTENT_CALENDAR.md` and `7_DAY_EMAIL_SERIES.md`.
+*   **Outreach:** `OUTREACH_SCRIPTS.md` - Cold and warm email templates.
 
 ---
 **Agency Nexus. Manage less. Scale more.**

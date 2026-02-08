@@ -1375,6 +1375,14 @@ class Agency_Nexus_Admin_Dashboard {
 		}
 		$is_admin = current_user_can( 'manage_options' );
 		?>
+		<style>
+			.an-quick-nav { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 40px; }
+			.an-nav-card { background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; text-decoration: none; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; text-align: center; }
+			.an-nav-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-color: var(--an-indigo-500); }
+			.an-nav-card i { font-size: 24px; margin-bottom: 10px; color: var(--an-indigo-600); }
+			.an-nav-card span { font-weight: 600; color: var(--an-slate-700); }
+			.an-nav-card small { color: var(--an-slate-500); font-size: 11px; margin-top: 5px; }
+		</style>
 		<div class="agency-nexus-wrap">
 			<header class="an-dashboard-header">
 				<div class="an-dashboard-header-content">
@@ -1396,6 +1404,47 @@ class Agency_Nexus_Admin_Dashboard {
 					<?php endif; ?>
 				</div>
 			</header>
+
+			<section class="an-dashboard-section">
+				<h2><?php _e( 'Quick Navigation', 'agency-nexus' ); ?></h2>
+				<div class="an-quick-nav">
+					<a href="<?php echo admin_url('admin.php?page=an-clients'); ?>" class="an-nav-card">
+						<span class="dashicons dashicons-groups"></span>
+						<span><?php _e('Clients', 'agency-nexus'); ?></span>
+						<small><?php _e('Manage agency CRM', 'agency-nexus'); ?></small>
+					</a>
+					<a href="<?php echo admin_url('admin.php?page=an-projects'); ?>" class="an-nav-card">
+						<span class="dashicons dashicons-portfolio"></span>
+						<span><?php _e('Projects', 'agency-nexus'); ?></span>
+						<small><?php _e('Track tasks & time', 'agency-nexus'); ?></small>
+					</a>
+					<a href="<?php echo admin_url('admin.php?page=an-leads'); ?>" class="an-nav-card">
+						<span class="dashicons dashicons-megaphone"></span>
+						<span><?php _e('Leads', 'agency-nexus'); ?></span>
+						<small><?php _e('Sales pipeline', 'agency-nexus'); ?></small>
+					</a>
+					<a href="<?php echo admin_url('admin.php?page=an-messages'); ?>" class="an-nav-card">
+						<span class="dashicons dashicons-email-alt"></span>
+						<span><?php _e('Messages', 'agency-nexus'); ?></span>
+						<small><?php _e('Client communication', 'agency-nexus'); ?></small>
+					</a>
+					<a href="<?php echo admin_url('admin.php?page=an-invoices'); ?>" class="an-nav-card">
+						<span class="dashicons dashicons-media-spreadsheet"></span>
+						<span><?php _e('Invoices', 'agency-nexus'); ?></span>
+						<small><?php _e('Billing & ROI', 'agency-nexus'); ?></small>
+					</a>
+					<a href="<?php echo admin_url('admin.php?page=an-scope-builder'); ?>" class="an-nav-card">
+						<span class="dashicons dashicons-welcome-edit-page"></span>
+						<span><?php _e('Scope Builder', 'agency-nexus'); ?></span>
+						<small><?php _e('Onboard clients', 'agency-nexus'); ?></small>
+					</a>
+					<a href="<?php echo admin_url('admin.php?page=an-settings'); ?>" class="an-nav-card">
+						<span class="dashicons dashicons-admin-settings"></span>
+						<span><?php _e('Settings', 'agency-nexus'); ?></span>
+						<small><?php _e('Agency configuration', 'agency-nexus'); ?></small>
+					</a>
+				</div>
+			</section>
 
 			<div class="agency-nexus-widgets" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px;">
 				<?php do_action( 'agency_nexus_dashboard_widgets' ); ?>
