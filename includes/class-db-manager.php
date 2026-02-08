@@ -31,10 +31,10 @@ class Agency_Nexus_DB_Manager {
 	 */
 	private function maybe_update_db() {
 		$version = get_option( 'an_db_version', '0' );
-		// If version is less than 1.0.4 or not set.
-		if ( version_compare( $version, '1.0.4', '<' ) ) {
+		// If version is less than 1.0.5 or not set.
+		if ( version_compare( $version, '1.0.5', '<' ) ) {
 			self::create_tables();
-			update_option( 'an_db_version', '1.0.4' );
+			update_option( 'an_db_version', '1.0.5' );
 		}
 	}
 
@@ -255,6 +255,18 @@ title varchar(255) NOT NULL,
 trigger_evt varchar(100) NOT NULL,
 action_evt varchar(100) NOT NULL,
 is_active tinyint(1) DEFAULT 1 NOT NULL,
+created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+PRIMARY KEY  (id)
+) $charset_collate;";
+
+		// Lead Communications Table (EngageTrack)
+		$table_lead_comms = $wpdb->prefix . 'an_lead_communications';
+		$queries[] = "CREATE TABLE $table_lead_comms (
+id bigint(20) NOT NULL AUTO_INCREMENT,
+lead_id bigint(20) NOT NULL,
+user_id bigint(20) NOT NULL,
+subject varchar(255) NOT NULL,
+message text NOT NULL,
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)
 ) $charset_collate;";

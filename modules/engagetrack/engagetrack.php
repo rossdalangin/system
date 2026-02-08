@@ -29,6 +29,10 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 			if ( Agency_Nexus_Permissions::is_admin() ) {
 				$this->process_lead_actions();
 			}
+		} elseif ( 'an-email-lead' === $page ) {
+			if ( Agency_Nexus_Permissions::is_admin() ) {
+				$this->process_email_lead();
+			}
 		} elseif ( 'an-lead-settings' === $page ) {
 			if ( Agency_Nexus_Permissions::is_admin() ) {
 				$this->process_settings_actions();
@@ -50,6 +54,12 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 			check_admin_referer( 'an_delete_lead_' . $id );
 			$wpdb->delete( $table_name, [ 'id' => $id ] );
 			wp_redirect( admin_url( 'admin.php?page=an-leads&msg=deleted' ) );
+			exit;
+		}
+
+		if ( 'convert' === $action && $id ) {
+			check_admin_referer( 'an_convert_lead_' . $id );
+			$this->process_convert_lead( $id );
 			exit;
 		}
 
@@ -116,6 +126,15 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 				'read',
 				'an-leads',
 				[ $this, 'render_leads' ]
+			);
+
+			add_submenu_page(
+				null, // Hidden from menu
+				__( 'Email Lead', 'agency-nexus' ),
+				__( 'Email Lead', 'agency-nexus' ),
+				'read',
+				'an-email-lead',
+				[ $this, 'render_email_lead' ]
 			);
 
 			add_submenu_page(
@@ -207,6 +226,105 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		<?php
 	}
 
+	public function process_email_lead() {
+		if ( isset( $_POST['an_send_lead_email'] ) && check_admin_referer( 'an_send_lead_email_nonce' ) ) {
+			global $wpdb;
+			$lead_id = intval( $_POST['lead_id'] );
+			$subject = sanitize_text_field( $_POST['subject'] );
+			$message = wp_kses_post( $_POST['message'] );
+			$lead = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_leads WHERE id = %d", $lead_id ) );
+
+			if ( $lead ) {
+				$sent = wp_mail( $lead->email, $subject, $message, [ 'Content-Type: text/html; charset=UTF-8' ] );
+				if ( $sent ) {
+					$wpdb->insert( $wpdb->prefix . 'an_lead_communications', [
+						'lead_id'    => $lead_id,
+						'user_id'    => get_current_user_id(),
+						'subject'    => $subject,
+						'message'    => $message,
+						'created_at' => current_time( 'mysql' )
+					] );
+					wp_redirect( admin_url( 'admin.php?page=an-leads&msg=email_sent' ) );
+				} else {
+					wp_redirect( admin_url( 'admin.php?page=an-leads&msg=email_failed' ) );
+				}
+				exit;
+			}
+		}
+	}
+
+	public function render_email_lead() {
+		global $wpdb;
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+		$lead = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_leads WHERE id = %d", $id ) );
+		$responses = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_canned_responses ORDER BY title ASC" );
+
+		if ( ! $lead ) {
+			echo '<div class="error"><p>' . __( 'Lead not found.', 'agency-nexus' ) . '</p></div>';
+			return;
+		}
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php echo sprintf( __( 'Email Lead: %s', 'agency-nexus' ), esc_html( $lead->name ) ); ?></h1>
+			<p class="description"><?php echo sprintf( __( 'Send a message to %s (%s).', 'agency-nexus' ), esc_html( $lead->name ), esc_html( $lead->email ) ); ?></p>
+
+			<form method="post">
+				<?php wp_nonce_field( 'an_send_lead_email_nonce' ); ?>
+				<input type="hidden" name="lead_id" value="<?php echo $lead->id; ?>">
+
+				<table class="form-table">
+					<tr>
+						<th><label><?php _e( 'Canned Response', 'agency-nexus' ); ?></label></th>
+						<td>
+							<select id="an-canned-response-select">
+								<option value=""><?php _e( 'Select a template...', 'agency-nexus' ); ?></option>
+								<?php foreach ( $responses as $res ) : ?>
+									<option value="<?php echo esc_attr( $res->id ); ?>" data-content="<?php echo esc_attr( $res->content ); ?>"><?php echo esc_html( $res->title ); ?></option>
+								<?php endforeach; ?>
+							</select>
+							<p class="description"><?php _e( 'Select a template to quickly populate the subject and message.', 'agency-nexus' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="subject"><?php _e( 'Subject', 'agency-nexus' ); ?></label></th>
+						<td>
+							<input type="text" name="subject" id="subject" class="regular-text" required>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="message"><?php _e( 'Message', 'agency-nexus' ); ?></label></th>
+						<td>
+							<?php wp_editor( '', 'message', [ 'textarea_name' => 'message', 'rows' => 10 ] ); ?>
+						</td>
+					</tr>
+				</table>
+
+				<p class="submit">
+					<input type="submit" name="an_send_lead_email" class="button button-primary" value="<?php _e( 'Send Email', 'agency-nexus' ); ?>">
+					<a href="?page=an-leads" class="button"><?php _e( 'Cancel', 'agency-nexus' ); ?></a>
+				</p>
+			</form>
+		</div>
+
+		<script>
+		jQuery(document).ready(function($){
+			$('#an-canned-response-select').change(function(){
+				var content = $(this).find(':selected').data('content');
+				var title = $(this).find(':selected').text();
+				if (content) {
+					$('#subject').val(title);
+					if (typeof tinyMCE !== 'undefined' && tinyMCE.get('message')) {
+						tinyMCE.get('message').setContent(content);
+					} else {
+						$('#message').val(content);
+					}
+				}
+			});
+		});
+		</script>
+		<?php
+	}
+
 	public function render_leads() {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'an_leads';
@@ -216,9 +334,12 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		if ( isset( $_GET['msg'] ) ) {
 			$m = '';
 			switch ( $_GET['msg'] ) {
-				case 'added':   $m = 'Lead recorded!'; break;
-				case 'updated': $m = 'Lead updated!'; break;
-				case 'deleted': $m = 'Lead deleted!'; break;
+				case 'added':        $m = 'Lead recorded!'; break;
+				case 'updated':      $m = 'Lead updated!'; break;
+				case 'deleted':      $m = 'Lead deleted!'; break;
+				case 'email_sent':   $m = 'Email sent to lead!'; break;
+				case 'email_failed': $m = 'Failed to send email.'; break;
+				case 'converted':    $m = 'Lead converted to client successfully!'; break;
 			}
 			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
 		}
@@ -276,6 +397,38 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 					<input type="submit" name="an_save_lead" class="button button-primary" value="Save Lead">
 					<a href="?page=an-leads" class="button">Cancel</a>
 				</form>
+
+				<?php if ( $id ) :
+					$comms = $wpdb->get_results( $wpdb->prepare( "SELECT c.*, u.display_name FROM {$wpdb->prefix}an_lead_communications c LEFT JOIN {$wpdb->users} u ON c.user_id = u.ID WHERE c.lead_id = %d ORDER BY c.created_at DESC", $id ) );
+				?>
+					<div style="margin-top: 40px;">
+						<h2><?php _e( 'Communication History', 'agency-nexus' ); ?></h2>
+						<?php if ( $comms ) : ?>
+							<table class="wp-list-table widefat fixed striped">
+								<thead>
+									<tr>
+										<th><?php _e( 'Date', 'agency-nexus' ); ?></th>
+										<th><?php _e( 'Sent By', 'agency-nexus' ); ?></th>
+										<th><?php _e( 'Subject', 'agency-nexus' ); ?></th>
+										<th><?php _e( 'Message', 'agency-nexus' ); ?></th>
+									</tr>
+								</thead>
+								<tbody>
+									<?php foreach ( $comms as $comm ) : ?>
+										<tr>
+											<td><?php echo esc_html( $comm->created_at ); ?></td>
+											<td><?php echo esc_html( $comm->display_name ); ?></td>
+											<td><?php echo esc_html( $comm->subject ); ?></td>
+											<td><?php echo wp_kses_post( nl2br( $comm->message ) ); ?></td>
+										</tr>
+									<?php endforeach; ?>
+								</tbody>
+							</table>
+						<?php else : ?>
+							<p><?php _e( 'No communication history found for this lead.', 'agency-nexus' ); ?></p>
+						<?php endif; ?>
+					</div>
+				<?php endif; ?>
 			</div>
 			<?php
 			return;
@@ -367,12 +520,16 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 				<tbody>
 					<?php foreach ($leads as $lead) : ?>
 						<tr>
-							<td><strong><?php echo esc_html($lead->name); ?></strong></td>
+							<td><strong><a href="?page=an-leads&action=edit&id=<?php echo $lead->id; ?>"><?php echo esc_html($lead->name); ?></a></strong></td>
 							<td><?php echo esc_html($lead->email); ?></td>
 							<td><?php echo esc_html($lead->source); ?></td>
 							<td><span class="badge status-<?php echo $lead->status; ?>"><?php echo ucfirst($lead->status); ?></span></td>
 							<td>$<?php echo number_format($lead->conversion_value, 2); ?></td>
 							<td>
+								<a href="?page=an-email-lead&id=<?php echo $lead->id; ?>"><?php _e('Email', 'agency-nexus'); ?></a> |
+								<?php if ( $lead->status !== 'converted' ) : ?>
+									<a href="<?php echo wp_nonce_url('?page=an-leads&action=convert&id=' . $lead->id, 'an_convert_lead_' . $lead->id); ?>" style="color:green;" onclick="return confirm('Convert this lead to a client?')"><?php _e('Convert', 'agency-nexus'); ?></a> |
+								<?php endif; ?>
 								<a href="?page=an-leads&action=edit&id=<?php echo $lead->id; ?>">Edit</a> |
 								<a href="<?php echo wp_nonce_url('?page=an-leads&action=delete&id=' . $lead->id, 'an_delete_lead_' . $lead->id); ?>" style="color:red;" onclick="return confirm('Delete lead?')">Delete</a>
 							</td>
