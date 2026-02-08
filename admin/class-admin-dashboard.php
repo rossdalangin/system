@@ -61,6 +61,20 @@ class Agency_Nexus_Admin_Dashboard {
 			update_option( 'an_stripe_key', sanitize_text_field( $_POST['an_stripe_key'] ) );
 			update_option( 'an_paypal_email', sanitize_email( $_POST['an_paypal_email'] ) );
 			update_option( 'an_payment_test_mode', isset($_POST['an_payment_test_mode']) ? 'yes' : 'no' );
+
+			// SMTP Settings
+			update_option( 'an_smtp_enabled', isset($_POST['an_smtp_enabled']) ? 'yes' : 'no' );
+			update_option( 'an_smtp_host', sanitize_text_field( $_POST['an_smtp_host'] ) );
+			update_option( 'an_smtp_port', intval( $_POST['an_smtp_port'] ) );
+			update_option( 'an_smtp_encryption', sanitize_text_field( $_POST['an_smtp_encryption'] ) );
+			update_option( 'an_smtp_auth', isset($_POST['an_smtp_auth']) ? 'yes' : 'no' );
+			update_option( 'an_smtp_username', sanitize_text_field( $_POST['an_smtp_username'] ) );
+			if ( ! empty( $_POST['an_smtp_password'] ) ) {
+				update_option( 'an_smtp_password', sanitize_text_field( $_POST['an_smtp_password'] ) );
+			}
+			update_option( 'an_email_from_address', sanitize_email( $_POST['an_email_from_address'] ) );
+			update_option( 'an_email_from_name', sanitize_text_field( $_POST['an_email_from_name'] ) );
+
 			update_option( 'an_zapier_webhook', esc_url_raw( $_POST['an_zapier_webhook'] ) );
 			update_option( 'an_hourly_rate', floatval( $_POST['an_hourly_rate'] ) );
 			update_option( 'an_agency_logo', esc_url_raw( $_POST['an_agency_logo'] ) );
@@ -1209,6 +1223,66 @@ class Agency_Nexus_Admin_Dashboard {
 							<input type="text" name="an_zapier_webhook" id="an_zapier_webhook" value="<?php echo esc_attr( get_option( 'an_zapier_webhook' ) ); ?>" class="large-text">
 							<p class="description"><?php _e('Trigger external workflows in Zapier or Make.com when project milestones are met.', 'agency-nexus'); ?></p>
 						</td>
+					</tr>
+				</table>
+
+				<hr>
+				<h2>Email & SMTP Settings</h2>
+				<p class="description">Configure how the plugin sends emails. You can use your default server or connect an external SMTP service (SendGrid, Mailgun, etc.) for better deliverability.</p>
+
+				<table class="form-table">
+					<tr>
+						<th>Enable SMTP</th>
+						<td>
+							<label>
+								<input type="checkbox" name="an_smtp_enabled" value="yes" <?php checked( get_option( 'an_smtp_enabled', 'no' ), 'yes' ); ?>>
+								Use SMTP instead of default mail server
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<th>SMTP Host</th>
+						<td><input type="text" name="an_smtp_host" value="<?php echo esc_attr( get_option( 'an_smtp_host' ) ); ?>" class="regular-text" placeholder="smtp.example.com"></td>
+					</tr>
+					<tr>
+						<th>SMTP Port</th>
+						<td><input type="number" name="an_smtp_port" value="<?php echo esc_attr( get_option( 'an_smtp_port', 587 ) ); ?>" class="small-text"></td>
+					</tr>
+					<tr>
+						<th>Encryption</th>
+						<td>
+							<select name="an_smtp_encryption">
+								<option value="none" <?php selected( get_option( 'an_smtp_encryption' ), 'none' ); ?>>None</option>
+								<option value="ssl" <?php selected( get_option( 'an_smtp_encryption' ), 'ssl' ); ?>>SSL</option>
+								<option value="tls" <?php selected( get_option( 'an_smtp_encryption', 'tls' ), 'tls' ); ?>>TLS</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th>Authentication</th>
+						<td>
+							<label>
+								<input type="checkbox" name="an_smtp_auth" value="yes" <?php checked( get_option( 'an_smtp_auth', 'no' ), 'yes' ); ?>>
+								SMTP Authentication required
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<th>SMTP Username</th>
+						<td><input type="text" name="an_smtp_username" value="<?php echo esc_attr( get_option( 'an_smtp_username' ) ); ?>" class="regular-text"></td>
+					</tr>
+					<tr>
+						<th>SMTP Password</th>
+						<td><input type="password" name="an_smtp_password" value="" class="regular-text" placeholder="********">
+						<p class="description">Leave blank to keep current password.</p></td>
+					</tr>
+					<tr>
+						<th>From Email Address</th>
+						<td><input type="email" name="an_email_from_address" value="<?php echo esc_attr( get_option( 'an_email_from_address', get_option('admin_email') ) ); ?>" class="regular-text"></td>
+					</tr>
+					<tr>
+						<th>From Name</th>
+						<td><input type="text" name="an_email_from_name" value="<?php echo esc_attr( get_option( 'an_email_from_name', get_bloginfo('name') ) ); ?>" class="regular-text"></td>
 					</tr>
 				</table>
 				<p class="submit">

@@ -744,16 +744,18 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 
 		$projects = $wpdb->get_results( $query );
 
-		$total_budget = 0;
-		$total_labor  = 0;
+		$total_budget   = 0;
+		$total_labor    = 0;
+		$total_expenses = 0;
 
 		foreach ( $projects as $project ) {
 			$profit = $this->calculate_project_profitability( $project->id );
-			$total_budget += $profit['budget'];
-			$total_labor  += $profit['labor_cost'];
+			$total_budget   += $profit['budget'];
+			$total_labor    += $profit['labor_cost'];
+			$total_expenses += $profit['expenses'];
 		}
 
-		$total_profit = $total_budget - $total_labor;
+		$total_profit = $total_budget - $total_labor - $total_expenses;
 		$color = $total_profit >= 0 ? '#46b450' : '#dc3232';
 
 		?>

@@ -61,6 +61,7 @@ class Agency_Nexus {
 		require_once AGENCY_NEXUS_PATH . 'includes/class-license-manager.php';
 		require_once AGENCY_NEXUS_PATH . 'includes/class-base-module.php';
 		require_once AGENCY_NEXUS_PATH . 'includes/class-api-handler.php';
+		require_once AGENCY_NEXUS_PATH . 'includes/class-email-handler.php';
 
 		if ( is_admin() ) {
 			require_once AGENCY_NEXUS_PATH . 'admin/class-admin-dashboard.php';
@@ -89,6 +90,9 @@ class Agency_Nexus {
 
 		// Initialize API Handler
 		Agency_Nexus_API_Handler::get_instance();
+
+		// Initialize Email Handler
+		Agency_Nexus_Email_Handler::get_instance();
 
 		// Load modules after core components are ready
 		$this->load_modules();

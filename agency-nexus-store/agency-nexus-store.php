@@ -203,7 +203,6 @@ class Agency_Nexus_Store {
 						</td>
 					</tr>
 				</table>
-				</table>
 
 				<hr>
 				<h2>Payment Gateways</h2>
