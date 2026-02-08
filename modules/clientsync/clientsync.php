@@ -31,6 +31,10 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	}
 
 	public function register_submenu() {
+		if ( ! Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'messaging' ) ) {
+			return;
+		}
+
 		add_submenu_page(
 			'agency-nexus',
 			__( 'Messages', 'agency-nexus' ),

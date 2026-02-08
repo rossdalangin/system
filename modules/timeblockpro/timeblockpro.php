@@ -57,6 +57,10 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 	}
 
 	public function register_submenu() {
+		if ( ! Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'time_blocking' ) ) {
+			return;
+		}
+
 		if ( Agency_Nexus_Permissions::is_team_member() ) {
 			add_submenu_page(
 				'agency-nexus',

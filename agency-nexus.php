@@ -83,6 +83,9 @@ class Agency_Nexus {
 		// Initialize DB Manager
 		Agency_Nexus_DB_Manager::get_instance();
 
+		// Initialize Permissions
+		Agency_Nexus_Permissions::init();
+
 		// Initialize Admin Dashboard
 		if ( is_admin() ) {
 			Agency_Nexus_Admin_Dashboard::get_instance();

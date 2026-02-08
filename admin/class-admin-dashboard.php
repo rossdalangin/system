@@ -367,7 +367,9 @@ class Agency_Nexus_Admin_Dashboard {
 			[ $this, 'render_dashboard' ]
 		);
 
-		if ( Agency_Nexus_Permissions::is_team_member() ) {
+		$license_manager = Agency_Nexus_License_Manager::get_instance();
+
+		if ( Agency_Nexus_Permissions::is_team_member() && $license_manager->is_feature_enabled( 'client_management' ) ) {
 			add_submenu_page(
 				'agency-nexus',
 				__( 'Clients', 'agency-nexus' ),
@@ -378,14 +380,16 @@ class Agency_Nexus_Admin_Dashboard {
 			);
 		}
 
-		add_submenu_page(
-			'agency-nexus',
-			__( 'Projects', 'agency-nexus' ),
-			__( 'Projects', 'agency-nexus' ),
-			'read',
-			'an-projects',
-			[ $this, 'render_projects' ]
-		);
+		if ( $license_manager->is_feature_enabled( 'project_management' ) ) {
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Projects', 'agency-nexus' ),
+				__( 'Projects', 'agency-nexus' ),
+				'read',
+				'an-projects',
+				[ $this, 'render_projects' ]
+			);
+		}
 
 		if ( current_user_can( 'manage_options' ) ) {
 			add_submenu_page(
@@ -1408,41 +1412,66 @@ class Agency_Nexus_Admin_Dashboard {
 			<section class="an-dashboard-section">
 				<h2><?php _e( 'Quick Navigation', 'agency-nexus' ); ?></h2>
 				<div class="an-quick-nav">
+					<?php
+					$lm = Agency_Nexus_License_Manager::get_instance();
+					$is_team = Agency_Nexus_Permissions::is_team_member();
+					?>
+
+					<?php if ( $is_team && $lm->is_feature_enabled( 'client_management' ) ) : ?>
 					<a href="<?php echo admin_url('admin.php?page=an-clients'); ?>" class="an-nav-card">
 						<span class="dashicons dashicons-groups"></span>
 						<span><?php _e('Clients', 'agency-nexus'); ?></span>
 						<small><?php _e('Manage agency CRM', 'agency-nexus'); ?></small>
 					</a>
+					<?php endif; ?>
+
+					<?php if ( $lm->is_feature_enabled( 'project_management' ) ) : ?>
 					<a href="<?php echo admin_url('admin.php?page=an-projects'); ?>" class="an-nav-card">
 						<span class="dashicons dashicons-portfolio"></span>
 						<span><?php _e('Projects', 'agency-nexus'); ?></span>
 						<small><?php _e('Track tasks & time', 'agency-nexus'); ?></small>
 					</a>
+					<?php endif; ?>
+
+					<?php if ( $is_team && $lm->is_feature_enabled( 'lead_intelligence' ) ) : ?>
 					<a href="<?php echo admin_url('admin.php?page=an-leads'); ?>" class="an-nav-card">
 						<span class="dashicons dashicons-megaphone"></span>
 						<span><?php _e('Leads', 'agency-nexus'); ?></span>
 						<small><?php _e('Sales pipeline', 'agency-nexus'); ?></small>
 					</a>
+					<?php endif; ?>
+
+					<?php if ( $lm->is_feature_enabled( 'messaging' ) ) : ?>
 					<a href="<?php echo admin_url('admin.php?page=an-messages'); ?>" class="an-nav-card">
 						<span class="dashicons dashicons-email-alt"></span>
 						<span><?php _e('Messages', 'agency-nexus'); ?></span>
 						<small><?php _e('Client communication', 'agency-nexus'); ?></small>
 					</a>
+					<?php endif; ?>
+
+					<?php if ( $is_team && $lm->is_feature_enabled( 'money_flow' ) ) : ?>
 					<a href="<?php echo admin_url('admin.php?page=an-invoices'); ?>" class="an-nav-card">
 						<span class="dashicons dashicons-media-spreadsheet"></span>
 						<span><?php _e('Invoices', 'agency-nexus'); ?></span>
 						<small><?php _e('Billing & ROI', 'agency-nexus'); ?></small>
 					</a>
+					<?php endif; ?>
+
+					<?php if ( $is_team && $lm->is_feature_enabled( 'project_management' ) ) : ?>
 					<a href="<?php echo admin_url('admin.php?page=an-scope-builder'); ?>" class="an-nav-card">
 						<span class="dashicons dashicons-welcome-edit-page"></span>
 						<span><?php _e('Scope Builder', 'agency-nexus'); ?></span>
 						<small><?php _e('Onboard clients', 'agency-nexus'); ?></small>
 					</a>
+					<?php endif; ?>
+
+					<?php if ( current_user_can('manage_options') ) : ?>
 					<a href="<?php echo admin_url('admin.php?page=an-settings'); ?>" class="an-nav-card">
 						<span class="dashicons dashicons-admin-settings"></span>
 						<span><?php _e('Settings', 'agency-nexus'); ?></span>
 						<small><?php _e('Agency configuration', 'agency-nexus'); ?></small>
 					</a>
+					<?php endif; ?>
 				</div>
 			</section>
 

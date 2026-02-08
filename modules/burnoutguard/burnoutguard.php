@@ -56,6 +56,10 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 	}
 
 	public function register_submenu() {
+		if ( ! Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'burnout_guard' ) ) {
+			return;
+		}
+
 		if ( Agency_Nexus_Permissions::is_team_member() ) {
 			add_submenu_page(
 				'agency-nexus',

@@ -10,6 +10,44 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Agency_Nexus_Permissions {
 
 	/**
+	 * Initialize hooks.
+	 */
+	public static function init() {
+		add_filter( 'user_has_cap', [ __CLASS__, 'grant_client_upload_cap' ], 10, 3 );
+		add_filter( 'ajax_query_attachments_args', [ __CLASS__, 'filter_media_library' ] );
+	}
+
+	/**
+	 * Grant upload_files capability to Clients so they can use the Shared File repository.
+	 */
+	public static function grant_client_upload_cap( $allcaps, $caps, $args ) {
+		if ( ! is_user_logged_in() ) {
+			return $allcaps;
+		}
+
+		if ( in_array( 'upload_files', $caps ) ) {
+			if ( self::is_client() ) {
+				$allcaps['upload_files'] = true;
+			}
+		}
+
+		return $allcaps;
+	}
+
+	/**
+	 * Filter the Media Library to show only own uploads for non-staff.
+	 */
+	public static function filter_media_library( $query ) {
+		if ( ! self::is_team_member() ) {
+			$user_id = get_current_user_id();
+			if ( $user_id ) {
+				$query['author'] = $user_id;
+			}
+		}
+		return $query;
+	}
+
+	/**
 	 * Check if the user can access any part of Agency Nexus.
 	 */
 	public static function can_access_nexus() {

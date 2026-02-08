@@ -20,6 +20,10 @@ class Agency_Nexus_Module_Approvalflow extends Agency_Nexus_Base_Module {
 	}
 
 	public function register_submenu() {
+		if ( ! Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'content_calendar' ) ) {
+			return;
+		}
+
 		add_submenu_page(
 			'agency-nexus',
 			__( 'Approvals', 'agency-nexus' ),
