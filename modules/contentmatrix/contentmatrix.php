@@ -69,7 +69,12 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 	}
 
 	public function enqueue_scripts( $hook ) {
-		if ( 'agency-nexus_page_an-content-calendar' !== $hook ) {
+		$pages = [
+			'agency-nexus_page_an-content-calendar',
+			'agency-nexus_page_an-content-list'
+		];
+
+		if ( ! in_array( $hook, $pages ) ) {
 			return;
 		}
 		wp_enqueue_media();
@@ -352,6 +357,10 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'content_calendar' ) ) {
+			return;
+		}
+
 		if ( ! Agency_Nexus_Permissions::can_access_nexus() ) {
 			return;
 		}

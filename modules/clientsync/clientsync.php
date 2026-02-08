@@ -212,6 +212,10 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'messaging' ) ) {
+			return;
+		}
+
 		global $wpdb;
 		$user_id = get_current_user_id();
 		$where = "WHERE is_read = 0 AND sender_id != $user_id";

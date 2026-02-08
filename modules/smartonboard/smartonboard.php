@@ -209,6 +209,10 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 	}
 
 	public function render_dashboard_widget() {
+		if ( ! Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'project_management' ) ) {
+			return;
+		}
+
 		if ( ! Agency_Nexus_Permissions::is_team_member() ) {
 			return;
 		}
