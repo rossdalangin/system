@@ -65,12 +65,23 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 
 		if ( isset( $_POST['an_save_lead'] ) && check_admin_referer( 'an_save_lead_nonce' ) ) {
 			$status = sanitize_text_field( $_POST['status'] );
+			$value = floatval( $_POST['conversion_value'] );
+
+			// Simple Lead Scoring Algorithm
+			$score = 0;
+			if ( $value > 5000 ) $score += 50;
+			elseif ( $value > 1000 ) $score += 20;
+
+			if ( strpos( strtolower($_POST['source']), 'referral' ) !== false ) $score += 30;
+			if ( $status === 'qualified' ) $score += 20;
+
 			$data = [
 				'name'             => sanitize_text_field( $_POST['name'] ),
 				'email'            => sanitize_email( $_POST['email'] ),
 				'source'           => sanitize_text_field( $_POST['source'] ),
 				'status'           => $status,
-				'conversion_value' => floatval( $_POST['conversion_value'] )
+				'conversion_value' => $value,
+				'score'            => $score
 			];
 			if ( $id ) {
 				$wpdb->update( $table_name, $data, [ 'id' => $id ] );
@@ -167,6 +178,15 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		}
 
 		if ( Agency_Nexus_Permissions::is_admin() ) {
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Social Dashboard', 'agency-nexus' ),
+				__( 'Social Dashboard', 'agency-nexus' ),
+				'read',
+				'an-social-dashboard',
+				[ $this, 'render_social_dashboard' ]
+			);
+
 			add_submenu_page(
 				'agency-nexus',
 				__( 'Leads', 'agency-nexus' ),
@@ -564,7 +584,7 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 			</script>
 
 			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>Name</th><th>Email</th><th>Source</th><th>Status</th><th>Value</th><th>Actions</th></tr></thead>
+				<thead><tr><th>Name</th><th>Email</th><th>Source</th><th>Status</th><th>Value</th><th>Score</th><th>Actions</th></tr></thead>
 				<tbody>
 					<?php foreach ($leads as $lead) : ?>
 						<tr>
@@ -573,6 +593,12 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 							<td><?php echo esc_html($lead->source); ?></td>
 							<td><span class="badge status-<?php echo $lead->status; ?>"><?php echo ucfirst($lead->status); ?></span></td>
 							<td>$<?php echo number_format($lead->conversion_value, 2); ?></td>
+							<td>
+								<div style="width: 50px; height: 10px; background: #eee; border-radius: 5px; overflow: hidden;">
+									<div style="width: <?php echo min(100, $lead->score); ?>%; height: 100%; background: var(--an-indigo-600);"></div>
+								</div>
+								<small><?php echo intval($lead->score); ?>/100</small>
+							</td>
 							<td>
 								<a href="?page=an-email-lead&id=<?php echo $lead->id; ?>"><?php _e('Email', 'agency-nexus'); ?></a> |
 								<?php if ( $lead->status !== 'converted' ) : ?>
@@ -585,6 +611,63 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 					<?php endforeach; ?>
 				</tbody>
 			</table>
+		</div>
+		<?php
+	}
+
+	public function render_social_dashboard() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_social_interactions';
+		$interactions = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC LIMIT 50" );
+
+		// Seed if empty (Simulated Social Data)
+		if ( empty($interactions) ) {
+			$wpdb->insert( $table_name, [ 'platform' => 'Instagram', 'username' => 'johndoe', 'content' => 'Love this new service!', 'sentiment' => 'positive', 'is_priority' => 1, 'created_at' => current_time('mysql') ] );
+			$wpdb->insert( $table_name, [ 'platform' => 'LinkedIn', 'username' => 'sarah_biz', 'content' => 'Can you send me a proposal for web design?', 'sentiment' => 'positive', 'is_priority' => 1, 'created_at' => current_time('mysql') ] );
+			$wpdb->insert( $table_name, [ 'platform' => 'X', 'username' => 'techie99', 'content' => 'Your site is a bit slow today.', 'sentiment' => 'negative', 'is_priority' => 0, 'created_at' => current_time('mysql') ] );
+			$interactions = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC LIMIT 50" );
+		}
+
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Unified Social Dashboard', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e( 'Aggregate engagement from all your connected platforms. Respond to urgent interactions and track brand sentiment in real-time.', 'agency-nexus' ); ?></p>
+
+			<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-top: 30px;">
+				<div class="postbox" style="padding: 20px;">
+					<h3><?php _e( 'Recent Interactions', 'agency-nexus' ); ?></h3>
+					<table class="wp-list-table widefat fixed striped">
+						<thead><tr><th>Platform</th><th>User</th><th>Content</th><th>Sentiment</th><th>Action</th></tr></thead>
+						<tbody>
+							<?php foreach ( $interactions as $i ) :
+								$color = $i->sentiment === 'positive' ? '#46b450' : ($i->sentiment === 'negative' ? '#dc3232' : '#646970');
+							?>
+								<tr>
+									<td><strong><?php echo esc_html( $i->platform ); ?></strong></td>
+									<td>@<?php echo esc_html( $i->username ); ?></td>
+									<td><?php echo esc_html( $i->content ); ?></td>
+									<td><span style="color: <?php echo $color; ?>; font-weight: bold;"><?php echo ucfirst($i->sentiment); ?></span></td>
+									<td><button type="button" class="button button-small"><?php _e( 'Reply', 'agency-nexus' ); ?></button></td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+				<div>
+					<div class="postbox" style="padding: 20px; border-left: 4px solid var(--an-indigo-600);">
+						<h3><?php _e( 'Priority Inbox', 'agency-nexus' ); ?></h3>
+						<p><?php _e( 'High-intent interactions that require immediate attention.', 'agency-nexus' ); ?></p>
+						<ul style="list-style: none; padding: 0;">
+							<?php foreach ( $interactions as $i ) : if(!$i->is_priority) continue; ?>
+								<li style="padding: 10px; border-bottom: 1px solid #eee;">
+									<strong>@<?php echo esc_html( $i->username ); ?></strong> (<?php echo $i->platform; ?>)<br>
+									<small><?php echo esc_html( $i->content ); ?></small>
+								</li>
+							<?php endforeach; ?>
+						</ul>
+					</div>
+				</div>
+			</div>
 		</div>
 		<?php
 	}
@@ -739,19 +822,32 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 		$conversions = $wpdb->get_var( "SELECT COUNT(*) FROM $leads_table WHERE status = 'converted'" );
 		$conv_rate   = $total_leads > 0 ? ($conversions / $total_leads) * 100 : 0;
 
+		// Calculate LTV Projection (Projected revenue from converted leads)
+		$ltv = $wpdb->get_var( "SELECT SUM(conversion_value) FROM $leads_table WHERE status = 'converted'" );
+
 		?>
 		<div class="postbox" style="padding: 20px;">
-			<h2><?php _e( 'EngageTrack', 'agency-nexus' ); ?></h2>
+			<h2><?php _e( 'EngageTrack Intelligence', 'agency-nexus' ); ?></h2>
 			<div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
 				<div>
 					<strong><?php _e( 'Total Leads', 'agency-nexus' ); ?></strong>
 					<div style="font-size: 20px; font-weight: bold;"><?php echo intval($total_leads); ?></div>
 				</div>
 				<div>
-					<strong><?php _e( 'Conv. Rate', 'agency-nexus' ); ?></strong>
-					<div style="font-size: 20px; font-weight: bold; color: #46b450;"><?php echo round($conv_rate, 1); ?>%</div>
+					<strong><?php _e( 'LTV Projection', 'agency-nexus' ); ?></strong>
+					<div style="font-size: 20px; font-weight: bold; color: var(--an-indigo-600);">$<?php echo number_format($ltv); ?></div>
 				</div>
 			</div>
+
+			<p><strong><?php _e( 'Conversion Pipeline:', 'agency-nexus' ); ?></strong></p>
+			<div style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+				<div style="flex: 1; height: 20px; background: #eee; border-radius: 10px; overflow: hidden; display: flex;">
+					<div style="width: <?php echo $conv_rate; ?>%; background: #46b450;" title="Converted"></div>
+					<div style="width: <?php echo 100 - $conv_rate; ?>%; background: var(--an-slate-300);" title="Remaining"></div>
+				</div>
+				<span style="font-weight: bold; color: #46b450;"><?php echo round($conv_rate, 1); ?>%</span>
+			</div>
+
 			<p><strong><?php _e( 'Sentiment Analysis:', 'agency-nexus' ); ?></strong></p>
 			<div style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
 				<div style="flex: 1; height: 20px; background: #eee; border-radius: 10px; overflow: hidden; display: flex;">

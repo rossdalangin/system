@@ -31,10 +31,10 @@ class Agency_Nexus_DB_Manager {
 	 */
 	private function maybe_update_db() {
 		$version = get_option( 'an_db_version', '0' );
-		// If version is less than 1.0.8 or not set.
-		if ( version_compare( $version, '1.0.8', '<' ) ) {
+		// If version is less than 1.1.4 or not set.
+		if ( version_compare( $version, '1.1.4', '<' ) ) {
 			self::create_tables();
-			update_option( 'an_db_version', '1.0.8' );
+			update_option( 'an_db_version', '1.1.4' );
 		}
 	}
 
@@ -123,6 +123,9 @@ media_url varchar(255) DEFAULT '' NOT NULL,
 status varchar(50) DEFAULT 'draft' NOT NULL,
 scheduled_date datetime DEFAULT '0000-00-00 00:00:00',
 platform varchar(50) DEFAULT 'wordpress' NOT NULL,
+is_pillar tinyint(1) DEFAULT 0 NOT NULL,
+pillar_id bigint(20) DEFAULT 0 NOT NULL,
+predicted_engagement int(11) DEFAULT 0 NOT NULL,
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)
 ) $charset_collate;";
@@ -161,6 +164,7 @@ email varchar(255) NOT NULL,
 source varchar(255) DEFAULT 'direct' NOT NULL,
 status varchar(50) DEFAULT 'new' NOT NULL,
 conversion_value decimal(10,2) DEFAULT 0.00 NOT NULL,
+score int(11) DEFAULT 0 NOT NULL,
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)
 ) $charset_collate;";
@@ -219,6 +223,18 @@ id bigint(20) NOT NULL AUTO_INCREMENT,
 user_id bigint(20) NOT NULL,
 stress_level int(11) NOT NULL,
 note text NOT NULL,
+created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+PRIMARY KEY  (id)
+) $charset_collate;";
+
+		// Vacations Table (BurnoutGuard)
+		$table_vacations = $wpdb->prefix . 'an_vacations';
+		$queries[] = "CREATE TABLE $table_vacations (
+id bigint(20) NOT NULL AUTO_INCREMENT,
+user_id bigint(20) NOT NULL,
+start_date date NOT NULL,
+end_date date NOT NULL,
+note varchar(255) DEFAULT '' NOT NULL,
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)
 ) $charset_collate;";
@@ -284,6 +300,33 @@ budget decimal(10,2) DEFAULT 0.00 NOT NULL,
 status varchar(50) DEFAULT 'draft' NOT NULL,
 signature longtext DEFAULT '' NOT NULL,
 signed_at datetime DEFAULT '0000-00-00 00:00:00',
+created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+PRIMARY KEY  (id)
+) $charset_collate;";
+
+		// Social Interactions Table (EngageTrack)
+		$table_social = $wpdb->prefix . 'an_social_interactions';
+		$queries[] = "CREATE TABLE $table_social (
+id bigint(20) NOT NULL AUTO_INCREMENT,
+platform varchar(50) NOT NULL,
+username varchar(255) NOT NULL,
+content text NOT NULL,
+sentiment varchar(20) DEFAULT 'neutral' NOT NULL,
+is_priority tinyint(1) DEFAULT 0 NOT NULL,
+created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+PRIMARY KEY  (id)
+) $charset_collate;";
+
+		// Meetings Table (ClientSync)
+		$table_meetings = $wpdb->prefix . 'an_meetings';
+		$queries[] = "CREATE TABLE $table_meetings (
+id bigint(20) NOT NULL AUTO_INCREMENT,
+client_id bigint(20) NOT NULL,
+title varchar(255) NOT NULL,
+start_time datetime NOT NULL,
+end_time datetime NOT NULL,
+timezone varchar(100) NOT NULL,
+location varchar(255) DEFAULT '' NOT NULL,
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)
 ) $charset_collate;";

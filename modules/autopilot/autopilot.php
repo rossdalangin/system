@@ -19,6 +19,7 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 		add_action( 'agency_nexus_new_lead_captured', [ $this, 'maybe_trigger_lead_automations' ] );
 		add_action( 'agency_nexus_content_status_updated', [ $this, 'maybe_trigger_content_automations' ], 10, 2 );
 		add_action( 'an_daily_overdue_check', [ $this, 'check_overdue_invoices' ] );
+		add_action( 'an_daily_overdue_check', [ $this, 'trigger_daily_digest' ] );
 
 		if ( ! wp_next_scheduled( 'an_daily_overdue_check' ) ) {
 			wp_schedule_event( time(), 'daily', 'an_daily_overdue_check' );
@@ -314,6 +315,13 @@ class Agency_Nexus_Module_Autopilot extends Agency_Nexus_Base_Module {
 				$this->execute_action( $rule, [ 'invoice_id' => $invoice->id ] );
 			}
 		}
+	}
+
+	/**
+	 * Trigger the daily briefing email.
+	 */
+	public function trigger_daily_digest() {
+		Agency_Nexus_Email_Handler::get_instance()->send_daily_digest();
 	}
 
 	/**

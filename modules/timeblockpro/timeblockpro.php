@@ -79,6 +79,15 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 				'an-productivity-reports',
 				[ $this, 'render_reports' ]
 			);
+
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Focus Mode', 'agency-nexus' ),
+				__( 'Focus Mode', 'agency-nexus' ),
+				'read',
+				'an-focus-mode',
+				[ $this, 'render_focus_mode' ]
+			);
 		}
 	}
 
@@ -152,6 +161,52 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 
 		$blocks = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name WHERE user_id = %d ORDER BY start_time ASC", $user_id ) );
 		$this->get_template( 'dashboard', [ 'blocks' => $blocks ] );
+	}
+
+	public function render_focus_mode() {
+		?>
+		<div class="agency-nexus-wrap" style="height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #0f172a; color: #fff; border-radius: 20px; margin-top: 20px;">
+			<h1 style="color: #fff; font-size: 3rem; margin-bottom: 10px;">Focus Mode</h1>
+			<p style="font-size: 1.2rem; color: #94a3b8; margin-bottom: 40px;">No distractions. Just you and the deep work.</p>
+
+			<div id="focus-timer" style="font-size: 5rem; font-weight: bold; font-family: monospace; margin-bottom: 40px;">25:00</div>
+
+			<div style="display: flex; gap: 20px;">
+				<button type="button" class="button button-primary" id="start-focus" style="padding: 15px 40px; font-size: 1.1rem;"><?php _e( 'Start Work Block', 'agency-nexus' ); ?></button>
+				<a href="?page=agency-nexus" class="button" style="padding: 15px 40px; font-size: 1.1rem; background: #334155; color: #fff; border: none;"><?php _e( 'Exit', 'agency-nexus' ); ?></a>
+			</div>
+
+			<div style="margin-top: 50px; text-align: center; max-width: 500px;">
+				<p style="color: #64748b; italic">"Deep work is the ability to focus without distraction on a cognitively demanding task." - Cal Newport</p>
+			</div>
+		</div>
+		<script>
+		jQuery(document).ready(function($) {
+			var timer;
+			var timeLeft = 1500;
+
+			$('#start-focus').click(function() {
+				if (timer) {
+					clearInterval(timer);
+					timer = null;
+					$(this).text('Start Work Block');
+				} else {
+					$(this).text('Pause');
+					timer = setInterval(function() {
+						timeLeft--;
+						var mins = Math.floor(timeLeft / 60);
+						var secs = timeLeft % 60;
+						$('#focus-timer').text((mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs);
+						if (timeLeft <= 0) {
+							clearInterval(timer);
+							alert('Focus block complete! Take a break.');
+						}
+					}, 1000);
+				}
+			});
+		});
+		</script>
+		<?php
 	}
 
 	public function render_reports() {

@@ -43,6 +43,109 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 			'an-messages',
 			[ $this, 'render_messages' ]
 		);
+
+		add_submenu_page(
+			'agency-nexus',
+			__( 'Meetings', 'agency-nexus' ),
+			__( 'Meetings', 'agency-nexus' ),
+			'read',
+			'an-meetings',
+			[ $this, 'render_meetings' ]
+		);
+	}
+
+	public function render_meetings() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_meetings';
+		$clients_table = $wpdb->prefix . 'an_clients';
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		if ( isset( $_POST['an_save_meeting'] ) && check_admin_referer( 'an_meeting_nonce' ) ) {
+			$data = [
+				'client_id'  => intval( $_POST['client_id'] ),
+				'title'      => sanitize_text_field( $_POST['title'] ),
+				'start_time' => date( 'Y-m-d H:i:s', strtotime( $_POST['start_time'] ) ),
+				'end_time'   => date( 'Y-m-d H:i:s', strtotime( $_POST['end_time'] ) ),
+				'timezone'   => sanitize_text_field( $_POST['timezone'] ),
+				'location'   => sanitize_text_field( $_POST['location'] ),
+				'created_at' => current_time( 'mysql' )
+			];
+			$wpdb->insert( $table_name, $data );
+			wp_redirect( admin_url( 'admin.php?page=an-meetings&msg=added' ) );
+			exit;
+		}
+
+		$clients = $wpdb->get_results( "SELECT id, name FROM $clients_table" );
+		$meetings = $wpdb->get_results( "SELECT m.*, c.name as client_name FROM $table_name m JOIN $clients_table c ON m.client_id = c.id ORDER BY m.start_time ASC" );
+
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Meeting Scheduler', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e( 'Coordinate with clients across timezones. Schedule strategy sessions, demos, and project reviews.', 'agency-nexus' ); ?></p>
+
+			<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; margin-top: 30px;">
+				<div class="postbox" style="padding: 20px;">
+					<h3><?php _e( 'Schedule New Meeting', 'agency-nexus' ); ?></h3>
+					<form method="post">
+						<?php wp_nonce_field( 'an_meeting_nonce' ); ?>
+						<table class="form-table">
+							<tr><td>
+								<label><?php _e( 'Client', 'agency-nexus' ); ?></label><br>
+								<select name="client_id" required style="width: 100%;">
+									<?php foreach ( $clients as $c ) : ?>
+										<option value="<?php echo $c->id; ?>"><?php echo esc_html($c->name); ?></option>
+									<?php endforeach; ?>
+								</select>
+							</td></tr>
+							<tr><td>
+								<label><?php _e( 'Title', 'agency-nexus' ); ?></label><br>
+								<input type="text" name="title" required class="regular-text" style="width: 100%;">
+							</td></tr>
+							<tr><td>
+								<label><?php _e( 'Start Time', 'agency-nexus' ); ?></label><br>
+								<input type="datetime-local" name="start_time" required style="width: 100%;">
+							</td></tr>
+							<tr><td>
+								<label><?php _e( 'End Time', 'agency-nexus' ); ?></label><br>
+								<input type="datetime-local" name="end_time" required style="width: 100%;">
+							</td></tr>
+							<tr><td>
+								<label><?php _e( 'Timezone', 'agency-nexus' ); ?></label><br>
+								<select name="timezone" style="width: 100%;">
+									<option value="UTC">UTC</option>
+									<option value="America/New_York">EST (New York)</option>
+									<option value="Europe/London">GMT (London)</option>
+									<option value="Asia/Tokyo">JST (Tokyo)</option>
+								</select>
+							</td></tr>
+							<tr><td>
+								<label><?php _e( 'Location (Link or Address)', 'agency-nexus' ); ?></label><br>
+								<input type="text" name="location" class="regular-text" style="width: 100%;" placeholder="e.g. Google Meet Link">
+							</td></tr>
+						</table>
+						<p class="submit"><input type="submit" name="an_save_meeting" class="button button-primary" value="Schedule Meeting"></p>
+					</form>
+				</div>
+				<div class="postbox" style="padding: 20px;">
+					<h3><?php _e( 'Upcoming Meetings', 'agency-nexus' ); ?></h3>
+					<table class="wp-list-table widefat fixed striped">
+						<thead><tr><th>Date & Time</th><th>Client</th><th>Title</th><th>Location</th></tr></thead>
+						<tbody>
+							<?php foreach ( $meetings as $m ) : ?>
+								<tr>
+									<td><?php echo date('M d, H:i', strtotime($m->start_time)); ?> (<?php echo $m->timezone; ?>)</td>
+									<td><?php echo esc_html($m->client_name); ?></td>
+									<td><strong><?php echo esc_html($m->title); ?></strong></td>
+									<td><?php echo $m->location ? '<a href="'.esc_url($m->location).'" target="_blank">Join</a>' : '<em>None</em>'; ?></td>
+								</tr>
+							<?php endforeach; if(empty($meetings)) echo '<tr><td colspan="4">No meetings scheduled.</td></tr>'; ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<?php
 	}
 
 	public function render_messages() {
@@ -206,6 +309,22 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 
 		if ( false === $result ) {
 			wp_send_json_error( 'Failed to save message to the database: ' . $wpdb->last_error );
+		}
+
+		// After-hours Auto-responder
+		if ( Agency_Nexus_Permissions::is_client() ) {
+			$now = current_time( 'H:i' );
+			$start = get_option( 'an_comm_start', '09:00' );
+			$end = get_option( 'an_comm_end', '17:00' );
+
+			if ( $now < $start || $now > $end ) {
+				$wpdb->insert( $wpdb->prefix . 'an_messages', [
+					'client_id'  => $client_id,
+					'sender_id'  => 0, // System/Auto
+					'message'    => get_option( 'an_after_hours_msg', "I am currently away. Office hours: $start - $end." ),
+					'created_at' => current_time( 'mysql', 1 ) // Slightly offset
+				] );
+			}
 		}
 
 		wp_send_json_success();

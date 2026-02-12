@@ -69,7 +69,82 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 				'an-health-check',
 				[ $this, 'render_health_check' ]
 			);
+
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Vacation Planner', 'agency-nexus' ),
+				__( 'Vacation Planner', 'agency-nexus' ),
+				'read',
+				'an-vacations',
+				[ $this, 'render_vacations' ]
+			);
 		}
+	}
+
+	public function render_vacations() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_vacations';
+		$user_id = get_current_user_id();
+
+		if ( isset( $_POST['an_save_vacation'] ) && check_admin_referer( 'an_vacation_nonce' ) ) {
+			$wpdb->insert( $table_name, [
+				'user_id'    => $user_id,
+				'start_date' => sanitize_text_field( $_POST['start_date'] ),
+				'end_date'   => sanitize_text_field( $_POST['end_date'] ),
+				'note'       => sanitize_text_field( $_POST['note'] ),
+				'created_at' => current_time( 'mysql' )
+			] );
+			wp_redirect( admin_url( 'admin.php?page=an-vacations&msg=added' ) );
+			exit;
+		}
+
+		$vacations = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name WHERE user_id = %d ORDER BY start_date ASC", $user_id ) );
+
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Vacation & OOO Planner', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e( 'Schedule your time off. Your availability will be reflected in the agency capacity monitor.', 'agency-nexus' ); ?></p>
+
+			<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; margin-top: 30px;">
+				<div class="postbox" style="padding: 20px;">
+					<h3><?php _e( 'Request Time Off', 'agency-nexus' ); ?></h3>
+					<form method="post">
+						<?php wp_nonce_field( 'an_vacation_nonce' ); ?>
+						<table class="form-table">
+							<tr><td>
+								<label><?php _e( 'Start Date', 'agency-nexus' ); ?></label><br>
+								<input type="date" name="start_date" required style="width: 100%;">
+							</td></tr>
+							<tr><td>
+								<label><?php _e( 'End Date', 'agency-nexus' ); ?></label><br>
+								<input type="date" name="end_date" required style="width: 100%;">
+							</td></tr>
+							<tr><td>
+								<label><?php _e( 'Note', 'agency-nexus' ); ?></label><br>
+								<input type="text" name="note" class="regular-text" style="width: 100%;" placeholder="e.g. Summer Holiday">
+							</td></tr>
+						</table>
+						<p class="submit"><input type="submit" name="an_save_vacation" class="button button-primary" value="Add Vacation"></p>
+					</form>
+				</div>
+				<div class="postbox" style="padding: 20px;">
+					<h3><?php _e( 'Your Scheduled Time Off', 'agency-nexus' ); ?></h3>
+					<table class="wp-list-table widefat fixed striped">
+						<thead><tr><th>Dates</th><th>Note</th><th>Status</th></tr></thead>
+						<tbody>
+							<?php foreach ( $vacations as $v ) : ?>
+								<tr>
+									<td><?php echo $v->start_date; ?> <?php _e('to', 'agency-nexus'); ?> <?php echo $v->end_date; ?></td>
+									<td><?php echo esc_html($v->note); ?></td>
+									<td><span class="badge" style="background: #46b450; color: #fff;">Approved</span></td>
+								</tr>
+							<?php endforeach; if(empty($vacations)) echo '<tr><td colspan="3">No vacations planned.</td></tr>'; ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<?php
 	}
 
 	public function render_health_check() {
@@ -176,14 +251,18 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 			return;
 		}
 		global $wpdb;
+		$user_id = get_current_user_id();
 		$time_table = $wpdb->prefix . 'an_time_entries';
 
 		// Get hours logged in the last 7 days for the current user
 		$last_week_seconds = $wpdb->get_var( $wpdb->prepare(
 			"SELECT SUM(duration) FROM $time_table WHERE user_id = %d AND date >= DATE_SUB(NOW(), INTERVAL 7 DAY)",
-			get_current_user_id()
+			$user_id
 		) );
 		$last_week_hours = $last_week_seconds / 3600;
+
+		// Check if OOO today
+		$is_ooo = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}an_vacations WHERE user_id = %d AND CURDATE() BETWEEN start_date AND end_date", $user_id ) );
 
 		// Assuming 40 hours is 100% capacity
 		$capacity = min(100, round(($last_week_hours / 40) * 100));
@@ -194,10 +273,12 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 			<h2><?php _e( 'BurnoutGuard', 'agency-nexus' ); ?></h2>
 			<p><strong><?php _e( 'Workload Capacity (Last 7 Days):', 'agency-nexus' ); ?></strong></p>
 			<div style="text-align: center; margin: 20px 0;">
-				<div style="display: inline-block; width: 100px; height: 100px; border-radius: 50%; border: 8px solid <?php echo $color; ?>; line-height: 84px; font-size: 24px; font-weight: bold;">
-					<?php echo $capacity; ?>%
+				<div style="display: inline-block; width: 100px; height: 100px; border-radius: 50%; border: 8px solid <?php echo $is_ooo ? '#64748b' : $color; ?>; line-height: 84px; font-size: 24px; font-weight: bold;">
+					<?php echo $is_ooo ? 'OOO' : $capacity . '%'; ?>
 				</div>
-				<?php if ($capacity > 80) : ?>
+				<?php if ( $is_ooo ) : ?>
+					<p style="color: #64748b; font-weight: bold; margin-top: 10px;"><?php _e( 'Out of Office', 'agency-nexus' ); ?></p>
+				<?php elseif ($capacity > 80) : ?>
 					<p style="color: #dc3232; font-weight: bold; margin-top: 10px;"><?php _e( 'High Workload Warning', 'agency-nexus' ); ?></p>
 				<?php else : ?>
 					<p style="color: #46b450; font-weight: bold; margin-top: 10px;"><?php _e( 'Healthy Workload', 'agency-nexus' ); ?></p>

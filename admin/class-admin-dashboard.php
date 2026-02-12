@@ -76,6 +76,9 @@ class Agency_Nexus_Admin_Dashboard {
 			update_option( 'an_email_from_name', sanitize_text_field( $_POST['an_email_from_name'] ) );
 
 			update_option( 'an_zapier_webhook', esc_url_raw( $_POST['an_zapier_webhook'] ) );
+			update_option( 'an_comm_start', sanitize_text_field( $_POST['an_comm_start'] ) );
+			update_option( 'an_comm_end', sanitize_text_field( $_POST['an_comm_end'] ) );
+			update_option( 'an_after_hours_msg', sanitize_textarea_field( $_POST['an_after_hours_msg'] ) );
 			update_option( 'an_hourly_rate', floatval( $_POST['an_hourly_rate'] ) );
 			update_option( 'an_agency_logo', esc_url_raw( $_POST['an_agency_logo'] ) );
 			wp_redirect( admin_url( 'admin.php?page=an-settings&msg=saved' ) );
@@ -1316,6 +1319,25 @@ class Agency_Nexus_Admin_Dashboard {
 				</table>
 
 				<hr>
+				<h2>Boundary Enforcement (TimeBlock Pro)</h2>
+				<table class="form-table">
+					<tr>
+						<th>Communication Hours</th>
+						<td>
+							<input type="time" name="an_comm_start" value="<?php echo esc_attr( get_option('an_comm_start', '09:00') ); ?>"> to
+							<input type="time" name="an_comm_end" value="<?php echo esc_attr( get_option('an_comm_end', '17:00') ); ?>">
+							<p class="description"><?php _e('Define when you are available for client communication. Outside these hours, auto-responders can be triggered.', 'agency-nexus'); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th>After-hours Auto-responder</th>
+						<td>
+							<textarea name="an_after_hours_msg" class="large-text" rows="3"><?php echo esc_textarea( get_option('an_after_hours_msg', "Thanks for your message! I am currently away from my desk. My office hours are 9am - 5pm. I will get back to you as soon as possible.") ); ?></textarea>
+						</td>
+					</tr>
+				</table>
+
+				<hr>
 				<h2>Email & SMTP Settings</h2>
 				<p class="description">Configure how the plugin sends emails. You can use your default server or connect an external SMTP service (SendGrid, Mailgun, etc.) for better deliverability.</p>
 
@@ -1467,6 +1489,11 @@ class Agency_Nexus_Admin_Dashboard {
 						<span><?php _e('Leads', 'agency-nexus'); ?></span>
 						<small><?php _e('Sales pipeline', 'agency-nexus'); ?></small>
 					</a>
+					<a href="<?php echo admin_url('admin.php?page=an-social-dashboard'); ?>" class="an-nav-card">
+						<span class="dashicons dashicons-share"></span>
+						<span><?php _e('Social Hub', 'agency-nexus'); ?></span>
+						<small><?php _e('Aggregated engagement', 'agency-nexus'); ?></small>
+					</a>
 					<?php endif; ?>
 
 					<?php if ( $lm->is_feature_enabled( 'messaging' ) ) : ?>
@@ -1483,6 +1510,16 @@ class Agency_Nexus_Admin_Dashboard {
 						<span><?php _e('Invoices', 'agency-nexus'); ?></span>
 						<small><?php _e('Billing & ROI', 'agency-nexus'); ?></small>
 					</a>
+					<a href="<?php echo admin_url('admin.php?page=an-focus-mode'); ?>" class="an-nav-card">
+						<span class="dashicons dashicons-visibility"></span>
+						<span><?php _e('Focus Mode', 'agency-nexus'); ?></span>
+						<small><?php _e('Zero distractions', 'agency-nexus'); ?></small>
+					</a>
+					<a href="<?php echo admin_url('admin.php?page=an-vacations'); ?>" class="an-nav-card">
+						<span class="dashicons dashicons-palmtree"></span>
+						<span><?php _e('Vacations', 'agency-nexus'); ?></span>
+						<small><?php _e('Schedule OOO', 'agency-nexus'); ?></small>
+					</a>
 					<?php endif; ?>
 
 					<?php if ( $is_team && $lm->is_feature_enabled( 'project_management' ) ) : ?>
@@ -1498,6 +1535,19 @@ class Agency_Nexus_Admin_Dashboard {
 						<span class="dashicons dashicons-media-text"></span>
 						<span><?php _e('Proposals', 'agency-nexus'); ?></span>
 						<small><?php _e('Review and sign', 'agency-nexus'); ?></small>
+					</a>
+					<?php endif; ?>
+
+					<?php if ( $lm->is_feature_enabled( 'content_calendar' ) ) : ?>
+					<a href="<?php echo admin_url('admin.php?page=an-pillar-architect'); ?>" class="an-nav-card">
+						<span class="dashicons dashicons-category"></span>
+						<span><?php _e('Pillar Architect', 'agency-nexus'); ?></span>
+						<small><?php _e('Topic clusters', 'agency-nexus'); ?></small>
+					</a>
+					<a href="<?php echo admin_url('admin.php?page=an-batch-automation'); ?>" class="an-nav-card">
+						<span class="dashicons dashicons-forms"></span>
+						<span><?php _e('Batch Mode', 'agency-nexus'); ?></span>
+						<small><?php _e('Bulk draft creation', 'agency-nexus'); ?></small>
 					</a>
 					<?php endif; ?>
 

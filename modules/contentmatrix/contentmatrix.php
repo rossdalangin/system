@@ -44,6 +44,14 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 				if ( ! Agency_Nexus_Permissions::can_view_project( $project_id ) ) {
 					wp_die( 'Unauthorized' );
 				}
+				$platform = sanitize_text_field( $_POST['platform'] );
+				$is_pillar = isset( $_POST['is_pillar'] ) ? 1 : 0;
+
+				// Forecasting Algorithm
+				$predicted = 100; // Base
+				if ( $is_pillar ) $predicted *= 2.5;
+				if ( in_array(strtolower($platform), ['instagram', 'linkedin']) ) $predicted *= 1.8;
+
 				$data = [
 					'project_id'     => $project_id,
 					'title'          => sanitize_text_field( $_POST['title'] ),
@@ -51,7 +59,10 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 					'media_url'      => esc_url_raw( $_POST['media_url'] ),
 					'status'         => sanitize_text_field( $_POST['status'] ),
 					'scheduled_date' => ! empty( $_POST['scheduled_date'] ) ? date( 'Y-m-d H:i:s', strtotime( $_POST['scheduled_date'] ) ) : null,
-					'platform'       => sanitize_text_field( $_POST['platform'] )
+					'platform'       => $platform,
+					'is_pillar'      => $is_pillar,
+					'pillar_id'      => intval( $_POST['pillar_id'] ),
+					'predicted_engagement' => intval($predicted)
 				];
 				if ( $id ) {
 					// Save version before update
@@ -115,6 +126,116 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			'an-content-list',
 			[ $this, 'render_content_list' ]
 		);
+
+		add_submenu_page(
+			'agency-nexus',
+			__( 'Pillar Architect', 'agency-nexus' ),
+			__( 'Pillar Architect', 'agency-nexus' ),
+			'read',
+			'an-pillar-architect',
+			[ $this, 'render_pillar_architect' ]
+		);
+
+		add_submenu_page(
+			'agency-nexus',
+			__( 'Batch Automation', 'agency-nexus' ),
+			__( 'Batch Automation', 'agency-nexus' ),
+			'read',
+			'an-batch-automation',
+			[ $this, 'render_batch_automation' ]
+		);
+	}
+
+	public function render_batch_automation() {
+		global $wpdb;
+		$projects = $wpdb->get_results( "SELECT id, title FROM {$wpdb->prefix}an_projects" );
+
+		if ( isset( $_POST['an_run_batch'] ) && check_admin_referer( 'an_batch_nonce' ) ) {
+			$project_id = intval( $_POST['project_id'] );
+			$count = intval( $_POST['batch_count'] );
+			$titles = explode( "\n", $_POST['batch_titles'] );
+
+			foreach ( $titles as $t ) {
+				$t = trim($t);
+				if ( empty($t) ) continue;
+				$wpdb->insert( $wpdb->prefix . 'an_content', [
+					'project_id' => $project_id,
+					'title'      => $t,
+					'content'    => 'Batch generated draft content.',
+					'status'     => 'draft',
+					'platform'   => 'wordpress',
+					'created_at' => current_time('mysql')
+				] );
+			}
+			wp_redirect( admin_url( 'admin.php?page=an-content-list&msg=added' ) );
+			exit;
+		}
+
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Batch Content Automation', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e( 'Create multiple content drafts at once to save time on high-volume projects.', 'agency-nexus' ); ?></p>
+
+			<div class="postbox" style="padding: 20px; max-width: 600px; margin-top: 30px;">
+				<form method="post">
+					<?php wp_nonce_field( 'an_batch_nonce' ); ?>
+					<table class="form-table">
+						<tr>
+							<th><label><?php _e( 'Project', 'agency-nexus' ); ?></label></th>
+							<td>
+								<select name="project_id" required>
+									<?php foreach ( $projects as $p ) : ?>
+										<option value="<?php echo $p->id; ?>"><?php echo esc_html($p->title); ?></option>
+									<?php endforeach; ?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e( 'Titles (one per line)', 'agency-nexus' ); ?></label></th>
+							<td>
+								<textarea name="batch_titles" rows="10" class="regular-text" required placeholder="Post Title 1&#10;Post Title 2"></textarea>
+							</td>
+						</tr>
+					</table>
+					<p class="submit">
+						<input type="submit" name="an_run_batch" class="button button-primary" value="Generate Batch Drafts">
+					</p>
+				</form>
+			</div>
+		</div>
+		<?php
+	}
+
+	public function render_pillar_architect() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_content';
+		$pillars = $wpdb->get_results( "SELECT * FROM $table_name WHERE is_pillar = 1" );
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Pillar Content Architect', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e( 'Visualize and manage your topic clusters. Pillar content acts as the foundation for your SEO strategy, with related cluster posts linking back to it.', 'agency-nexus' ); ?></p>
+
+			<div class="an-pillar-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; margin-top: 30px;">
+				<?php foreach ( $pillars as $pillar ) :
+					$clusters = $wpdb->get_results( $wpdb->prepare( "SELECT title FROM $table_name WHERE pillar_id = %d", $pillar->id ) );
+				?>
+					<div class="postbox" style="padding: 20px; border-top: 4px solid var(--an-indigo-600);">
+						<h3 style="margin-top: 0;"><?php echo esc_html( $pillar->title ); ?> <span class="badge" style="background: var(--an-indigo-600); color: #fff;">Pillar</span></h3>
+						<p><small><?php echo count($clusters); ?> cluster items</small></p>
+						<hr>
+						<ul style="list-style: circle; margin-left: 20px;">
+							<?php foreach ( $clusters as $c ) : ?>
+								<li><?php echo esc_html( $c->title ); ?></li>
+							<?php endforeach; if(empty($clusters)) echo '<li><em>No cluster content linked.</em></li>'; ?>
+						</ul>
+						<div style="margin-top: 20px;">
+							<a href="?page=an-content-list&action=edit&id=<?php echo $pillar->id; ?>" class="button button-small">Edit Pillar</a>
+						</div>
+					</div>
+				<?php endforeach; if(empty($pillars)) echo '<p>No pillar content defined. Mark a post as "Pillar Content" in the Content List to start.</p>'; ?>
+			</div>
+		</div>
+		<?php
 	}
 
 	public function render_calendar() {
@@ -191,6 +312,7 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		if ($action === 'edit' || $action === 'add') {
 			$content = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
 			$projects = $wpdb->get_results("SELECT id, title FROM $projects_table");
+			$pillars = $wpdb->get_results("SELECT id, title FROM $table_name WHERE is_pillar = 1");
 			?>
 			<div class="agency-nexus-wrap">
 				<h1><?php echo $id ? __('Edit Content', 'agency-nexus') : __('Add New Content', 'agency-nexus'); ?></h1>
@@ -251,6 +373,26 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 							</td>
 						</tr>
 						<tr>
+							<th><label><?php _e('Pillar Content?', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="checkbox" name="is_pillar" value="1" <?php checked($content ? $content->is_pillar : 0, 1); ?>>
+								<p class="description"><?php _e('Mark this as a high-level "Pillar" piece that other content will link to.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Parent Pillar', 'agency-nexus'); ?></label></th>
+							<td>
+								<select name="pillar_id">
+									<option value="0"><?php _e('None', 'agency-nexus'); ?></option>
+									<?php foreach ($pillars as $p) : ?>
+										<?php if ($id && $p->id == $id) continue; ?>
+										<option value="<?php echo $p->id; ?>" <?php selected($content ? $content->pillar_id : 0, $p->id); ?>><?php echo esc_html($p->title); ?></option>
+									<?php endforeach; ?>
+								</select>
+								<p class="description"><?php _e('If this is cluster content, link it to a parent pillar piece.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
 							<th><label><?php _e('Scheduled Date', 'agency-nexus'); ?></label></th>
 							<td>
 								<input type="datetime-local" name="scheduled_date" value="<?php echo ($content && $content->scheduled_date) ? date('Y-m-d\TH:i', strtotime($content->scheduled_date)) : ''; ?>">
@@ -297,16 +439,18 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			<hr class="wp-header-end">
 
 			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>Title</th><th>Content</th><th>Project</th><th>Platform</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+				<thead><tr><th>Title</th><th>Project</th><th>Platform</th><th>Status</th><th>Date</th><th>Forecast</th><th>Actions</th></tr></thead>
 				<tbody>
 					<?php foreach ($items as $item) : ?>
 						<tr>
 							<td><strong><?php echo esc_html($item->title); ?></strong></td>
-							<td><small><?php echo esc_html(wp_trim_words($item->content, 10)); ?></small></td>
 							<td><?php echo esc_html($item->project_title); ?></td>
 							<td><?php echo esc_html(ucfirst($item->platform)); ?></td>
 							<td><span class="badge status-<?php echo $item->status; ?>"><?php echo ucfirst(str_replace('_', ' ', $item->status)); ?></span></td>
 							<td><?php echo $item->scheduled_date; ?></td>
+							<td>
+								<span title="<?php _e('Predicted Interactions', 'agency-nexus'); ?>">📈 <?php echo number_format($item->predicted_engagement); ?></span>
+							</td>
 							<td>
 								<a href="?page=an-content-list&action=edit&id=<?php echo $item->id; ?>">Edit</a> |
 								<a href="?page=an-content-list&action=versions&id=<?php echo $item->id; ?>">Versions</a>
