@@ -31,10 +31,10 @@ class Agency_Nexus_DB_Manager {
 	 */
 	private function maybe_update_db() {
 		$version = get_option( 'an_db_version', '0' );
-		// If version is less than 1.0.5 or not set.
-		if ( version_compare( $version, '1.0.5', '<' ) ) {
+		// If version is less than 1.0.8 or not set.
+		if ( version_compare( $version, '1.0.8', '<' ) ) {
 			self::create_tables();
-			update_option( 'an_db_version', '1.0.5' );
+			update_option( 'an_db_version', '1.0.8' );
 		}
 	}
 
@@ -77,6 +77,7 @@ budget decimal(10,2) DEFAULT 0.00 NOT NULL,
 status varchar(50) DEFAULT 'planned' NOT NULL,
 start_date date DEFAULT '0000-00-00',
 end_date date DEFAULT '0000-00-00',
+buffer_days int(11) DEFAULT 0 NOT NULL,
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)
 ) $charset_collate;";
@@ -93,6 +94,7 @@ priority varchar(20) DEFAULT 'medium' NOT NULL,
 status varchar(50) DEFAULT 'todo' NOT NULL,
 start_date date DEFAULT '0000-00-00',
 due_date date DEFAULT '0000-00-00',
+depends_on bigint(20) DEFAULT 0 NOT NULL,
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)
 ) $charset_collate;";
@@ -267,6 +269,33 @@ lead_id bigint(20) NOT NULL,
 user_id bigint(20) NOT NULL,
 subject varchar(255) NOT NULL,
 message text NOT NULL,
+created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+PRIMARY KEY  (id)
+) $charset_collate;";
+
+		// Proposals Table (SmartOnboard)
+		$table_proposals = $wpdb->prefix . 'an_proposals';
+		$queries[] = "CREATE TABLE $table_proposals (
+id bigint(20) NOT NULL AUTO_INCREMENT,
+client_id bigint(20) NOT NULL,
+title varchar(255) NOT NULL,
+description text NOT NULL,
+budget decimal(10,2) DEFAULT 0.00 NOT NULL,
+status varchar(50) DEFAULT 'draft' NOT NULL,
+signature longtext DEFAULT '' NOT NULL,
+signed_at datetime DEFAULT '0000-00-00 00:00:00',
+created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+PRIMARY KEY  (id)
+) $charset_collate;";
+
+		// Content Versions Table (ApprovalFlow/ContentMatrix)
+		$table_content_versions = $wpdb->prefix . 'an_content_versions';
+		$queries[] = "CREATE TABLE $table_content_versions (
+id bigint(20) NOT NULL AUTO_INCREMENT,
+content_id bigint(20) NOT NULL,
+version_number int(11) NOT NULL,
+content longtext NOT NULL,
+created_by bigint(20) NOT NULL,
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)
 ) $charset_collate;";

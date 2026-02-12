@@ -70,6 +70,15 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 				'an-time-blocking',
 				[ $this, 'render_dashboard' ]
 			);
+
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Productivity Reports', 'agency-nexus' ),
+				__( 'Productivity Reports', 'agency-nexus' ),
+				'read',
+				'an-productivity-reports',
+				[ $this, 'render_reports' ]
+			);
 		}
 	}
 
@@ -143,6 +152,65 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 
 		$blocks = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name WHERE user_id = %d ORDER BY start_time ASC", $user_id ) );
 		$this->get_template( 'dashboard', [ 'blocks' => $blocks ] );
+	}
+
+	public function render_reports() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_time_blocks';
+		$user_id = get_current_user_id();
+
+		// Stats for last 30 days
+		$stats = $wpdb->get_results( $wpdb->prepare( "
+			SELECT type, SUM(TIMESTAMPDIFF(SECOND, start_time, end_time)) as duration
+			FROM $table_name
+			WHERE user_id = %d AND start_time >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+			GROUP BY type
+		", $user_id ) );
+
+		$total_seconds = 0;
+		$type_stats = [ 'deep_work' => 0, 'shallow_work' => 0, 'meeting' => 0, 'break' => 0 ];
+		foreach ( $stats as $s ) {
+			$type_stats[$s->type] = (float)$s->duration;
+			$total_seconds += (float)$s->duration;
+		}
+
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Productivity Analytics', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e( 'A breakdown of how you spent your scheduled time over the last 30 days.', 'agency-nexus' ); ?></p>
+
+			<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
+				<div class="postbox" style="padding: 20px; text-align: center;">
+					<h3><?php _e( 'Deep Work', 'agency-nexus' ); ?></h3>
+					<div style="font-size: 2rem; font-weight: bold; color: var(--an-indigo-600);"><?php echo round($type_stats['deep_work'] / 3600, 1); ?> hrs</div>
+				</div>
+				<div class="postbox" style="padding: 20px; text-align: center;">
+					<h3><?php _e( 'Shallow Work', 'agency-nexus' ); ?></h3>
+					<div style="font-size: 2rem; font-weight: bold; color: var(--an-slate-500);"><?php echo round($type_stats['shallow_work'] / 3600, 1); ?> hrs</div>
+				</div>
+				<div class="postbox" style="padding: 20px; text-align: center;">
+					<h3><?php _e( 'Meetings', 'agency-nexus' ); ?></h3>
+					<div style="font-size: 2rem; font-weight: bold; color: var(--an-amber-500);"><?php echo round($type_stats['meeting'] / 3600, 1); ?> hrs</div>
+				</div>
+				<div class="postbox" style="padding: 20px; text-align: center;">
+					<h3><?php _e( 'Breaks', 'agency-nexus' ); ?></h3>
+					<div style="font-size: 2rem; font-weight: bold; color: #46b450;"><?php echo round($type_stats['break'] / 3600, 1); ?> hrs</div>
+				</div>
+			</div>
+
+			<div class="postbox" style="padding: 20px; margin-top: 30px;">
+				<h3><?php _e( 'Focus Intensity', 'agency-nexus' ); ?></h3>
+				<?php
+				$ratio = $type_stats['deep_work'] > 0 ? ( $type_stats['deep_work'] / ($type_stats['deep_work'] + $type_stats['shallow_work']) ) * 100 : 0;
+				?>
+				<div style="height: 30px; background: #eee; border-radius: 15px; overflow: hidden; display: flex;">
+					<div style="width: <?php echo $ratio; ?>%; background: var(--an-indigo-600); line-height: 30px; color: #fff; padding-left: 15px;">Deep Work (<?php echo round($ratio); ?>%)</div>
+					<div style="flex: 1; background: var(--an-slate-300); line-height: 30px; color: #333; text-align: right; padding-right: 15px;">Shallow Work</div>
+				</div>
+				<p><small><?php _e( 'High-performing agency owners aim for at least 40% Deep Work to ensure strategic growth.', 'agency-nexus' ); ?></small></p>
+			</div>
+		</div>
+		<?php
 	}
 
 	public function render_dashboard_widget() {

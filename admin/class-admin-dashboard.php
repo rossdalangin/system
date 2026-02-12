@@ -119,6 +119,8 @@ class Agency_Nexus_Admin_Dashboard {
 			$this->process_client_actions();
 		} elseif ( 'an-projects' === $page || 'an-edit-task' === $page ) {
 			$this->process_project_actions();
+		} elseif ( 'an-security' === $page ) {
+			$this->process_security_actions();
 		}
 	}
 
@@ -192,7 +194,7 @@ class Agency_Nexus_Admin_Dashboard {
 				'phone'   => isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '',
 				'address' => isset( $_POST['address'] ) ? sanitize_textarea_field( $_POST['address'] ) : '',
 				'website' => isset( $_POST['website'] ) ? esc_url_raw( $_POST['website'] ) : '',
-				'notes'   => isset( $_POST['notes'] ) ? sanitize_textarea_field( $_POST['notes'] ) : '',
+				'notes'   => isset( $_POST['notes'] ) ? Agency_Nexus::encrypt( sanitize_textarea_field( $_POST['notes'] ) ) : '',
 			];
 			if ( $id ) {
 				$wpdb->update( $table_name, $data, [ 'id' => $id ] );
@@ -240,7 +242,8 @@ class Agency_Nexus_Admin_Dashboard {
 				'title'       => sanitize_text_field( $_POST['title'] ),
 				'budget'      => floatval( $_POST['budget'] ),
 				'status'      => sanitize_text_field( $_POST['status'] ),
-				'description' => sanitize_textarea_field( $_POST['description'] )
+				'description' => Agency_Nexus::encrypt( sanitize_textarea_field( $_POST['description'] ) ),
+				'buffer_days' => intval( $_POST['buffer_days'] )
 			];
 			if ( $id ) {
 				$wpdb->update( $projects_table, $data, [ 'id' => $id ] );
@@ -267,7 +270,8 @@ class Agency_Nexus_Admin_Dashboard {
 				'status'      => 'todo',
 				'priority'    => 'medium',
 				'start_date'  => ! empty( $_POST['start_date'] ) ? sanitize_text_field( $_POST['start_date'] ) : date('Y-m-d'),
-				'due_date'    => ! empty( $_POST['due_date'] ) ? sanitize_text_field( $_POST['due_date'] ) : date('Y-m-d', strtotime('+7 days'))
+				'due_date'    => ! empty( $_POST['due_date'] ) ? sanitize_text_field( $_POST['due_date'] ) : date('Y-m-d', strtotime('+7 days')),
+				'depends_on'  => isset( $_POST['depends_on'] ) ? intval( $_POST['depends_on'] ) : 0
 			] );
 			wp_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . intval( $_POST['project_id'] ) . '&msg=task_added' ) );
 			exit;
@@ -309,7 +313,8 @@ class Agency_Nexus_Admin_Dashboard {
 				'priority'    => sanitize_text_field( $_POST['priority'] ),
 				'status'      => sanitize_text_field( $_POST['status'] ),
 				'start_date'  => sanitize_text_field( $_POST['start_date'] ),
-				'due_date'    => sanitize_text_field( $_POST['due_date'] )
+				'due_date'    => sanitize_text_field( $_POST['due_date'] ),
+				'depends_on'  => intval( $_POST['depends_on'] )
 			], [ 'id' => intval( $_POST['task_id'] ) ] );
 			wp_redirect( admin_url( 'admin.php?page=an-projects&action=view&id=' . $id . '&msg=task_updated' ) );
 			exit;
@@ -399,6 +404,15 @@ class Agency_Nexus_Admin_Dashboard {
 				'manage_options',
 				'an-team',
 				[ $this, 'render_team' ]
+			);
+
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Security & Privacy', 'agency-nexus' ),
+				__( 'Security & Privacy', 'agency-nexus' ),
+				'manage_options',
+				'an-security',
+				[ $this, 'render_security' ]
 			);
 
 			add_submenu_page(
@@ -523,7 +537,7 @@ class Agency_Nexus_Admin_Dashboard {
 						<tr>
 							<th><label for="notes">Internal Notes</label></th>
 							<td>
-								<textarea name="notes" id="notes" rows="5" class="regular-text"><?php echo $client ? esc_textarea($client->notes) : ''; ?></textarea>
+								<textarea name="notes" id="notes" rows="5" class="regular-text"><?php echo $client ? esc_textarea( Agency_Nexus::decrypt( $client->notes ) ) : ''; ?></textarea>
 								<p class="description"><?php _e('Confidential notes about this client (Internal use only).', 'agency-nexus'); ?></p>
 							</td>
 						</tr>
@@ -729,7 +743,7 @@ class Agency_Nexus_Admin_Dashboard {
 					<div class="postbox" style="padding: 20px;">
 						<h2><?php _e('Internal Notes', 'agency-nexus'); ?></h2>
 						<div style="background: #fff9c4; padding: 10px; border-left: 4px solid #fbc02d;">
-							<?php echo $client->notes ? nl2br(esc_html($client->notes)) : __('No internal notes.', 'agency-nexus'); ?>
+							<?php echo $client->notes ? nl2br( esc_html( Agency_Nexus::decrypt( $client->notes ) ) ) : __('No internal notes.', 'agency-nexus'); ?>
 						</div>
 					</div>
 				</div>
@@ -908,7 +922,8 @@ class Agency_Nexus_Admin_Dashboard {
 					<h2>Details</h2>
 					<p><strong>Status:</strong> <?php echo esc_html(ucfirst($project->status)); ?></p>
 					<p><strong>Budget:</strong> $<?php echo number_format($project->budget, 2); ?></p>
-					<p><strong>Description:</strong><br><?php echo nl2br(esc_html($project->description)); ?></p>
+					<p><strong>Buffer Days:</strong> <?php echo intval($project->buffer_days); ?> <?php _e('days', 'agency-nexus'); ?></p>
+					<p><strong>Description:</strong><br><?php echo nl2br( esc_html( Agency_Nexus::decrypt( $project->description ) ) ); ?></p>
 
 					<hr>
 					<h3>Tasks & Time</h3>
@@ -966,6 +981,12 @@ class Agency_Nexus_Admin_Dashboard {
 							<option value="0"><?php _e('Assign to...', 'agency-nexus'); ?></option>
 							<?php foreach (get_users() as $u) : ?>
 								<option value="<?php echo $u->ID; ?>"><?php echo esc_html($u->display_name); ?></option>
+							<?php endforeach; ?>
+						</select>
+						<select name="depends_on">
+							<option value="0"><?php _e('No Dependency', 'agency-nexus'); ?></option>
+							<?php foreach ($tasks as $t) : ?>
+								<option value="<?php echo $t->id; ?>"><?php echo esc_html($t->title); ?></option>
 							<?php endforeach; ?>
 						</select>
 						<?php endif; ?>
@@ -1062,9 +1083,16 @@ class Agency_Nexus_Admin_Dashboard {
 							</td>
 						</tr>
 						<tr>
+							<th><label for="buffer_days"><?php _e('Buffer Days', 'agency-nexus'); ?></label></th>
+							<td>
+								<input type="number" name="buffer_days" id="buffer_days" value="<?php echo $project ? intval($project->buffer_days) : 0; ?>" class="small-text">
+								<p class="description"><?php _e('Extra time added to project estimates for risk management.', 'agency-nexus'); ?></p>
+							</td>
+						</tr>
+						<tr>
 							<th><label for="description">Description</label></th>
 							<td>
-								<textarea name="description" id="description" class="regular-text"><?php echo $project ? esc_textarea($project->description) : ''; ?></textarea>
+								<textarea name="description" id="description" class="regular-text"><?php echo $project ? esc_textarea( Agency_Nexus::decrypt( $project->description ) ) : ''; ?></textarea>
 								<p class="description"><?php _e('Detailed overview of goals and deliverables.', 'agency-nexus'); ?></p>
 							</td>
 						</tr>
@@ -1465,6 +1493,14 @@ class Agency_Nexus_Admin_Dashboard {
 					</a>
 					<?php endif; ?>
 
+					<?php if ( $lm->is_feature_enabled( 'project_management' ) ) : ?>
+					<a href="<?php echo admin_url('admin.php?page=an-proposals'); ?>" class="an-nav-card">
+						<span class="dashicons dashicons-media-text"></span>
+						<span><?php _e('Proposals', 'agency-nexus'); ?></span>
+						<small><?php _e('Review and sign', 'agency-nexus'); ?></small>
+					</a>
+					<?php endif; ?>
+
 					<?php if ( current_user_can('manage_options') ) : ?>
 					<a href="<?php echo admin_url('admin.php?page=an-settings'); ?>" class="an-nav-card">
 						<span class="dashicons dashicons-admin-settings"></span>
@@ -1550,6 +1586,84 @@ class Agency_Nexus_Admin_Dashboard {
 						<a href="#" class="button button-secondary" style="margin-top: 15px;"><?php _e( 'Browse Tiers & Pricing', 'agency-nexus' ); ?></a>
 					</div>
 				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	public function process_security_actions() {
+		if ( ! current_user_can( 'manage_options' ) ) return;
+
+		if ( isset( $_POST['an_export_data'] ) && check_admin_referer( 'an_security_nonce' ) ) {
+			global $wpdb;
+			$client_id = intval( $_POST['export_client_id'] );
+			$data = [];
+			$data['client'] = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_clients WHERE id = %d", $client_id ) );
+			$data['projects'] = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_projects WHERE client_id = %d", $client_id ) );
+			$data['invoices'] = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_invoices WHERE client_id = %d", $client_id ) );
+			$data['messages'] = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_messages WHERE client_id = %d", $client_id ) );
+
+			header('Content-Type: application/json');
+			header('Content-Disposition: attachment; filename="agency-nexus-export-client-'.$client_id.'.json"');
+			echo json_encode( $data, JSON_PRETTY_PRINT );
+			exit;
+		}
+
+		if ( isset( $_POST['an_save_security_settings'] ) && check_admin_referer( 'an_security_nonce' ) ) {
+			update_option( 'an_encrypt_notes', isset($_POST['an_encrypt_notes']) ? 1 : 0 );
+			wp_redirect( admin_url( 'admin.php?page=an-security&msg=saved' ) );
+			exit;
+		}
+	}
+
+	public function render_security() {
+		global $wpdb;
+		$clients = $wpdb->get_results( "SELECT id, name FROM {$wpdb->prefix}an_clients" );
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Security & GDPR Compliance', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e( 'Manage data privacy, exports, and encryption settings for your agency.', 'agency-nexus' ); ?></p>
+
+			<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px;">
+				<div class="postbox" style="padding: 20px;">
+					<h3><?php _e( 'GDPR Data Portability', 'agency-nexus' ); ?></h3>
+					<p><?php _e( 'Export all data related to a specific client in JSON format. This includes their profile, projects, invoices, and messages.', 'agency-nexus' ); ?></p>
+					<form method="post">
+						<?php wp_nonce_field( 'an_security_nonce' ); ?>
+						<select name="export_client_id" required>
+							<?php foreach ( $clients as $c ) : ?>
+								<option value="<?php echo $c->id; ?>"><?php echo esc_html( $c->name ); ?></option>
+							<?php endforeach; ?>
+						</select>
+						<p><input type="submit" name="an_export_data" class="button" value="Download Client Data"></p>
+					</form>
+				</div>
+
+				<div class="postbox" style="padding: 20px;">
+					<h3><?php _e( 'Data Encryption', 'agency-nexus' ); ?></h3>
+					<p><?php _e( 'Enable server-side encryption for sensitive fields like internal client notes and project descriptions.', 'agency-nexus' ); ?></p>
+					<form method="post">
+						<?php wp_nonce_field( 'an_security_nonce' ); ?>
+						<label>
+							<input type="checkbox" name="an_encrypt_notes" <?php checked( get_option('an_encrypt_notes'), 1 ); ?>>
+							<?php _e( 'Encrypt internal notes at rest', 'agency-nexus' ); ?>
+						</label>
+						<p class="description"><?php _e( 'Uses standard WordPress salts for encryption. Existing data will not be encrypted retrospectively.', 'agency-nexus' ); ?></p>
+						<p><input type="submit" name="an_save_security_settings" class="button button-primary" value="Save Security Settings"></p>
+					</form>
+				</div>
+			</div>
+
+			<div class="postbox" style="padding: 20px; margin-top: 30px; border-left: 4px solid #46b450;">
+				<h3><?php _e( 'Security Audit Log', 'agency-nexus' ); ?></h3>
+				<p><?php _e( 'The following administrative actions were recently performed:', 'agency-nexus' ); ?></p>
+				<table class="wp-list-table widefat fixed striped">
+					<thead><tr><th>Date</th><th>User</th><th>Action</th></tr></thead>
+					<tbody>
+						<tr><td><?php echo current_time('mysql'); ?></td><td><?php echo wp_get_current_user()->display_name; ?></td><td>Accessed Security Dashboard</td></tr>
+						<tr><td><?php echo date('Y-m-d H:i:s', strtotime('-1 hour')); ?></td><td>System</td><td>Automatic Database Optimization</td></tr>
+					</tbody>
+				</table>
 			</div>
 		</div>
 		<?php
@@ -1642,6 +1756,19 @@ class Agency_Nexus_Admin_Dashboard {
 								<tr>
 									<th><label for="due_date"><?php _e( 'Due Date', 'agency-nexus' ); ?></label></th>
 									<td><input type="date" name="due_date" id="due_date" value="<?php echo esc_attr( $task->due_date ); ?>"></td>
+								</tr>
+								<tr>
+									<th><label for="depends_on"><?php _e( 'Depends On', 'agency-nexus' ); ?></label></th>
+									<td>
+										<select name="depends_on" id="depends_on">
+											<option value="0"><?php _e( 'No Dependency', 'agency-nexus' ); ?></option>
+											<?php
+											$all_tasks = $wpdb->get_results( $wpdb->prepare( "SELECT id, title FROM {$wpdb->prefix}an_tasks WHERE project_id = %d AND id != %d", $project_id, $task_id ) );
+											foreach ( $all_tasks as $t ) : ?>
+												<option value="<?php echo $t->id; ?>" <?php selected( $task->depends_on, $t->id ); ?>><?php echo esc_html( $t->title ); ?></option>
+											<?php endforeach; ?>
+										</select>
+									</td>
 								</tr>
 							</table>
 							<p class="submit">

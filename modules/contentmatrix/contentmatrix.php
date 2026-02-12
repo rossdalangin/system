@@ -54,6 +54,19 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 					'platform'       => sanitize_text_field( $_POST['platform'] )
 				];
 				if ( $id ) {
+					// Save version before update
+					$old_content = $wpdb->get_var( $wpdb->prepare( "SELECT content FROM $table_name WHERE id = %d", $id ) );
+					if ( $old_content !== $data['content'] ) {
+						$version = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}an_content_versions WHERE content_id = %d", $id ) ) + 1;
+						$wpdb->insert( $wpdb->prefix . 'an_content_versions', [
+							'content_id' => $id,
+							'version_number' => $version,
+							'content' => $old_content,
+							'created_by' => get_current_user_id(),
+							'created_at' => current_time( 'mysql' )
+						] );
+					}
+
 					$wpdb->update( $table_name, $data, [ 'id' => $id ] );
 					$msg = 'updated';
 					do_action( 'agency_nexus_content_status_updated', $id, $data['status'] );
@@ -139,6 +152,31 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
 		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		if ( $action === 'versions' && $id ) {
+			$versions = $wpdb->get_results( $wpdb->prepare( "SELECT v.*, u.display_name FROM {$wpdb->prefix}an_content_versions v JOIN {$wpdb->users} u ON v.created_by = u.ID WHERE v.content_id = %d ORDER BY v.version_number DESC", $id ) );
+			$content_title = $wpdb->get_var( $wpdb->prepare( "SELECT title FROM $table_name WHERE id = %d", $id ) );
+			?>
+			<div class="agency-nexus-wrap">
+				<h1><?php echo sprintf( __( 'Version History: %s', 'agency-nexus' ), esc_html( $content_title ) ); ?></h1>
+				<table class="wp-list-table widefat fixed striped">
+					<thead><tr><th>Version</th><th>Author</th><th>Date</th><th>Preview</th></tr></thead>
+					<tbody>
+						<?php foreach ( $versions as $v ) : ?>
+							<tr>
+								<td>#<?php echo $v->version_number; ?></td>
+								<td><?php echo esc_html( $v->display_name ); ?></td>
+								<td><?php echo $v->created_at; ?></td>
+								<td><button type="button" class="button button-small" onclick="alert('<?php echo esc_js($v->content); ?>')">View Content</button></td>
+							</tr>
+						<?php endforeach; if(empty($versions)) echo '<tr><td colspan="4">No previous versions found.</td></tr>'; ?>
+					</tbody>
+				</table>
+				<p><a href="?page=an-content-list" class="button">Back to List</a></p>
+			</div>
+			<?php
+			return;
+		}
 
 		if ( isset( $_GET['msg'] ) ) {
 			$m = '';
@@ -270,7 +308,8 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 							<td><span class="badge status-<?php echo $item->status; ?>"><?php echo ucfirst(str_replace('_', ' ', $item->status)); ?></span></td>
 							<td><?php echo $item->scheduled_date; ?></td>
 							<td>
-								<a href="?page=an-content-list&action=edit&id=<?php echo $item->id; ?>">Edit</a>
+								<a href="?page=an-content-list&action=edit&id=<?php echo $item->id; ?>">Edit</a> |
+								<a href="?page=an-content-list&action=versions&id=<?php echo $item->id; ?>">Versions</a>
 								<?php if ( Agency_Nexus_Permissions::is_team_member() ) : ?>
 								| <a href="<?php echo wp_nonce_url('?page=an-content-list&action=delete&id=' . $item->id, 'an_delete_content_' . $item->id); ?>" style="color:red;" onclick="return confirm('Delete item?')">Delete</a>
 								<?php endif; ?>

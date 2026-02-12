@@ -7,7 +7,7 @@
 		<ul style="list-style: disc; margin-left: 20px;">
 			<li><strong>Standardize:</strong> Choose from Small, Medium, or Large tiers to keep pricing consistent.</li>
 			<li><strong>Automate:</strong> Deliverables are automatically suggested based on the service type.</li>
-			<li><strong>Convert:</strong> Clicking "Create Project" instantly transforms this scope into an active project for your team.</li>
+			<li><strong>Convert:</strong> Clicking "Generate Proposal" creates a professional document for client sign-off.</li>
 		</ul>
 	</div>
 
@@ -65,7 +65,7 @@
 			</div>
 
 			<div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
-				<button type="submit" class="button button-primary" id="an-generate-proposal"><?php _e( 'Create Project', 'agency-nexus' ); ?></button>
+				<button type="submit" class="button button-primary" id="an-generate-proposal"><?php _e( 'Generate Proposal', 'agency-nexus' ); ?></button>
 				<span class="spinner"></span>
 			</div>
 		</form>
@@ -102,7 +102,7 @@ jQuery(document).ready(function($) {
 			$('.spinner').removeClass('is-active');
 			btn.prop('disabled', false);
 			if (response.success) {
-				alert('Project created successfully! ID: ' + response.data.project_id);
+				window.location.href = '?page=an-proposals&action=view&id=' + response.data.proposal_id;
 			} else {
 				alert('Error: ' + response.data);
 			}

@@ -16,6 +16,8 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 		add_action( 'agency_nexus_dashboard_widgets', [ $this, 'render_dashboard_widget' ] );
 		add_action( 'admin_init', [ $this, 'handle_post' ] );
 		add_action( 'wp_ajax_an_save_scope', [ $this, 'handle_save_scope' ] );
+		add_action( 'wp_ajax_an_sign_proposal', [ $this, 'handle_sign_proposal' ] );
+		add_action( 'wp_ajax_an_delete_proposal', [ $this, 'handle_delete_proposal' ] );
 	}
 
 	public function handle_post() {
@@ -47,6 +49,15 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 		if ( ! Agency_Nexus_License_Manager::get_instance()->is_feature_enabled( 'project_management' ) ) {
 			return;
 		}
+
+		add_submenu_page(
+			'agency-nexus',
+			__( 'Proposals', 'agency-nexus' ),
+			__( 'Proposals', 'agency-nexus' ),
+			'read',
+			'an-proposals',
+			[ $this, 'render_proposals' ]
+		);
 
 		if ( Agency_Nexus_Permissions::is_admin() ) {
 			add_submenu_page(
@@ -172,7 +183,7 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 	}
 
 	/**
-	 * AJAX handler to save scope as a project.
+	 * AJAX handler to save scope as a proposal.
 	 */
 	public function handle_save_scope() {
 		check_ajax_referer( 'an_scope_nonce', 'security' );
@@ -195,17 +206,129 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 		}
 
 		$wpdb->insert(
-			$wpdb->prefix . 'an_projects',
+			$wpdb->prefix . 'an_proposals',
 			[
 				'client_id'   => $client_id,
-				'title'       => sprintf( '%s Project (%s)', ucfirst( $service_type ), ucfirst( $scale_key ) ),
+				'title'       => sprintf( '%s Proposal (%s)', ucfirst( $service_type ), ucfirst( $scale_key ) ),
 				'description' => $description,
 				'budget'      => $budget,
-				'status'      => 'planned'
+				'status'      => 'sent',
+				'created_at'  => current_time( 'mysql' )
 			]
 		);
 
-		wp_send_json_success( [ 'project_id' => $wpdb->insert_id ] );
+		wp_send_json_success( [ 'proposal_id' => $wpdb->insert_id ] );
+	}
+
+	public function render_proposals() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_proposals';
+		$clients_table = $wpdb->prefix . 'an_clients';
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		if ( $id && ! Agency_Nexus_Permissions::can_access_messages( $wpdb->get_var( $wpdb->prepare( "SELECT client_id FROM $table_name WHERE id = %d", $id ) ) ) ) {
+			echo '<div class="error"><p>Unauthorized</p></div>'; return;
+		}
+
+		if ( $action === 'view' && $id ) {
+			$proposal = $wpdb->get_row( $wpdb->prepare( "SELECT p.*, c.name as client_name FROM $table_name p JOIN $clients_table c ON p.client_id = c.id WHERE p.id = %d", $id ) );
+			$this->get_template( 'view-proposal', [ 'proposal' => $proposal ] );
+			return;
+		}
+
+		$query = "SELECT p.*, c.name as client_name FROM $table_name p JOIN $clients_table c ON p.client_id = c.id";
+		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+		if ( is_array( $authorised_ids ) ) {
+			if ( Agency_Nexus_Permissions::is_client() ) {
+				$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
+				$query .= $wpdb->prepare( " WHERE p.client_id = %d", $client_id );
+			} else {
+				// Team members see proposals for clients they have projects with
+				if ( empty( $authorised_ids ) ) {
+					$query .= " WHERE 1=0";
+				} else {
+					$client_ids = $wpdb->get_col( "SELECT client_id FROM {$wpdb->prefix}an_projects WHERE id IN (" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")" );
+					if ( ! empty( $client_ids ) ) {
+						$query .= " WHERE p.client_id IN (" . implode( ',', array_map( 'intval', array_unique($client_ids) ) ) . ")";
+					} else {
+						$query .= " WHERE 1=0";
+					}
+				}
+			}
+		}
+		$proposals = $wpdb->get_results( $query );
+
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Agency Proposals', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e( 'Review and manage your project proposals. Proposals accepted and signed by clients are automatically converted into Projects.', 'agency-nexus' ); ?></p>
+
+			<table class="wp-list-table widefat fixed striped">
+				<thead><tr><th>Title</th><th>Client</th><th>Budget</th><th>Status</th><th>Actions</th></tr></thead>
+				<tbody>
+					<?php foreach ( $proposals as $prop ) : ?>
+						<tr id="proposal-<?php echo $prop->id; ?>">
+							<td><strong><?php echo esc_html( $prop->title ); ?></strong></td>
+							<td><?php echo esc_html( $prop->client_name ); ?></td>
+							<td>$<?php echo number_format( $prop->budget, 2 ); ?></td>
+							<td><span class="badge status-<?php echo $prop->status; ?>"><?php echo ucfirst( $prop->status ); ?></span></td>
+							<td>
+								<a href="?page=an-proposals&action=view&id=<?php echo $prop->id; ?>"><?php _e( 'View', 'agency-nexus' ); ?></a>
+								<?php if ( Agency_Nexus_Permissions::is_team_member() ) : ?>
+								| <a href="#" onclick="deleteProposal(<?php echo $prop->id; ?>)" style="color:red;"><?php _e( 'Delete', 'agency-nexus' ); ?></a>
+								<?php endif; ?>
+							</td>
+						</tr>
+					<?php endforeach; if(empty($proposals)) echo '<tr><td colspan="5">No proposals found.</td></tr>'; ?>
+				</tbody>
+			</table>
+		</div>
+		<script>
+		function deleteProposal(id) {
+			if(!confirm('Delete this proposal?')) return;
+			jQuery.post(ajaxurl, { action: 'an_delete_proposal', id: id, security: '<?php echo wp_create_nonce("an_proposal_nonce"); ?>' }, function() {
+				jQuery('#proposal-' + id).fadeOut();
+			});
+		}
+		</script>
+		<?php
+	}
+
+	public function handle_sign_proposal() {
+		check_ajax_referer( 'an_proposal_nonce', 'security' );
+		global $wpdb;
+		$id = intval( $_POST['id'] );
+		$signature = sanitize_text_field( $_POST['signature'] );
+		$proposal = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_proposals WHERE id = %d", $id ) );
+
+		if ( ! $proposal || ! Agency_Nexus_Permissions::is_client() ) wp_send_json_error( 'Unauthorized' );
+
+		$wpdb->update( $wpdb->prefix . 'an_proposals', [
+			'status' => 'accepted',
+			'signature' => $signature,
+			'signed_at' => current_time( 'mysql' )
+		], [ 'id' => $id ] );
+
+		// Convert to Project
+		$wpdb->insert( $wpdb->prefix . 'an_projects', [
+			'client_id' => $proposal->client_id,
+			'title' => str_replace( 'Proposal', 'Project', $proposal->title ),
+			'description' => $proposal->description . "\n\nSigned by: " . $signature . " at " . current_time( 'mysql' ),
+			'budget' => $proposal->budget,
+			'status' => 'planned',
+			'created_at' => current_time( 'mysql' )
+		] );
+
+		wp_send_json_success();
+	}
+
+	public function handle_delete_proposal() {
+		check_ajax_referer( 'an_proposal_nonce', 'security' );
+		if ( ! Agency_Nexus_Permissions::is_team_member() ) wp_send_json_error( 'Unauthorized' );
+		global $wpdb;
+		$wpdb->delete( $wpdb->prefix . 'an_proposals', [ 'id' => intval( $_POST['id'] ) ] );
+		wp_send_json_success();
 	}
 
 	public function render_dashboard_widget() {
