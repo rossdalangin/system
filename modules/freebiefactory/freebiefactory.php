@@ -80,6 +80,41 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 			'an-resources',
 			[ $this, 'render_resources' ]
 		);
+
+		add_submenu_page(
+			'agency-nexus',
+			__( 'Marketplace', 'agency-nexus' ),
+			__( 'Marketplace', 'agency-nexus' ),
+			'read',
+			'an-resource-marketplace',
+			[ $this, 'render_marketplace' ]
+		);
+	}
+
+	public function render_marketplace() {
+		$featured = [
+			[ 'title' => 'Web Design Discovery Pack', 'price' => '$49', 'rating' => 4.8 ],
+			[ 'title' => 'SEO Audit Workflow (Pro)', 'price' => '$29', 'rating' => 4.9 ],
+			[ 'title' => 'Social Media Swipe File Bundle', 'price' => '$39', 'rating' => 4.7 ]
+		];
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Template Marketplace', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e( 'Buy and sell premium agency assets. From standard contracts to full project workflows.', 'agency-nexus' ); ?></p>
+
+			<div class="an-marketplace-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
+				<?php foreach ( $featured as $item ) : ?>
+					<div class="postbox" style="padding: 20px; text-align: center;">
+						<div style="background: #eee; height: 150px; border-radius: 8px; margin-bottom: 15px; display:flex; align-items:center; justify-content:center; color:#999;">Preview</div>
+						<h3><?php echo esc_html($item['title']); ?></h3>
+						<p style="font-size: 1.5rem; font-weight: bold; color: var(--an-indigo-600);"><?php echo $item['price']; ?></p>
+						<p><span style="color:#fbc02d;">★★★★★</span> (<?php echo $item['rating']; ?>)</p>
+						<button class="button button-primary button-large" style="width:100%;"><?php _e( 'Buy Now', 'agency-nexus' ); ?></button>
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
+		<?php
 	}
 
 	public function render_resources() {
@@ -120,6 +155,7 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 								<select name="type" id="type">
 									<option value="template" <?php selected($resource ? $resource->type : '', 'template'); ?>>Template</option>
 									<option value="swipe" <?php selected($resource ? $resource->type : '', 'swipe'); ?>>Swipe File</option>
+							<option value="contract_clause" <?php selected($resource ? $resource->type : '', 'contract_clause'); ?>>Contract Clause</option>
 								</select>
 								<p class="description"><?php _e('Templates are frameworks for work; Swipe files are inspiration or examples.', 'agency-nexus'); ?></p>
 							</td>

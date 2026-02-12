@@ -131,6 +131,8 @@ class Agency_Nexus_API_Handler {
 				'name'             => $name,
 				'email'            => $email,
 				'source'           => $source,
+				'utm_medium'       => isset( $params['utm_medium'] ) ? sanitize_text_field( $params['utm_medium'] ) : '',
+				'utm_campaign'     => isset( $params['utm_campaign'] ) ? sanitize_text_field( $params['utm_campaign'] ) : '',
 				'status'           => 'new',
 				'conversion_value' => 0.00,
 				'created_at'       => current_time( 'mysql' )

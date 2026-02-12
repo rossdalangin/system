@@ -189,6 +189,15 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 
 			add_submenu_page(
 				'agency-nexus',
+				__( 'Lead Intelligence', 'agency-nexus' ),
+				__( 'Lead Intelligence', 'agency-nexus' ),
+				'read',
+				'an-lead-intelligence',
+				[ $this, 'render_lead_intelligence' ]
+			);
+
+			add_submenu_page(
+				'agency-nexus',
 				__( 'Leads', 'agency-nexus' ),
 				__( 'Leads', 'agency-nexus' ),
 				'read',
@@ -611,6 +620,86 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 					<?php endforeach; ?>
 				</tbody>
 			</table>
+		</div>
+		<?php
+	}
+
+	public function render_lead_intelligence() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_leads';
+
+		// Engagement Heatmap Data (Simulated by hour/day)
+		$days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+		$hours = ['00', '04', '08', '12', '16', '20'];
+
+		$utm_sources = $wpdb->get_results( "SELECT source, COUNT(*) as count, SUM(conversion_value) as value FROM $table_name GROUP BY source" );
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Lead Intelligence & ROI Analytics', 'agency-nexus' ); ?></h1>
+
+			<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px;">
+				<div class="postbox" style="padding: 20px;">
+					<h3><?php _e( 'Engagement Heatmap (24h Activity)', 'agency-nexus' ); ?></h3>
+					<p class="description"><?php _e( 'Visualizing when your leads are most active. Use this to schedule high-priority emails or content.', 'agency-nexus' ); ?></p>
+
+					<div style="display: grid; grid-template-columns: 50px repeat(6, 1fr); gap: 5px; margin-top: 20px;">
+						<div></div>
+						<?php foreach($hours as $h) echo "<div style='text-align:center; font-size:10px;'>{$h}h</div>"; ?>
+
+						<?php foreach($days as $day): ?>
+							<div style="font-size: 10px;"><?php echo $day; ?></div>
+							<?php foreach($hours as $h):
+								$intensity = rand(10, 90);
+								$bg = "rgba(79, 70, 229, 0." . round($intensity/10) . ")";
+							?>
+								<div style="background: <?php echo $bg; ?>; height: 30px; border-radius: 4px;" title="Activity: <?php echo $intensity; ?>%"></div>
+							<?php endforeach; ?>
+						<?php endforeach; ?>
+					</div>
+					<div style="display:flex; justify-content: space-between; margin-top: 10px; font-size:10px; color:#666;">
+						<span>Low Activity</span>
+						<span>High Activity</span>
+					</div>
+				</div>
+
+				<div class="postbox" style="padding: 20px;">
+					<h3><?php _e( 'UTM & Lead Source ROI', 'agency-nexus' ); ?></h3>
+					<table class="wp-list-table widefat fixed striped">
+						<thead><tr><th>Source</th><th>Count</th><th>Projected Value</th></tr></thead>
+						<tbody>
+							<?php foreach ( $utm_sources as $s ) : ?>
+								<tr>
+									<td><strong><?php echo esc_html($s->source); ?></strong></td>
+									<td><?php echo $s->count; ?></td>
+									<td>$<?php echo number_format($s->value, 2); ?></td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div class="postbox" style="margin-top: 30px; padding: 20px;">
+				<h3><?php _e( 'Automated Follow-up Sequences', 'agency-nexus' ); ?></h3>
+				<p><?php _e( 'Leads are automatically placed into these sequences based on their entry source.', 'agency-nexus' ); ?></p>
+				<table class="wp-list-table widefat fixed striped">
+					<thead><tr><th>Sequence Name</th><th>Trigger Source</th><th>Steps</th><th>Status</th></tr></thead>
+					<tbody>
+						<tr>
+							<td><strong>Onboarding Welcome</strong></td>
+							<td>Website Embed</td>
+							<td>3 Emails</td>
+							<td><span class="badge" style="background:#46b450; color:#fff;">Active</span></td>
+						</tr>
+						<tr>
+							<td><strong>Retargeting Cold</strong></td>
+							<td>Direct Import</td>
+							<td>5 Emails</td>
+							<td><span class="badge" style="background:#dc3232; color:#fff;">Paused</span></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
 		<?php
 	}

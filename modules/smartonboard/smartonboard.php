@@ -198,6 +198,10 @@ class Agency_Nexus_Module_Smartonboard extends Agency_Nexus_Base_Module {
 		$scale_key    = sanitize_text_field( $_POST['scale'] );
 		$scales       = get_option( 'an_scope_scales', [] );
 		$budget       = isset( $scales[ $scale_key ]['budget'] ) ? $scales[ $scale_key ]['budget'] : 0;
+
+		$addon_total  = isset( $_POST['addon_total'] ) ? floatval( $_POST['addon_total'] ) : 0;
+		$budget      += $addon_total;
+
 		$deliverables = isset( $_POST['deliverables'] ) ? (array) $_POST['deliverables'] : [];
 
 		$description = __( 'Generated from Scope Builder.', 'agency-nexus' ) . "\n\n";

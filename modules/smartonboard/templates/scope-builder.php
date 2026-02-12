@@ -41,11 +41,22 @@
 				$first = true;
 				foreach ( $scales as $key => $data ) : ?>
 					<label>
-						<input type="radio" name="scale" value="<?php echo esc_attr($key); ?>" <?php checked($first); ?>> <?php echo esc_html($data['label']); ?> ($<?php echo number_format($data['budget']); ?>)
+						<input type="radio" name="scale" value="<?php echo esc_attr($key); ?>" data-budget="<?php echo $data['budget']; ?>" <?php checked($first); ?>> <?php echo esc_html($data['label']); ?> ($<?php echo number_format($data['budget']); ?>)
 					</label><br>
 				<?php
 				$first = false;
 				endforeach; ?>
+			</div>
+
+			<div class="scope-section" style="margin-top: 20px;">
+				<h3><?php _e( '2b. Add-ons (Adjustable Parameters)', 'agency-nexus' ); ?></h3>
+				<label><input type="checkbox" class="an-addon" data-price="500"> Express Delivery (+$500)</label><br>
+				<label><input type="checkbox" class="an-addon" data-price="250"> 1-Month Support (+$250)</label><br>
+				<label><input type="checkbox" class="an-addon" data-price="1000"> Strategy Consultation (+$1,000)</label>
+			</div>
+
+			<div id="an-scope-summary" style="margin-top: 30px; padding: 15px; background: #f8fafc; border-radius: 8px;">
+				<h2 style="margin: 0; color: var(--an-indigo-600);"><?php _e( 'Dynamic Total:', 'agency-nexus' ); ?> $<span id="an-dynamic-total">0.00</span></h2>
 			</div>
 
 			<div class="scope-section" style="margin-top: 20px;">
@@ -76,6 +87,17 @@
 jQuery(document).ready(function($) {
 	const deliverables = <?php echo json_encode($deliverables); ?>;
 
+	function updateSummary() {
+		let total = parseFloat($('input[name="scale"]:checked').data('budget')) || 0;
+		$('.an-addon:checked').each(function() {
+			total += parseFloat($(this).data('price'));
+		});
+		$('#an-dynamic-total').text(total.toLocaleString(undefined, {minimumFractionDigits: 2}));
+	}
+
+	$('input[name="scale"], .an-addon').on('change', updateSummary);
+	updateSummary();
+
 	$('#an-service-type').on('change', function() {
 		const service = $(this).val();
 		const container = $('#an-deliverables-container');
@@ -96,7 +118,12 @@ jQuery(document).ready(function($) {
 		btn.prop('disabled', true);
 		$('.spinner').addClass('is-active');
 
-		const data = $(this).serialize() + '&action=an_save_scope';
+		let addon_total = 0;
+		$('.an-addon:checked').each(function() {
+			addon_total += parseFloat($(this).data('price'));
+		});
+
+		const data = $(this).serialize() + '&action=an_save_scope&addon_total=' + addon_total;
 
 		$.post(ajaxurl, data, function(response) {
 			$('.spinner').removeClass('is-active');

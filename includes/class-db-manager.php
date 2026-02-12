@@ -31,10 +31,10 @@ class Agency_Nexus_DB_Manager {
 	 */
 	private function maybe_update_db() {
 		$version = get_option( 'an_db_version', '0' );
-		// If version is less than 1.1.4 or not set.
-		if ( version_compare( $version, '1.1.4', '<' ) ) {
+		// If version is less than 1.1.7 or not set.
+		if ( version_compare( $version, '1.1.7', '<' ) ) {
 			self::create_tables();
-			update_option( 'an_db_version', '1.1.4' );
+			update_option( 'an_db_version', '1.1.7' );
 		}
 	}
 
@@ -162,6 +162,8 @@ id bigint(20) NOT NULL AUTO_INCREMENT,
 name varchar(255) NOT NULL,
 email varchar(255) NOT NULL,
 source varchar(255) DEFAULT 'direct' NOT NULL,
+utm_medium varchar(100) DEFAULT '' NOT NULL,
+utm_campaign varchar(100) DEFAULT '' NOT NULL,
 status varchar(50) DEFAULT 'new' NOT NULL,
 conversion_value decimal(10,2) DEFAULT 0.00 NOT NULL,
 score int(11) DEFAULT 0 NOT NULL,
@@ -339,6 +341,32 @@ content_id bigint(20) NOT NULL,
 version_number int(11) NOT NULL,
 content longtext NOT NULL,
 created_by bigint(20) NOT NULL,
+created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+PRIMARY KEY  (id)
+) $charset_collate;";
+
+		// Keyword Gap Table (ContentMatrix)
+		$table_keyword_gap = $wpdb->prefix . 'an_keyword_gap';
+		$queries[] = "CREATE TABLE $table_keyword_gap (
+id bigint(20) NOT NULL AUTO_INCREMENT,
+project_id bigint(20) NOT NULL,
+keyword varchar(255) NOT NULL,
+competitor_rank int(11) DEFAULT 0 NOT NULL,
+our_rank int(11) DEFAULT 0 NOT NULL,
+search_volume int(11) DEFAULT 0 NOT NULL,
+difficulty int(11) DEFAULT 0 NOT NULL,
+status varchar(50) DEFAULT 'gap' NOT NULL,
+created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+PRIMARY KEY  (id)
+) $charset_collate;";
+
+		// Content Comments Table (ApprovalFlow)
+		$table_content_comments = $wpdb->prefix . 'an_content_comments';
+		$queries[] = "CREATE TABLE $table_content_comments (
+id bigint(20) NOT NULL AUTO_INCREMENT,
+content_id bigint(20) NOT NULL,
+user_id bigint(20) NOT NULL,
+comment text NOT NULL,
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)
 ) $charset_collate;";

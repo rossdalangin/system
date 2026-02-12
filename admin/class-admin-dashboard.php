@@ -76,6 +76,7 @@ class Agency_Nexus_Admin_Dashboard {
 			update_option( 'an_email_from_name', sanitize_text_field( $_POST['an_email_from_name'] ) );
 
 			update_option( 'an_zapier_webhook', esc_url_raw( $_POST['an_zapier_webhook'] ) );
+			update_option( 'an_slack_webhook', esc_url_raw( $_POST['an_slack_webhook'] ) );
 			update_option( 'an_comm_start', sanitize_text_field( $_POST['an_comm_start'] ) );
 			update_option( 'an_comm_end', sanitize_text_field( $_POST['an_comm_end'] ) );
 			update_option( 'an_after_hours_msg', sanitize_textarea_field( $_POST['an_after_hours_msg'] ) );
@@ -1145,6 +1146,7 @@ class Agency_Nexus_Admin_Dashboard {
 						<th>Client</th>
 						<th>Lead</th>
 						<th>Budget</th>
+						<th>Profitability</th>
 						<th>Status</th>
 						<th>Created</th>
 						<th>Actions</th>
@@ -1155,12 +1157,25 @@ class Agency_Nexus_Admin_Dashboard {
 						<?php
 							$lead_user = $project->assigned_to ? get_userdata($project->assigned_to) : null;
 							$lead_name = $lead_user ? $lead_user->display_name : '<em>Unassigned</em>';
+
+							$money_module = Agency_Nexus()->modules['moneyflow'];
+							$profit = $money_module ? $money_module->calculate_project_profitability($project->id) : null;
 						?>
 						<tr>
 							<td><strong><a href="?page=an-projects&action=view&id=<?php echo $project->id; ?>"><?php echo esc_html( $project->title ); ?></a></strong></td>
 							<td><?php echo esc_html( $project->client_name ); ?></td>
 							<td><?php echo $lead_name; ?></td>
 							<td>$<?php echo number_format($project->budget, 2); ?></td>
+							<td>
+								<?php if ($profit) : ?>
+									<span style="color: <?php echo $profit['profitability'] >= 0 ? '#46b450' : '#dc3232'; ?>; font-weight: bold;">
+										$<?php echo number_format($profit['profitability'], 2); ?>
+									 small>(<?php echo round($profit['margin']); ?>%)</small>
+									</span>
+								<?php else : ?>
+									-
+								<?php endif; ?>
+							</td>
 							<td><span class="badge status-<?php echo $project->status; ?>"><?php echo ucfirst($project->status); ?></span></td>
 							<td><?php echo $project->created_at; ?></td>
 							<td>
@@ -1314,6 +1329,13 @@ class Agency_Nexus_Admin_Dashboard {
 						<td>
 							<input type="text" name="an_zapier_webhook" id="an_zapier_webhook" value="<?php echo esc_attr( get_option( 'an_zapier_webhook' ) ); ?>" class="large-text">
 							<p class="description"><?php _e('Trigger external workflows in Zapier or Make.com when project milestones are met.', 'agency-nexus'); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="an_slack_webhook">Slack Webhook URL</label></th>
+						<td>
+							<input type="text" name="an_slack_webhook" id="an_slack_webhook" value="<?php echo esc_attr( get_option( 'an_slack_webhook' ) ); ?>" class="large-text">
+							<p class="description"><?php _e('Send project alerts and messages directly to your agency Slack channel.', 'agency-nexus'); ?></p>
 						</td>
 					</tr>
 				</table>

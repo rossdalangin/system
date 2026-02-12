@@ -26,6 +26,7 @@
 				<div style="display: flex; gap: 10px;">
 					<button class="button button-primary approve-btn" data-id="<?php echo $item->id; ?>"><?php _e( 'Approve', 'agency-nexus' ); ?></button>
 					<button class="button reject-btn" data-id="<?php echo $item->id; ?>"><?php _e( 'Request Changes', 'agency-nexus' ); ?></button>
+					<a href="?page=an-approvals&action=compare&id=<?php echo $item->id; ?>" class="button"><?php _e( 'Review & Compare', 'agency-nexus' ); ?></a>
 				</div>
 			</div>
 		<?php endforeach; else : ?>

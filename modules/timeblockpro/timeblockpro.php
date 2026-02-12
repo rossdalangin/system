@@ -88,6 +88,15 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 				'an-focus-mode',
 				[ $this, 'render_focus_mode' ]
 			);
+
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Smart Suggestions', 'agency-nexus' ),
+				__( 'Smart Suggestions', 'agency-nexus' ),
+				'read',
+				'an-timeblock-suggestions',
+				[ $this, 'render_suggestions' ]
+			);
 		}
 	}
 
@@ -163,13 +172,87 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 		$this->get_template( 'dashboard', [ 'blocks' => $blocks ] );
 	}
 
+	public function render_suggestions() {
+		global $wpdb;
+		if ( isset( $_POST['an_apply_suggestion'] ) && check_admin_referer( 'an_apply_suggestion_nonce' ) ) {
+			$wpdb->insert( $wpdb->prefix . 'an_time_blocks', [
+				'user_id'    => get_current_user_id(),
+				'title'      => sanitize_text_field( $_POST['title'] ),
+				'start_time' => sanitize_text_field( $_POST['start_time'] ),
+				'end_time'   => sanitize_text_field( $_POST['end_time'] ),
+				'type'       => sanitize_text_field( $_POST['type'] ),
+				'created_at' => current_time( 'mysql' )
+			] );
+			echo '<div class="updated"><p>Smart suggestion applied to your schedule!</p></div>';
+		}
+
+		$suggestions = [
+			[
+				'title' => 'Morning Deep Work',
+				'desc'  => 'Based on your circadian rhythm, your cognitive load capacity is highest now.',
+				'type'  => 'deep_work',
+				'start' => date('Y-m-d 09:00:00'),
+				'end'   => date('Y-m-d 11:30:00'),
+				'icon'  => '🧠'
+			],
+			[
+				'title' => 'Post-Lunch Administrative Batch',
+				'desc'  => 'Handle emails and shallow tasks during the afternoon energy dip.',
+				'type'  => 'shallow_work',
+				'start' => date('Y-m-d 14:00:00'),
+				'end'   => date('Y-m-d 15:00:00'),
+				'icon'  => '📥'
+			],
+			[
+				'title' => 'Strategic Planning Break',
+				'desc'  => 'Prevent burnout by scheduling a mandatory disconnect period.',
+				'type'  => 'break',
+				'start' => date('Y-m-d 11:30:00'),
+				'end'   => date('Y-m-d 12:00:00'),
+				'icon'  => '☕'
+			]
+		];
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'AI-Powered Time Block Suggestions', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e( 'Our "Nexus AI" analyzes your productivity reports to suggest the ideal schedule for maximum output.', 'agency-nexus' ); ?></p>
+
+			<div class="an-suggestions-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; margin-top: 30px;">
+				<?php foreach ( $suggestions as $s ) : ?>
+					<div class="postbox" style="padding: 20px; border-top: 4px solid var(--an-indigo-600);">
+						<div style="font-size: 2rem; margin-bottom: 10px;"><?php echo $s['icon']; ?></div>
+						<h3 style="margin:0;"><?php echo esc_html($s['title']); ?></h3>
+						<p style="color:#666;"><?php echo esc_html($s['desc']); ?></p>
+						<p><strong>Time:</strong> <?php echo date('H:i', strtotime($s['start'])); ?> - <?php echo date('H:i', strtotime($s['end'])); ?></p>
+						<form method="post">
+							<?php wp_nonce_field( 'an_apply_suggestion_nonce' ); ?>
+							<input type="hidden" name="title" value="<?php echo esc_attr($s['title']); ?>">
+							<input type="hidden" name="type" value="<?php echo esc_attr($s['type']); ?>">
+							<input type="hidden" name="start_time" value="<?php echo $s['start']; ?>">
+							<input type="hidden" name="end_time" value="<?php echo $s['end']; ?>">
+							<input type="submit" name="an_apply_suggestion" class="button button-primary" value="Apply to Calendar">
+						</form>
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
+		<?php
+	}
+
 	public function render_focus_mode() {
+		$pomodoro_time = get_option( 'an_pomodoro_interval', 25 );
 		?>
 		<div class="agency-nexus-wrap" style="height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #0f172a; color: #fff; border-radius: 20px; margin-top: 20px;">
 			<h1 style="color: #fff; font-size: 3rem; margin-bottom: 10px;">Focus Mode</h1>
-			<p style="font-size: 1.2rem; color: #94a3b8; margin-bottom: 40px;">No distractions. Just you and the deep work.</p>
+			<p style="font-size: 1.2rem; color: #94a3b8; margin-bottom: 10px;">No distractions. Just you and the deep work.</p>
 
-			<div id="focus-timer" style="font-size: 5rem; font-weight: bold; font-family: monospace; margin-bottom: 40px;">25:00</div>
+			<div style="margin-bottom: 30px;">
+				<label>Interval (mins): </label>
+				<input type="number" id="pomodoro-interval" value="<?php echo $pomodoro_time; ?>" style="width: 60px; background: transparent; color: #fff; border: 1px solid #444; text-align: center;">
+				<button type="button" class="button" id="update-timer" style="background: #334155; color: #fff; border: none; margin-left: 10px;">Update</button>
+			</div>
+
+			<div id="focus-timer" style="font-size: 5rem; font-weight: bold; font-family: monospace; margin-bottom: 40px;"><?php echo $pomodoro_time; ?>:00</div>
 
 			<div style="display: flex; gap: 20px;">
 				<button type="button" class="button button-primary" id="start-focus" style="padding: 15px 40px; font-size: 1.1rem;"><?php _e( 'Start Work Block', 'agency-nexus' ); ?></button>
@@ -183,7 +266,13 @@ class Agency_Nexus_Module_Timeblockpro extends Agency_Nexus_Base_Module {
 		<script>
 		jQuery(document).ready(function($) {
 			var timer;
-			var timeLeft = 1500;
+			var timeLeft = <?php echo $pomodoro_time * 60; ?>;
+
+			$('#update-timer').click(function(){
+				var mins = $('#pomodoro-interval').val();
+				timeLeft = mins * 60;
+				$('#focus-timer').text((mins < 10 ? '0' : '') + mins + ':00');
+			});
 
 			$('#start-focus').click(function() {
 				if (timer) {

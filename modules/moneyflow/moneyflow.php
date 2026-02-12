@@ -39,6 +39,12 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
 		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
+		if ( isset( $_POST['an_apply_late_fees'] ) ) {
+			$wpdb->query( "UPDATE {$wpdb->prefix}an_invoices SET amount = amount * 1.05, status = 'overdue' WHERE status = 'sent' AND due_date < CURDATE()" );
+			wp_redirect( admin_url( 'admin.php?page=an-invoices&msg=late_fees_applied' ) );
+			exit;
+		}
+
 		if ( 'delete' === $action && $id ) {
 			check_admin_referer( 'an_delete_expense_' . $id );
 			$wpdb->delete( $expenses_table, [ 'id' => $id ] );
@@ -462,6 +468,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 				case 'updated': $m = 'Invoice updated!'; break;
 				case 'deleted': $m = 'Invoice deleted!'; break;
 				case 'paid':    $m = 'Payment recorded!'; break;
+				case 'late_fees_applied': $m = 'Late fees (5%) applied to all overdue invoices!'; break;
 			}
 			if ( $m ) echo '<div class="updated"><p>' . esc_html( $m ) . '</p></div>';
 		}
@@ -635,6 +642,10 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		<div class="agency-nexus-wrap">
 			<h1 class="wp-heading-inline"><?php _e('Invoices', 'agency-nexus'); ?></h1>
 			<a href="?page=an-invoices&action=add" class="page-title-action">Add New</a>
+			<form method="post" style="display:inline;">
+				<?php wp_nonce_field('an_save_invoice_nonce'); ?>
+				<input type="submit" name="an_apply_late_fees" class="page-title-action" value="Apply Late Fees (5%)" onclick="return confirm('Apply 5% late fee to all overdue invoices?')">
+			</form>
 			<hr class="wp-header-end">
 
 			<div style="background: #fff; border-left: 4px solid #46b450; padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -713,12 +724,15 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		$expenses = $expenses ? $expenses : 0;
 
 		$profitability = $budget - $labor_cost - $expenses;
+		$tax_estimate = $profitability > 0 ? $profitability * 0.25 : 0; // 25% tax estimate
 
 		return [
 			'budget'        => $budget,
 			'labor_cost'    => $labor_cost,
 			'expenses'      => $expenses,
 			'profitability' => $profitability,
+			'tax_estimate'  => $tax_estimate,
+			'net_profit'    => $profitability - $tax_estimate,
 			'margin'        => $budget > 0 ? ( $profitability / $budget ) * 100 : 0
 		];
 	}
@@ -767,6 +781,12 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			</div>
 			<p><small>
 				<?php echo sprintf( __( 'Revenue: $%.2f | Labor Cost: $%.2f', 'agency-nexus' ), $total_budget, $total_labor ); ?>
+			</small></p>
+			<p><small>
+				<?php
+					$all_profit = $this->calculate_project_profitability(0); // Calculate for all
+					echo sprintf( __( 'Est. Tax (25%%): $%.2f | Net: $%.2f', 'agency-nexus' ), $total_profit * 0.25, $total_profit * 0.75 );
+				?>
 			</small></p>
 			<p><a href="<?php echo admin_url('admin.php?page=an-projects'); ?>"><?php _e( 'Manage Projects', 'agency-nexus' ); ?></a></p>
 		</div>

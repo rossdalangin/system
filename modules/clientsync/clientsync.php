@@ -21,6 +21,22 @@ class Agency_Nexus_Module_Clientsync extends Agency_Nexus_Base_Module {
 		add_action( 'wp_ajax_an_delete_message', [ $this, 'handle_delete_message' ] );
 		add_action( 'wp_ajax_an_delete_file', [ $this, 'handle_delete_file' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'agency_nexus_project_status_updated', [ $this, 'auto_send_satisfaction_check' ], 10, 2 );
+	}
+
+	public function auto_send_satisfaction_check( $project_id, $status ) {
+		if ( 'completed' !== $status ) return;
+
+		global $wpdb;
+		$client_id = $wpdb->get_var( $wpdb->prepare( "SELECT client_id FROM {$wpdb->prefix}an_projects WHERE id = %d", $project_id ) );
+		if ( ! $client_id ) return;
+
+		$wpdb->insert( $wpdb->prefix . 'an_messages', [
+			'client_id'  => $client_id,
+			'sender_id'  => 0, // System
+			'message'    => __( "Congratulations on completing your project! We'd love to hear about your experience. How did we do?", 'agency-nexus' ),
+			'created_at' => current_time( 'mysql' )
+		] );
 	}
 
 	public function enqueue_scripts( $hook ) {

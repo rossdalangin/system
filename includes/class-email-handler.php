@@ -120,4 +120,54 @@ class Agency_Nexus_Email_Handler {
 
 		wp_mail( $admin_email, $subject, $message, [ 'Content-Type: text/html; charset=UTF-8' ] );
 	}
+
+	/**
+	 * Send escalated alerts for tasks overdue by more than 3 days.
+	 */
+	public function send_escalation_alerts() {
+		global $wpdb;
+		$admin_email = get_option( 'admin_email' );
+
+		$escalated_tasks = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_tasks WHERE status != 'completed' AND due_date < DATE_SUB(CURDATE(), INTERVAL 3 DAY)" );
+
+		if ( empty($escalated_tasks) ) return;
+
+		$subject = __( '🔴 URGENT: Overdue Task Escalation', 'agency-nexus' );
+
+		ob_start();
+		?>
+		<h1>Task Escalation Alert</h1>
+		<p>The following tasks are critically overdue (3+ days) and require immediate managerial intervention.</p>
+		<ul>
+			<?php foreach ($escalated_tasks as $t) : ?>
+				<li style="color: red; font-weight: bold;"><?php echo esc_html($t->title); ?> (Overdue since: <?php echo $t->due_date; ?>)</li>
+			<?php endforeach; ?>
+		</ul>
+		<p><a href="<?php echo admin_url('admin.php?page=an-projects'); ?>">Review Resource Allocation</a></p>
+		<?php
+		$message = ob_get_clean();
+
+		wp_mail( $admin_email, $subject, $message, [ 'Content-Type: text/html; charset=UTF-8' ] );
+	}
+
+	/**
+	 * Auto-report project status to clients.
+	 */
+	public function send_project_status_reports() {
+		global $wpdb;
+		$projects = $wpdb->get_results( "SELECT p.*, c.email as client_email, c.name as client_name FROM {$wpdb->prefix}an_projects p JOIN {$wpdb->prefix}an_clients c ON p.client_id = c.id WHERE p.status = 'active'" );
+
+		foreach ( $projects as $p ) {
+			$subject = sprintf( __( 'Project Status Update: %s', 'agency-nexus' ), $p->title );
+			$completed_tasks = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}an_tasks WHERE project_id = %d AND status = 'completed'", $p->id ) );
+			$total_tasks = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}an_tasks WHERE project_id = %d", $p->id ) );
+
+			$message = "Hi {$p->client_name}, here is your automated status update for <strong>{$p->title}</strong>.<br><br>";
+			$message .= "Progress: {$completed_tasks} / {$total_tasks} tasks completed.<br>";
+			$message .= "Next Milestone: " . ($total_tasks > 0 ? "On track" : "Planning") . ".<br><br>";
+			$message .= "Log in to your portal for real-time updates: " . home_url('/agency-nexus-portal/');
+
+			wp_mail( $p->client_email, $subject, $message, [ 'Content-Type: text/html; charset=UTF-8' ] );
+		}
+	}
 }

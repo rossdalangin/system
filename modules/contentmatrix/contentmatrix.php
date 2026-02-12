@@ -144,6 +144,170 @@ class Agency_Nexus_Module_Contentmatrix extends Agency_Nexus_Base_Module {
 			'an-batch-automation',
 			[ $this, 'render_batch_automation' ]
 		);
+
+		add_submenu_page(
+			'agency-nexus',
+			__( 'Keyword Gap', 'agency-nexus' ),
+			__( 'Keyword Gap', 'agency-nexus' ),
+			'read',
+			'an-keyword-gap',
+			[ $this, 'render_keyword_gap' ]
+		);
+	}
+
+	public function render_keyword_gap() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_keyword_gap';
+		$projects_table = $wpdb->prefix . 'an_projects';
+
+		if ( isset( $_POST['an_save_keyword'] ) && check_admin_referer( 'an_save_keyword_nonce' ) ) {
+			$wpdb->insert( $table_name, [
+				'project_id'      => intval( $_POST['project_id'] ),
+				'keyword'         => sanitize_text_field( $_POST['keyword'] ),
+				'competitor_rank' => intval( $_POST['competitor_rank'] ),
+				'our_rank'        => intval( $_POST['our_rank'] ),
+				'search_volume'   => intval( $_POST['search_volume'] ),
+				'difficulty'      => intval( $_POST['difficulty'] ),
+				'status'          => sanitize_text_field( $_POST['status'] ),
+				'created_at'      => current_time( 'mysql' )
+			] );
+			echo '<div class="updated"><p>Keyword added to gap analysis.</p></div>';
+		}
+
+		$authorised_ids = Agency_Nexus_Permissions::get_authorised_project_ids();
+		$query = "SELECT k.*, p.title as project_title FROM $table_name k JOIN $projects_table p ON k.project_id = p.id";
+		if ( is_array( $authorised_ids ) ) {
+			if ( empty( $authorised_ids ) ) {
+				$query .= " WHERE 1=0";
+			} else {
+				$query .= " WHERE k.project_id IN (" . implode( ',', array_map( 'intval', $authorised_ids ) ) . ")";
+			}
+		}
+		$gaps = $wpdb->get_results( $query );
+		$projects = $wpdb->get_results( "SELECT id, title FROM $projects_table" );
+
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Keyword Gap & Competitor Analysis', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e( 'Identify opportunities where your competitors are outranking you, or find "low-hanging fruit" keywords to target in your content clusters.', 'agency-nexus' ); ?></p>
+
+			<div class="an-flex-row" style="display: flex; gap: 20px; margin-top: 30px;">
+				<div class="postbox" style="flex: 1; padding: 20px;">
+					<h3><?php _e( 'Add Keyword for Analysis', 'agency-nexus' ); ?></h3>
+					<form method="post">
+						<?php wp_nonce_field( 'an_save_keyword_nonce' ); ?>
+						<table class="form-table">
+							<tr>
+								<td>
+									<select name="project_id" style="width:100%;" required>
+										<option value=""><?php _e( '-- Select Project --', 'agency-nexus' ); ?></option>
+										<?php foreach ( $projects as $p ) : ?>
+											<option value="<?php echo $p->id; ?>"><?php echo esc_html( $p->title ); ?></option>
+										<?php endforeach; ?>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<td><input type="text" name="keyword" placeholder="Keyword" style="width:100%;" required></td>
+							</tr>
+							<tr>
+								<td>
+									<div style="display:flex; gap:10px;">
+										<input type="number" name="competitor_rank" placeholder="Competitor Rank" style="flex:1;">
+										<input type="number" name="our_rank" placeholder="Our Rank" style="flex:1;">
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div style="display:flex; gap:10px;">
+										<input type="number" name="search_volume" placeholder="Search Volume" style="flex:1;">
+										<input type="number" name="difficulty" placeholder="Difficulty (0-100)" style="flex:1;">
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<select name="status" style="width:100%;">
+										<option value="gap">Gap (They rank, we don't)</option>
+										<option value="opportunity">Opportunity (Low competition)</option>
+										<option value="weak">Weak (We rank lower)</option>
+									</select>
+								</td>
+							</tr>
+						</table>
+						<p class="submit">
+							<input type="submit" name="an_save_keyword" class="button button-primary" value="Add to Analysis">
+						</p>
+					</form>
+				</div>
+
+				<div class="postbox" style="flex: 2; padding: 20px;">
+					<h3><?php _e( 'Analysis Dashboard', 'agency-nexus' ); ?></h3>
+					<table class="wp-list-table widefat fixed striped">
+						<thead>
+							<tr>
+								<th>Keyword</th>
+								<th>Project</th>
+								<th>Gap Status</th>
+								<th>Search Volume</th>
+								<th>Difficulty</th>
+								<th>Action</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $gaps as $gap ) :
+								$color = 'gray';
+								if ( $gap->status === 'gap' ) $color = '#e53e3e';
+								if ( $gap->status === 'opportunity' ) $color = '#38a169';
+								if ( $gap->status === 'weak' ) $color = '#d69e2e';
+							?>
+								<tr>
+									<td><strong><?php echo esc_html( $gap->keyword ); ?></strong></td>
+									<td><?php echo esc_html( $gap->project_title ); ?></td>
+									<td><span style="color:<?php echo $color; ?>; font-weight:bold;"><?php echo ucfirst($gap->status); ?></span></td>
+									<td><?php echo number_format($gap->search_volume); ?></td>
+									<td>
+										<div style="background:#eee; height:8px; border-radius:4px; width:60px;">
+											<div style="background:var(--an-indigo-600); height:8px; border-radius:4px; width:<?php echo $gap->difficulty; ?>%;"></div>
+										</div>
+									</td>
+									<td>
+										<button class="button button-small" onclick="alert('Creating draft for: <?php echo esc_js($gap->keyword); ?>')">Generate Draft</button>
+									</td>
+								</tr>
+							<?php endforeach; if(empty($gaps)) echo '<tr><td colspan="6">No keywords analyzed yet.</td></tr>'; ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div class="postbox" style="margin-top: 20px; padding: 20px;">
+				<h3><?php _e( 'Competitor Content Tracker', 'agency-nexus' ); ?></h3>
+				<p><?php _e( 'Monitor top performing content from competitors and plan counter-strategies.', 'agency-nexus' ); ?></p>
+				<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+					<div style="border:1px solid #ddd; padding:15px; border-radius:8px;">
+						<h4 style="margin-top:0;">Competitor A</h4>
+						<p><a href="#">How to build a SaaS in 2024</a></p>
+						<p><small>Strategy: Create a "Deep Dive" version with better case studies.</small></p>
+						<span class="badge" style="background:#fed7d7; color:#822727;">High Competition</span>
+					</div>
+					<div style="border:1px solid #ddd; padding:15px; border-radius:8px;">
+						<h4 style="margin-top:0;">Competitor B</h4>
+						<p><a href="#">Social Media Marketing for Law Firms</a></p>
+						<p><small>Strategy: Niche down to "Personal Injury Law" specifically.</small></p>
+						<span class="badge" style="background:#c6f6d5; color:#22543d;">Opportunity</span>
+					</div>
+					<div style="border:1px solid #ddd; padding:15px; border-radius:8px;">
+						<h4 style="margin-top:0;">Competitor C</h4>
+						<p><a href="#">WP Plugin Development Tutorial</a></p>
+						<p><small>Strategy: Record a video version to complement our text guide.</small></p>
+						<span class="badge" style="background:#feebc8; color:#744210;">Counter-Attack</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
 	}
 
 	public function render_batch_automation() {
