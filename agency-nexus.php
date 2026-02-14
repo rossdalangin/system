@@ -39,7 +39,10 @@ class Agency_Nexus {
 	 * Simple symmetric decryption helper.
 	 */
 	public static function decrypt( $ciphertext ) {
-		if ( empty($ciphertext) || ! strpos(base64_decode($ciphertext, true) ?: '', '') === false ) return $ciphertext; // Basic check
+		if ( empty($ciphertext) ) return $ciphertext;
+		$c = base64_decode($ciphertext, true);
+		if ( false === $c ) return $ciphertext; // Not base64
+
 		$key = defined( 'AUTH_SALT' ) ? AUTH_SALT : 'agency-nexus-default-key';
 		$c = base64_decode($ciphertext);
 		$method = 'aes-256-cbc';
