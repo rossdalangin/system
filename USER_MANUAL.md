@@ -8,7 +8,7 @@
 ## 2. Lead Management & CRM (EngageTrack)
 1.  **Capture:** Generate an embed code from the EngageTrack menu and place it on your contact page.
 2.  **Scoring:** Every lead is automatically scored (0-100) based on their source and potential value. Focus on high-score leads first.
-3.  **Social Hub:** Monitor engagement across platforms in the Unified Social Dashboard. Priority interactions are highlighted for immediate reply.
+3.  **Social Hub:** Monitor engagement across platforms in the Unified Social Dashboard. Link your accounts in **Nexus > Social Settings** to see brand sentiment and priority interactions in one place.
 4.  **Nurture:** Click "Email Lead" to send follow-ups using your **Canned Responses**.
 5.  **Conversion:** When a lead is ready to start, click **Convert to Client**. This creates a client record automatically.
 
@@ -35,6 +35,7 @@
 1.  **Invoicing:** Generate branded invoices from the project view.
 2.  **Profitability:** The dashboard widget and project views show your **True Profit** based on: `Budget - (Hours * Rate) - Expenses`.
 3.  **Payments:** Enable Stripe or PayPal in settings to accept instant payments from the client portal.
+4.  **Marketplace Purchases:** Logged-in clients can purchase templates via the Marketplace. The system generates an invoice automatically and redirects them to the payment view.
 
 ## 7. Client Collaboration (ClientSync)
 1.  **Messaging:** Secure, real-time chat with clients.

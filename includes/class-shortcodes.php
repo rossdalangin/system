@@ -232,11 +232,34 @@ class Agency_Nexus_Shortcodes {
 
 					<div style="padding: 20px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between;">
 						<span style="font-size: 20px; font-weight: 800; color: #1e293b;">$<?php echo number_format($item->price, 2); ?></span>
-						<button style="background: #1e293b; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;"><?php _e('Buy Now', 'agency-nexus'); ?></button>
+						<button class="an-buy-button" data-product-id="<?php echo esc_attr($item->id); ?>" style="background: #1e293b; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;"><?php _e('Buy Now', 'agency-nexus'); ?></button>
 					</div>
 				</div>
 			<?php endforeach; ?>
 		</div>
+		<script>
+		jQuery(document).ready(function($){
+			$('.an-buy-button').click(function(e){
+				e.preventDefault();
+				var btn = $(this);
+				var productId = btn.data('product-id');
+
+				btn.prop('disabled', true).text('<?php _e("Processing...", "agency-nexus"); ?>');
+
+				$.post('<?php echo admin_url("admin-ajax.php"); ?>', {
+					action: 'an_marketplace_purchase',
+					product_id: productId
+				}, function(response){
+					if (response.success) {
+						window.location.href = response.data.redirect_url;
+					} else {
+						alert(response.data.message || '<?php _e("An error occurred.", "agency-nexus"); ?>');
+						btn.prop('disabled', false).text('<?php _e("Buy Now", "agency-nexus"); ?>');
+					}
+				});
+			});
+		});
+		</script>
 		<?php
 		return ob_get_clean();
 	}

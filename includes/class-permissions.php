@@ -241,4 +241,27 @@ class Agency_Nexus_Permissions {
 		$client_id = self::get_client_id_for_user( $user_id );
 		return $client_id && $client_id === (int) $requested_client_id;
 	}
+
+	/**
+	 * Granular check for invoice access.
+	 */
+	public static function can_view_invoice( $invoice_id ) {
+		$user_id = get_current_user_id();
+		if ( self::is_admin( $user_id ) ) {
+			return true;
+		}
+
+		global $wpdb;
+		$invoice = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_invoices WHERE id = %d", $invoice_id ) );
+		if ( ! $invoice ) return false;
+
+		// If Team Member, check if authorized for the project linked to this invoice.
+		if ( self::is_team_member( $user_id ) ) {
+			return self::can_view_project( $invoice->project_id );
+		}
+
+		// If Client, check if they own the invoice.
+		$client_id = self::get_client_id_for_user( $user_id );
+		return $client_id && (int) $invoice->client_id === $client_id;
+	}
 }

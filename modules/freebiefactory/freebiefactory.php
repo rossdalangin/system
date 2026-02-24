@@ -209,11 +209,34 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 						<h3><?php echo esc_html($item->title); ?></h3>
 						<p style="font-size: 1.5rem; font-weight: bold; color: var(--an-indigo-600);">$<?php echo number_format($item->price, 2); ?></p>
 						<p><span style="color:#fbc02d;">★★★★★</span> (4.9)</p>
-						<button class="button button-primary button-large" style="width:100%;"><?php _e( 'Buy Now', 'agency-nexus' ); ?></button>
+						<button class="button button-primary button-large an-buy-button" data-product-id="<?php echo esc_attr($item->id); ?>" style="width:100%;"><?php _e( 'Buy Now', 'agency-nexus' ); ?></button>
 					</div>
 				<?php endforeach; ?>
 			</div>
 		</div>
+		<script>
+		jQuery(document).ready(function($){
+			$('.an-buy-button').click(function(e){
+				e.preventDefault();
+				var btn = $(this);
+				var productId = btn.data('product-id');
+
+				btn.prop('disabled', true).text('<?php _e("Processing...", "agency-nexus"); ?>');
+
+				$.post(ajaxurl, {
+					action: 'an_marketplace_purchase',
+					product_id: productId
+				}, function(response){
+					if (response.success) {
+						window.location.href = response.data.redirect_url;
+					} else {
+						alert(response.data.message || '<?php _e("An error occurred.", "agency-nexus"); ?>');
+						btn.prop('disabled', false).text('<?php _e("Buy Now", "agency-nexus"); ?>');
+					}
+				});
+			});
+		});
+		</script>
 		<?php
 	}
 

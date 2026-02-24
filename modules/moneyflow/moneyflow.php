@@ -17,6 +17,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		add_action( 'admin_init', [ $this, 'handle_post' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_action( 'template_redirect', [ $this, 'handle_client_payment' ] );
+		add_action( 'wp_ajax_an_marketplace_purchase', [ $this, 'handle_marketplace_purchase' ] );
 	}
 
 	public function handle_post() {
@@ -156,16 +157,17 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 				'an-expenses',
 				[ $this, 'render_expenses' ]
 			);
-
-			add_submenu_page(
-				'agency-nexus',
-				__( 'Invoices', 'agency-nexus' ),
-				__( 'Invoices', 'agency-nexus' ),
-				'read',
-				'an-invoices',
-				[ $this, 'render_invoices' ]
-			);
 		}
+
+		// Always allow authorized users (including clients) to access invoices
+		add_submenu_page(
+			'agency-nexus',
+			__( 'Invoices', 'agency-nexus' ),
+			__( 'Invoices', 'agency-nexus' ),
+			'read',
+			'an-invoices',
+			[ $this, 'render_invoices' ]
+		);
 	}
 
 	public function enqueue_scripts( $hook ) {
@@ -735,6 +737,61 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 			'net_profit'    => $profitability - $tax_estimate,
 			'margin'        => $budget > 0 ? ( $profitability / $budget ) * 100 : 0
 		];
+	}
+
+	/**
+	 * AJAX Handler for Marketplace purchases.
+	 */
+	public function handle_marketplace_purchase() {
+		if ( ! is_user_logged_in() || ! Agency_Nexus_Permissions::is_client() ) {
+			wp_send_json_error( [ 'message' => __( 'Access denied. Please log in as a client.', 'agency-nexus' ) ] );
+		}
+
+		$product_id = isset( $_POST['product_id'] ) ? intval( $_POST['product_id'] ) : 0;
+		if ( ! $product_id ) {
+			wp_send_json_error( [ 'message' => __( 'Invalid product.', 'agency-nexus' ) ] );
+		}
+
+		global $wpdb;
+		$product = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}an_resources WHERE id = %d AND is_marketplace = 1", $product_id ) );
+		if ( ! $product ) {
+			wp_send_json_error( [ 'message' => __( 'Product not found.', 'agency-nexus' ) ] );
+		}
+
+		$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
+
+		// 1. Ensure a "Marketplace Purchases" project exists for this client
+		$project_id = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}an_projects WHERE client_id = %d AND title = 'Marketplace Purchases'", $client_id ) );
+		if ( ! $project_id ) {
+			$wpdb->insert( $wpdb->prefix . 'an_projects', [
+				'client_id' => $client_id,
+				'title'     => 'Marketplace Purchases',
+				'status'    => 'active',
+				'budget'    => 0,
+				'created_at' => current_time( 'mysql' )
+			] );
+			$project_id = $wpdb->insert_id;
+		}
+
+		// 2. Create the invoice
+		$invoice_number = 'MKT-' . strtoupper( wp_generate_password( 6, false ) );
+		$wpdb->insert( $wpdb->prefix . 'an_invoices', [
+			'project_id' => $project_id,
+			'client_id'  => $client_id,
+			'number'     => $invoice_number,
+			'amount'     => $product->price,
+			'status'     => 'sent',
+			'due_date'   => current_time( 'Y-m-d' ),
+			'created_at' => current_time( 'mysql' )
+		] );
+		$invoice_id = $wpdb->insert_id;
+
+		$redirect_url = admin_url( 'admin.php?page=an-invoices&action=print&id=' . $invoice_id );
+
+		wp_send_json_success( [
+			'message'      => __( 'Invoice generated!', 'agency-nexus' ),
+			'redirect_url' => $redirect_url
+		] );
 	}
 
 	public function render_dashboard_widget() {
