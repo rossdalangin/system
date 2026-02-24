@@ -137,6 +137,27 @@ class Agency_Nexus_Seeder {
 			] );
 		}
 
+		// 9. Create Marketplace Items
+		$m_items = [
+			['Premium Web Contract', 'template', 99, 'Legal', '1.2.0', 'Universal'],
+			['SEO Outreach Swipe File', 'swipe', 49, 'SEO', '1.0.5', 'Gmail/Outlook'],
+			['Agency Onboarding Deck', 'template', 149, 'Operations', '2.1.0', 'PowerPoint/Canva']
+		];
+		foreach($m_items as $item) {
+			$wpdb->insert( $wpdb->prefix . 'an_resources', [
+				'title'           => $item[0],
+				'type'            => $item[1],
+				'price'           => $item[2],
+				'category'        => $item[3],
+				'version'         => $item[4],
+				'compatible_with' => $item[5],
+				'content'         => "This is a premium " . $item[1] . " for your agency.",
+				'is_marketplace'  => 1,
+				'created_at'      => current_time('mysql'),
+				'last_updated_at' => current_time('mysql')
+			] );
+		}
+
 		return true;
 	}
 

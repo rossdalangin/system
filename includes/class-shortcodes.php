@@ -214,7 +214,20 @@ class Agency_Nexus_Shortcodes {
 							<span style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #6366f1; font-weight: 700;"><?php echo esc_html($item->category); ?></span>
 						<?php endif; ?>
 						<h3 style="margin: 5px 0 10px; font-size: 18px; color: #1e293b;"><?php echo esc_html( $item->title ); ?></h3>
-						<p style="font-size: 14px; color: #64748b; line-height: 1.5; margin-bottom: 20px;"><?php echo wp_trim_words(esc_html($item->content), 20); ?></p>
+						<p style="font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 15px;"><?php echo wp_trim_words(esc_html($item->content), 15); ?></p>
+
+						<div style="font-size: 11px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+							<div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+								<span>Version:</span>
+								<strong><?php echo esc_html($item->version); ?></strong>
+							</div>
+							<?php if ( $item->compatible_with ) : ?>
+								<div style="display:flex; justify-content:space-between;">
+									<span>Compatibility:</span>
+									<strong><?php echo esc_html($item->compatible_with); ?></strong>
+								</div>
+							<?php endif; ?>
+						</div>
 					</div>
 
 					<div style="padding: 20px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between;">

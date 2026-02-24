@@ -32,14 +32,17 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 
 			if ( isset($_POST['an_save_marketplace_item']) && check_admin_referer('an_save_marketplace_nonce') ) {
 				$data = [
-					'title'          => sanitize_text_field($_POST['title']),
-					'type'           => sanitize_text_field($_POST['type']),
-					'category'       => sanitize_text_field($_POST['category']),
-					'price'          => floatval($_POST['price']),
-					'content'        => wp_kses_post($_POST['content']),
-					'image_url'      => esc_url_raw($_POST['image_url']),
-					'file_url'       => esc_url_raw($_POST['file_url']),
-					'is_marketplace' => 1
+					'title'           => sanitize_text_field($_POST['title']),
+					'type'            => sanitize_text_field($_POST['type']),
+					'category'        => sanitize_text_field($_POST['category']),
+					'price'           => floatval($_POST['price']),
+					'version'         => sanitize_text_field($_POST['version']),
+					'compatible_with' => sanitize_text_field($_POST['compatible_with']),
+					'content'         => wp_kses_post($_POST['content']),
+					'image_url'       => esc_url_raw($_POST['image_url']),
+					'file_url'        => esc_url_raw($_POST['file_url']),
+					'is_marketplace'  => 1,
+					'last_updated_at' => current_time('mysql')
 				];
 				if ($id) {
 					$wpdb->update($table_name, $data, ['id' => $id]);
@@ -114,7 +117,12 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 	}
 
 	public function enqueue_scripts( $hook ) {
-		if ( 'agency-nexus_page_an-resources' !== $hook ) {
+		$pages = [
+			'agency-nexus_page_an-resources',
+			'agency-nexus_page_an-manage-marketplace'
+		];
+
+		if ( ! in_array( $hook, $pages ) ) {
 			return;
 		}
 		wp_enqueue_media();
@@ -235,6 +243,8 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 							</select>
 						</td></tr>
 						<tr><th>Category</th><td><input type="text" name="category" value="<?php echo $item ? esc_attr($item->category) : ''; ?>" class="regular-text" placeholder="e.g. SEO, Web Design"></td></tr>
+						<tr><th>Version</th><td><input type="text" name="version" value="<?php echo $item ? esc_attr($item->version) : '1.0.0'; ?>" class="regular-text"></td></tr>
+						<tr><th>Compatible With</th><td><input type="text" name="compatible_with" value="<?php echo $item ? esc_attr($item->compatible_with) : ''; ?>" class="regular-text" placeholder="e.g. Elementor, Divi, WP 6.0+"></td></tr>
 						<tr><th>Price ($)</th><td><input type="number" step="0.01" name="price" value="<?php echo $item ? esc_attr($item->price) : '0.00'; ?>" required></td></tr>
 						<tr><th>Description</th><td><textarea name="content" class="regular-text" rows="5"><?php echo $item ? esc_textarea($item->content) : ''; ?></textarea></td></tr>
 						<tr><th>Product Image URL</th><td>

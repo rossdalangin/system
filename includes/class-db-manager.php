@@ -31,10 +31,10 @@ class Agency_Nexus_DB_Manager {
 	 */
 	private function maybe_update_db() {
 		$version = get_option( 'an_db_version', '0' );
-		// If version is less than 1.2.0 or not set.
-		if ( version_compare( $version, '1.2.0', '<' ) ) {
+		// If version is less than 1.2.1 or not set.
+		if ( version_compare( $version, '1.2.1', '<' ) ) {
 			self::create_tables();
-			update_option( 'an_db_version', '1.2.0' );
+			update_option( 'an_db_version', '1.2.1' );
 		}
 	}
 
@@ -217,7 +217,10 @@ image_url varchar(255) DEFAULT '' NOT NULL,
 file_url varchar(255) DEFAULT '' NOT NULL,
 content text NOT NULL,
 price decimal(10,2) DEFAULT 0.00 NOT NULL,
+version varchar(50) DEFAULT '1.0.0' NOT NULL,
+compatible_with varchar(255) DEFAULT '' NOT NULL,
 is_marketplace tinyint(1) DEFAULT 0 NOT NULL,
+last_updated_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)
 ) $charset_collate;";
