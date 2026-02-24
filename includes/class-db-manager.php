@@ -31,10 +31,10 @@ class Agency_Nexus_DB_Manager {
 	 */
 	private function maybe_update_db() {
 		$version = get_option( 'an_db_version', '0' );
-		// If version is less than 1.1.7 or not set.
-		if ( version_compare( $version, '1.1.7', '<' ) ) {
+		// If version is less than 1.1.9 or not set.
+		if ( version_compare( $version, '1.1.9', '<' ) ) {
 			self::create_tables();
-			update_option( 'an_db_version', '1.1.7' );
+			update_option( 'an_db_version', '1.1.9' );
 		}
 	}
 
@@ -214,6 +214,8 @@ title varchar(255) NOT NULL,
 type varchar(50) DEFAULT 'template' NOT NULL,
 file_url varchar(255) DEFAULT '' NOT NULL,
 content text NOT NULL,
+price decimal(10,2) DEFAULT 0.00 NOT NULL,
+is_marketplace tinyint(1) DEFAULT 0 NOT NULL,
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)
 ) $charset_collate;";
@@ -367,6 +369,30 @@ id bigint(20) NOT NULL AUTO_INCREMENT,
 content_id bigint(20) NOT NULL,
 user_id bigint(20) NOT NULL,
 comment text NOT NULL,
+created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+PRIMARY KEY  (id)
+) $charset_collate;";
+
+		// Referral Partners Table (BurnoutGuard)
+		$table_partners = $wpdb->prefix . 'an_referral_partners';
+		$queries[] = "CREATE TABLE $table_partners (
+id bigint(20) NOT NULL AUTO_INCREMENT,
+name varchar(255) NOT NULL,
+email varchar(255) NOT NULL,
+specialty varchar(255) DEFAULT '' NOT NULL,
+created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+PRIMARY KEY  (id)
+) $charset_collate;";
+
+		// Referrals Table (BurnoutGuard)
+		$table_referrals = $wpdb->prefix . 'an_referrals';
+		$queries[] = "CREATE TABLE $table_referrals (
+id bigint(20) NOT NULL AUTO_INCREMENT,
+partner_id bigint(20) NOT NULL,
+project_id bigint(20) DEFAULT 0 NOT NULL,
+client_name varchar(255) NOT NULL,
+note text NOT NULL,
+status varchar(50) DEFAULT 'pending' NOT NULL,
 created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 PRIMARY KEY  (id)
 ) $charset_collate;";

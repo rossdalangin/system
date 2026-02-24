@@ -23,7 +23,57 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 			return;
 		}
 
-		if ( isset( $_GET['page'] ) && 'an-resources' === $_GET['page'] ) {
+		$page = isset($_GET['page']) ? $_GET['page'] : '';
+
+		if ( 'an-manage-marketplace' === $page && current_user_can('manage_options') ) {
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'an_resources';
+			$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+			if ( isset($_POST['an_save_marketplace_item']) && check_admin_referer('an_save_marketplace_nonce') ) {
+				$data = [
+					'title'          => sanitize_text_field($_POST['title']),
+					'type'           => sanitize_text_field($_POST['type']),
+					'price'          => floatval($_POST['price']),
+					'content'        => wp_kses_post($_POST['content']),
+					'file_url'       => esc_url_raw($_POST['file_url']),
+					'is_marketplace' => 1
+				];
+				if ($id) {
+					$wpdb->update($table_name, $data, ['id' => $id]);
+				} else {
+					$data['created_at'] = current_time('mysql');
+					$wpdb->insert($table_name, $data);
+				}
+				wp_redirect(admin_url('admin.php?page=an-manage-marketplace&msg=saved'));
+				exit;
+			}
+		}
+
+		if ( 'an-questionnaires' === $page ) {
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'an_resources';
+			$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+			if ( isset( $_POST['an_save_questionnaire'] ) && check_admin_referer( 'an_save_questionnaire_nonce' ) ) {
+				$questions = isset($_POST['questions']) ? array_map('sanitize_text_field', $_POST['questions']) : [];
+				$data = [
+					'title'      => sanitize_text_field( $_POST['title'] ),
+					'type'       => 'questionnaire',
+					'content'    => json_encode($questions),
+				];
+				if ( $id ) {
+					$wpdb->update( $table_name, $data, [ 'id' => $id ] );
+				} else {
+					$data['created_at'] = current_time( 'mysql' );
+					$wpdb->insert( $table_name, $data );
+				}
+				wp_redirect( admin_url( 'admin.php?page=an-questionnaires' ) );
+				exit;
+			}
+		}
+
+		if ( 'an-resources' === $page || 'an-manage-marketplace' === $page || 'an-questionnaires' === $page ) {
 			global $wpdb;
 			$table_name = $wpdb->prefix . 'an_resources';
 			$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
@@ -35,7 +85,8 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 				}
 				check_admin_referer( 'an_delete_resource_' . $id );
 				$wpdb->delete( $table_name, [ 'id' => $id ] );
-				wp_redirect( admin_url( 'admin.php?page=an-resources&msg=deleted' ) );
+				$redirect = admin_url( 'admin.php?page=' . $page . '&msg=deleted' );
+				wp_redirect( $redirect );
 				exit;
 			}
 
@@ -89,30 +140,202 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 			'an-resource-marketplace',
 			[ $this, 'render_marketplace' ]
 		);
+
+		if ( Agency_Nexus_Permissions::is_admin() ) {
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Manage Marketplace', 'agency-nexus' ),
+				__( 'Manage Marketplace', 'agency-nexus' ),
+				'manage_options',
+				'an-manage-marketplace',
+				[ $this, 'render_manage_marketplace' ]
+			);
+		}
+
+		add_submenu_page(
+			'agency-nexus',
+			__( 'Questionnaires', 'agency-nexus' ),
+			__( 'Questionnaires', 'agency-nexus' ),
+			'read',
+			'an-questionnaires',
+			[ $this, 'render_questionnaires' ]
+		);
 	}
 
 	public function render_marketplace() {
-		$featured = [
-			[ 'title' => 'Web Design Discovery Pack', 'price' => '$49', 'rating' => 4.8 ],
-			[ 'title' => 'SEO Audit Workflow (Pro)', 'price' => '$29', 'rating' => 4.9 ],
-			[ 'title' => 'Social Media Swipe File Bundle', 'price' => '$39', 'rating' => 4.7 ]
-		];
+		global $wpdb;
+		$items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_resources WHERE is_marketplace = 1 ORDER BY created_at DESC" );
+
+		if ( empty($items) ) {
+			// Seed some items if empty
+			$wpdb->insert($wpdb->prefix . 'an_resources', [
+				'title' => 'Web Design Discovery Pack',
+				'type' => 'template',
+				'price' => 49.00,
+				'content' => 'Complete onboarding pack for web projects.',
+				'is_marketplace' => 1,
+				'created_at' => current_time('mysql')
+			]);
+			$wpdb->insert($wpdb->prefix . 'an_resources', [
+				'title' => 'SEO Audit Workflow (Pro)',
+				'type' => 'template',
+				'price' => 29.00,
+				'content' => 'Step-by-step technical SEO checklist.',
+				'is_marketplace' => 1,
+				'created_at' => current_time('mysql')
+			]);
+			$items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_resources WHERE is_marketplace = 1 ORDER BY created_at DESC" );
+		}
+
 		?>
 		<div class="agency-nexus-wrap">
 			<h1><?php _e( 'Template Marketplace', 'agency-nexus' ); ?></h1>
 			<p class="description"><?php _e( 'Buy and sell premium agency assets. From standard contracts to full project workflows.', 'agency-nexus' ); ?></p>
 
 			<div class="an-marketplace-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
-				<?php foreach ( $featured as $item ) : ?>
+				<?php foreach ( $items as $item ) : ?>
 					<div class="postbox" style="padding: 20px; text-align: center;">
 						<div style="background: #eee; height: 150px; border-radius: 8px; margin-bottom: 15px; display:flex; align-items:center; justify-content:center; color:#999;">Preview</div>
-						<h3><?php echo esc_html($item['title']); ?></h3>
-						<p style="font-size: 1.5rem; font-weight: bold; color: var(--an-indigo-600);"><?php echo $item['price']; ?></p>
-						<p><span style="color:#fbc02d;">★★★★★</span> (<?php echo $item['rating']; ?>)</p>
+						<h3><?php echo esc_html($item->title); ?></h3>
+						<p style="font-size: 1.5rem; font-weight: bold; color: var(--an-indigo-600);">$<?php echo number_format($item->price, 2); ?></p>
+						<p><span style="color:#fbc02d;">★★★★★</span> (4.9)</p>
 						<button class="button button-primary button-large" style="width:100%;"><?php _e( 'Buy Now', 'agency-nexus' ); ?></button>
 					</div>
 				<?php endforeach; ?>
 			</div>
+		</div>
+		<?php
+	}
+
+	public function render_manage_marketplace() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_resources';
+		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+		if ( isset($_GET['msg']) && 'saved' === $_GET['msg'] ) {
+			echo '<div class="updated"><p>Product saved!</p></div>';
+		}
+
+		if ($action === 'add' || $action === 'edit') {
+			$item = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
+			?>
+			<div class="wrap">
+				<h1><?php echo $id ? __('Edit Product', 'agency-nexus') : __('Add New Product', 'agency-nexus'); ?></h1>
+				<form method="post">
+					<?php wp_nonce_field('an_save_marketplace_nonce'); ?>
+					<table class="form-table">
+						<tr><th>Title</th><td><input type="text" name="title" value="<?php echo $item ? esc_attr($item->title) : ''; ?>" required class="regular-text"></td></tr>
+						<tr><th>Type</th><td>
+							<select name="type">
+								<option value="template" <?php selected($item ? $item->type : '', 'template'); ?>>Template</option>
+								<option value="swipe" <?php selected($item ? $item->type : '', 'swipe'); ?>>Swipe File</option>
+							</select>
+						</td></tr>
+						<tr><th>Price ($)</th><td><input type="number" step="0.01" name="price" value="<?php echo $item ? esc_attr($item->price) : '0.00'; ?>" required></td></tr>
+						<tr><th>Description</th><td><textarea name="content" class="regular-text" rows="5"><?php echo $item ? esc_textarea($item->content) : ''; ?></textarea></td></tr>
+						<tr><th>File URL (Optional)</th><td><input type="text" name="file_url" value="<?php echo $item ? esc_attr($item->file_url) : ''; ?>" class="regular-text"></td></tr>
+					</table>
+					<input type="submit" name="an_save_marketplace_item" class="button button-primary" value="Save Product">
+				</form>
+			</div>
+			<?php
+			return;
+		}
+
+		$items = $wpdb->get_results( "SELECT * FROM $table_name WHERE is_marketplace = 1 ORDER BY created_at DESC" );
+		?>
+		<div class="agency-nexus-wrap">
+			<h1 class="wp-heading-inline"><?php _e('Manage Marketplace Products', 'agency-nexus'); ?></h1>
+			<a href="?page=an-manage-marketplace&action=add" class="page-title-action">Add New Product</a>
+			<hr class="wp-header-end">
+			<table class="wp-list-table widefat fixed striped">
+				<thead><tr><th>Title</th><th>Price</th><th>Type</th><th>Actions</th></tr></thead>
+				<tbody>
+					<?php foreach($items as $item): ?>
+						<tr>
+							<td><strong><?php echo esc_html($item->title); ?></strong></td>
+							<td>$<?php echo number_format($item->price, 2); ?></td>
+							<td><?php echo ucfirst($item->type); ?></td>
+							<td>
+								<a href="?page=an-manage-marketplace&action=edit&id=<?php echo $item->id; ?>">Edit</a> |
+								<a href="<?php echo wp_nonce_url('?page=an-manage-marketplace&action=delete&id='.$item->id, 'an_delete_resource_'.$item->id); ?>" style="color:red;" onclick="return confirm('Delete?')">Delete</a>
+							</td>
+						</tr>
+					<?php endforeach; if(empty($items)) echo '<tr><td colspan="4">No products found.</td></tr>'; ?>
+				</tbody>
+			</table>
+		</div>
+		<?php
+	}
+
+	public function render_questionnaires() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_resources';
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		if ($action === 'add' || $action === 'edit') {
+			$q = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
+			$questions = ($q && $q->content) ? json_decode($q->content, true) : [''];
+			if (!is_array($questions)) $questions = [''];
+			?>
+			<div class="agency-nexus-wrap">
+				<h1><?php echo $id ? __('Edit Questionnaire', 'agency-nexus') : __('Add New Questionnaire', 'agency-nexus'); ?></h1>
+				<form method="post">
+					<?php wp_nonce_field( 'an_save_questionnaire_nonce' ); ?>
+					<table class="form-table">
+						<tr>
+							<th><label><?php _e('Title', 'agency-nexus'); ?></label></th>
+							<td><input type="text" name="title" value="<?php echo $q ? esc_attr($q->title) : ''; ?>" class="regular-text" required></td>
+						</tr>
+						<tr>
+							<th><label><?php _e('Questions', 'agency-nexus'); ?></label></th>
+							<td id="questions-list">
+								<?php foreach($questions as $question): ?>
+									<div style="margin-bottom:10px;"><input type="text" name="questions[]" value="<?php echo esc_attr($question); ?>" class="large-text"></div>
+								<?php endforeach; ?>
+								<button type="button" class="button" onclick="jQuery('#questions-list').append('<div style=\'margin-bottom:10px;\'><input type=\'text\' name=\'questions[]\' class=\'large-text\'></div>')">+ Add Question</button>
+							</td>
+						</tr>
+					</table>
+					<input type="submit" name="an_save_questionnaire" class="button button-primary" value="Save Questionnaire">
+					<a href="?page=an-questionnaires" class="button">Cancel</a>
+				</form>
+			</div>
+			<?php
+			return;
+		}
+
+		$questionnaires = $wpdb->get_results( "SELECT * FROM $table_name WHERE type = 'questionnaire' ORDER BY created_at DESC" );
+		?>
+		<div class="agency-nexus-wrap">
+			<h1 class="wp-heading-inline"><?php _e( 'Discovery Questionnaires', 'agency-nexus' ); ?></h1>
+			<a href="?page=an-questionnaires&action=add" class="page-title-action"><?php _e('Add New', 'agency-nexus'); ?></a>
+			<hr class="wp-header-end">
+
+			<div style="background: #fff; border-left: 4px solid var(--an-indigo-600); padding: 15px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+				<p><?php _e( 'Discovery questionnaires help you extract deep insights from clients during onboarding. Create sets of questions to reuse across projects.', 'agency-nexus' ); ?></p>
+			</div>
+
+			<table class="wp-list-table widefat fixed striped">
+				<thead><tr><th>Title</th><th>Questions Count</th><th>Actions</th></tr></thead>
+				<tbody>
+					<?php foreach($questionnaires as $q):
+						$qs = json_decode($q->content, true);
+						$count = is_array($qs) ? count($qs) : 0;
+					?>
+						<tr>
+							<td><strong><?php echo esc_html($q->title); ?></strong></td>
+							<td><?php echo $count; ?></td>
+							<td>
+								<a href="?page=an-questionnaires&action=edit&id=<?php echo $q->id; ?>">Edit</a> |
+								<a href="<?php echo wp_nonce_url('?page=an-questionnaires&action=delete&id='.$q->id, 'an_delete_resource_'.$q->id); ?>" style="color:red;" onclick="return confirm('Delete this questionnaire?')">Delete</a>
+							</td>
+						</tr>
+					<?php endforeach; if(empty($questionnaires)) echo '<tr><td colspan="3">No questionnaires found.</td></tr>'; ?>
+				</tbody>
+			</table>
 		</div>
 		<?php
 	}
@@ -197,7 +420,7 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 			return;
 		}
 
-		$resources = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC" );
+		$resources = $wpdb->get_results( "SELECT * FROM $table_name WHERE is_marketplace = 0 ORDER BY created_at DESC" );
 		$templates = array_filter( $resources, function($r) { return $r->type === 'template'; } );
 		$swipes    = array_filter( $resources, function($r) { return $r->type === 'swipe'; } );
 

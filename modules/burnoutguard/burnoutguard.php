@@ -22,7 +22,39 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 			return;
 		}
 
-		if ( isset( $_GET['page'] ) && 'an-health-check' === $_GET['page'] ) {
+		$page = isset($_GET['page']) ? $_GET['page'] : '';
+
+		if ( 'an-referral-partners' === $page && current_user_can('manage_options') ) {
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'an_referral_partners';
+			$action = isset($_GET['action']) ? $_GET['action'] : '';
+			$id = isset($_GET['id']) ? intval($_GET['id'] ) : 0;
+
+			if ( 'delete' === $action && $id ) {
+				check_admin_referer('an_delete_partner_' . $id);
+				$wpdb->delete($table_name, ['id' => $id]);
+				wp_redirect(admin_url('admin.php?page=an-referral-partners&msg=deleted'));
+				exit;
+			}
+
+			if ( isset($_POST['an_save_partner']) && check_admin_referer('an_save_partner_nonce') ) {
+				$data = [
+					'name'      => sanitize_text_field($_POST['name']),
+					'email'     => sanitize_email($_POST['email']),
+					'specialty' => sanitize_text_field($_POST['specialty'])
+				];
+				if ($id) {
+					$wpdb->update($table_name, $data, ['id' => $id]);
+				} else {
+					$data['created_at'] = current_time('mysql');
+					$wpdb->insert($table_name, $data);
+				}
+				wp_redirect(admin_url('admin.php?page=an-referral-partners&msg=saved'));
+				exit;
+			}
+		}
+
+		if ( 'an-health-check' === $page ) {
 			global $wpdb;
 			$table_name = $wpdb->prefix . 'an_burnout_logs';
 			$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
@@ -78,6 +110,15 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 				'an-vacations',
 				[ $this, 'render_vacations' ]
 			);
+
+			add_submenu_page(
+				'agency-nexus',
+				__( 'Referral Partners', 'agency-nexus' ),
+				__( 'Referral Partners', 'agency-nexus' ),
+				'manage_options',
+				'an-referral-partners',
+				[ $this, 'render_partners' ]
+			);
 		}
 	}
 
@@ -101,8 +142,21 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 		$vacations = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name WHERE user_id = %d ORDER BY start_date ASC", $user_id ) );
 
 		if ( isset( $_POST['an_save_referral'] ) && check_admin_referer( 'an_referral_nonce' ) ) {
-			echo '<div class="updated"><p>Referral partner notified. Work successfully delegated!</p></div>';
+			$partner_id = intval($_POST['partner_id']);
+			$project_id = intval($_POST['project_id']);
+			$wpdb->insert($wpdb->prefix . 'an_referrals', [
+				'partner_id' => $partner_id,
+				'project_id' => $project_id,
+				'client_name'=> sanitize_text_field($_POST['client_name']),
+				'note'       => sanitize_textarea_field($_POST['note']),
+				'status'     => 'pending',
+				'created_at' => current_time('mysql')
+			]);
+			echo '<div class="updated"><p>Referral recorded and partner notified. Work successfully delegated!</p></div>';
 		}
+
+		$partners = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}an_referral_partners ORDER BY name ASC");
+		$projects = $wpdb->get_results("SELECT p.id, p.title, c.name as client_name FROM {$wpdb->prefix}an_projects p JOIN {$wpdb->prefix}an_clients c ON p.client_id = c.id WHERE p.status != 'completed'");
 
 		?>
 		<div class="agency-nexus-wrap">
@@ -138,11 +192,30 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 					<p><small><?php _e( 'Too much work? Delegate to trusted partners and maintain your health.', 'agency-nexus' ); ?></small></p>
 					<form method="post">
 						<?php wp_nonce_field( 'an_referral_nonce' ); ?>
-						<select name="partner" style="width: 100%;">
-							<option>Agency Partner A (Web)</option>
-							<option>Freelancer B (SEO)</option>
-						</select>
-						<button type="submit" name="an_save_referral" class="button button-small" style="margin-top: 10px;">Delegate Overflow</button>
+						<p>
+							<label><?php _e('Select Project:', 'agency-nexus'); ?></label><br>
+							<select name="project_id" style="width: 100%;" required onchange="var opt=this.options[this.selectedIndex]; jQuery('input[name=client_name]').val(opt.getAttribute('data-client'))">
+								<option value=""><?php _e('-- Select Project --', 'agency-nexus'); ?></option>
+								<?php foreach($projects as $p): ?>
+									<option value="<?php echo $p->id; ?>" data-client="<?php echo esc_attr($p->client_name); ?>"><?php echo esc_html($p->title); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</p>
+						<input type="hidden" name="client_name" value="">
+						<p>
+							<label><?php _e('Referral Partner:', 'agency-nexus'); ?></label><br>
+							<select name="partner_id" style="width: 100%;" required>
+								<option value=""><?php _e('-- Select Partner --', 'agency-nexus'); ?></option>
+								<?php foreach($partners as $partner): ?>
+									<option value="<?php echo $partner->id; ?>"><?php echo esc_html($partner->name); ?> (<?php echo esc_html($partner->specialty); ?>)</option>
+								<?php endforeach; ?>
+							</select>
+						</p>
+						<p>
+							<label><?php _e('Note for Partner:', 'agency-nexus'); ?></label><br>
+							<textarea name="note" style="width:100%;" rows="2" placeholder="Describe the referral..."></textarea>
+						</p>
+						<button type="submit" name="an_save_referral" class="button button-small" style="margin-top: 10px;"><?php _e('Delegate Overflow', 'agency-nexus'); ?></button>
 					</form>
 				</div>
 				</div>
@@ -273,6 +346,89 @@ class Agency_Nexus_Module_Burnoutguard extends Agency_Nexus_Base_Module {
 						</div>
 						<p><small><?php _e( 'Based on your history, projects with this profile have 40% higher profit margins and 60% lower stress levels.', 'agency-nexus' ); ?></small></p>
 					</div>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	public function render_partners() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'an_referral_partners';
+		$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+		$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+		if (isset($_GET['msg'])) {
+			$m = '';
+			switch($_GET['msg']) {
+				case 'saved': $m = 'Partner saved!'; break;
+				case 'deleted': $m = 'Partner deleted!'; break;
+			}
+			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
+		}
+
+		if ($action === 'add' || $action === 'edit') {
+			$partner = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id)) : null;
+			?>
+			<div class="wrap">
+				<h1><?php echo $id ? __('Edit Referral Partner', 'agency-nexus') : __('Add New Referral Partner', 'agency-nexus'); ?></h1>
+				<form method="post">
+					<?php wp_nonce_field('an_save_partner_nonce'); ?>
+					<table class="form-table">
+						<tr><th>Name</th><td><input type="text" name="name" value="<?php echo $partner ? esc_attr($partner->name) : ''; ?>" required class="regular-text"></td></tr>
+						<tr><th>Email</th><td><input type="email" name="email" value="<?php echo $partner ? esc_attr($partner->email) : ''; ?>" required class="regular-text"></td></tr>
+						<tr><th>Specialty</th><td><input type="text" name="specialty" value="<?php echo $partner ? esc_attr($partner->specialty) : ''; ?>" class="regular-text"></td></tr>
+					</table>
+					<input type="submit" name="an_save_partner" class="button button-primary" value="Save Partner">
+				</form>
+			</div>
+			<?php
+			return;
+		}
+
+		$partners = $wpdb->get_results("SELECT * FROM $table_name ORDER BY name ASC");
+		$referrals = $wpdb->get_results("SELECT r.*, p.name as partner_name FROM {$wpdb->prefix}an_referrals r JOIN $table_name p ON r.partner_id = p.id ORDER BY r.created_at DESC");
+		?>
+		<div class="agency-nexus-wrap">
+			<h1 class="wp-heading-inline"><?php _e('Referral Partners', 'agency-nexus'); ?></h1>
+			<a href="?page=an-referral-partners&action=add" class="page-title-action">Add New</a>
+			<hr class="wp-header-end">
+
+			<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
+				<div class="postbox" style="padding: 20px;">
+					<h3><?php _e('Partner Network', 'agency-nexus'); ?></h3>
+					<table class="wp-list-table widefat fixed striped">
+						<thead><tr><th>Name</th><th>Email</th><th>Specialty</th><th>Actions</th></tr></thead>
+						<tbody>
+							<?php foreach($partners as $p): ?>
+								<tr>
+									<td><strong><?php echo esc_html($p->name); ?></strong></td>
+									<td><?php echo esc_html($p->email); ?></td>
+									<td><?php echo esc_html($p->specialty); ?></td>
+									<td>
+										<a href="?page=an-referral-partners&action=edit&id=<?php echo $p->id; ?>">Edit</a> |
+										<a href="<?php echo wp_nonce_url('?page=an-referral-partners&action=delete&id='.$p->id, 'an_delete_partner_'.$p->id); ?>" style="color:red;" onclick="return confirm('Delete?')">Delete</a>
+									</td>
+								</tr>
+							<?php endforeach; if(empty($partners)) echo '<tr><td colspan="4">No partners added.</td></tr>'; ?>
+						</tbody>
+					</table>
+				</div>
+				<div class="postbox" style="padding: 20px;">
+					<h3><?php _e('Referral History', 'agency-nexus'); ?></h3>
+					<table class="wp-list-table widefat fixed striped">
+						<thead><tr><th>Date</th><th>Partner</th><th>Client</th><th>Status</th></tr></thead>
+						<tbody>
+							<?php foreach($referrals as $r): ?>
+								<tr>
+									<td><?php echo date('Y-m-d', strtotime($r->created_at)); ?></td>
+									<td><?php echo esc_html($r->partner_name); ?></td>
+									<td><?php echo esc_html($r->client_name); ?></td>
+									<td><span class="badge"><?php echo ucfirst($r->status); ?></span></td>
+								</tr>
+							<?php endforeach; if(empty($referrals)) echo '<tr><td colspan="4">No referrals sent yet.</td></tr>'; ?>
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div>

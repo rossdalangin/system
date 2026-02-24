@@ -16,6 +16,9 @@ Welcome to the comprehensive guide for **Agency Nexus**. This document is design
 - **Conversion:** Once they say 'Yes', go to the **Scope Builder**. Choose your service (e.g., Web Design), pick a scale (Medium), and add any addons.
 - **The Proposal:** Click 'Generate Proposal'. This sends a professional, e-signable document to the lead. Once they sign, the system automatically creates a **Project** for you."
 
+### 2b. The Marketplace (FreebieFactory)
+"You can sell your agency's IP through the **Marketplace**. Manage your products in the 'Manage Marketplace' section. Clients can browse and purchase templates or swipe files directly from your site using the `[an_marketplace]` shortcode."
+
 ### 3. Project Fulfillment (Projects & ContentMatrix)
 "Now that the project is active:
 - **Tasking:** Break the project into tasks. Use 'Dependencies' if Step B relies on Step A.
@@ -40,6 +43,7 @@ Welcome to the comprehensive guide for **Agency Nexus**. This document is design
 ### SOP: Level 1 - Admin / Agency Owner
 **Goal:** Strategic management, financial health, and automation.
 1. **Daily:** Review the 'Daily Briefing' email. Address any 'Urgent' social interactions in the Social Hub.
+2. **Referrals:** When a team member is at capacity, use the 'Referral Partners' dashboard to delegate projects to external partners.
 2. **Weekly:** Review the 'Financial Reports'. If a project margin is below 20%, investigate the 'Time Logs' for inefficiencies.
 3. **Monthly:** Audit 'AutoPilot' rules. Ensure Zapier/Slack webhooks are firing correctly for new wins.
 4. **Onboarding:** Use the 'Scope Builder' for every new deal to prevent scope creep.

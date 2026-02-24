@@ -1360,6 +1360,20 @@ class Agency_Nexus_Admin_Dashboard {
 				</table>
 
 				<hr>
+				<h2>Shortcodes</h2>
+				<div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
+					<p>Use these shortcodes to display Agency Nexus features on your frontend pages:</p>
+					<ul>
+						<li><code>[an_client_portal]</code> - Displays the complete Client Dashboard (Projects, Messages, Invoices).</li>
+						<li><code>[an_lead_form]</code> - Displays the lead capture form.</li>
+						<li><code>[an_marketplace]</code> - Displays the template marketplace.</li>
+						<li><code>[an_approval_portal]</code> - Displays items awaiting client sign-off.</li>
+						<li><code>[agency_nexus_thank_you product_name="NAME" cta_url="URL"]</code> - High-converting confirmation page.</li>
+					</ul>
+					<p><small>Note: These shortcodes will automatically respect your licensing tier and user permissions.</small></p>
+				</div>
+
+				<hr>
 				<h2>Email & SMTP Settings</h2>
 				<p class="description">Configure how the plugin sends emails. You can use your default server or connect an external SMTP service (SendGrid, Mailgun, etc.) for better deliverability.</p>
 

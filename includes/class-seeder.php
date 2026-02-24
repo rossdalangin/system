@@ -148,7 +148,8 @@ class Agency_Nexus_Seeder {
 			'an_canned_responses', 'an_resources', 'an_burnout_logs', 'an_invoices',
 			'an_payments', 'an_autopilot_rules', 'an_proposals', 'an_vacations',
 			'an_meetings', 'an_content_versions', 'an_keyword_gap', 'an_content_comments',
-			'an_lead_communications', 'an_social_interactions'
+			'an_lead_communications', 'an_social_interactions', 'an_referral_partners',
+			'an_referrals'
 		];
 		foreach ( $tables as $table ) {
 			$table_name = $wpdb->prefix . $table;
