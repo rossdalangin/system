@@ -198,13 +198,29 @@ class Agency_Nexus_Shortcodes {
 
 		ob_start();
 		?>
-		<div class="an-frontend-marketplace" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+		<div class="an-frontend-marketplace" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px;">
 			<?php foreach ( $items as $item ) : ?>
-				<div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; text-align: center;">
-					<h3><?php echo esc_html( $item->title ); ?></h3>
-					<p style="font-weight: bold; color: var(--an-indigo-600, #4f46e5);">$<?php echo number_format($item->price, 2); ?></p>
-					<p style="font-size: 14px; color: #666;"><?php echo esc_html( $item->content ); ?></p>
-					<button style="background: #000; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;"><?php _e('Buy Now', 'agency-nexus'); ?></button>
+				<div style="border: 1px solid #e2e8f0; padding: 0; border-radius: 12px; background: #fff; overflow: hidden; display: flex; flex-direction: column;">
+					<?php if ( $item->image_url ) : ?>
+						<div style="height: 180px; background: url('<?php echo esc_url($item->image_url); ?>') center/cover no-repeat; border-bottom: 1px solid #eee;"></div>
+					<?php else : ?>
+						<div style="height: 180px; background: #f8fafc; display: flex; align-items: center; justify-content: center; color: #cbd5e1;">
+							<span class="dashicons dashicons-format-image" style="font-size: 48px; width: 48px; height: 48px;"></span>
+						</div>
+					<?php endif; ?>
+
+					<div style="padding: 20px; flex-grow: 1;">
+						<?php if ( $item->category ) : ?>
+							<span style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #6366f1; font-weight: 700;"><?php echo esc_html($item->category); ?></span>
+						<?php endif; ?>
+						<h3 style="margin: 5px 0 10px; font-size: 18px; color: #1e293b;"><?php echo esc_html( $item->title ); ?></h3>
+						<p style="font-size: 14px; color: #64748b; line-height: 1.5; margin-bottom: 20px;"><?php echo wp_trim_words(esc_html($item->content), 20); ?></p>
+					</div>
+
+					<div style="padding: 20px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between;">
+						<span style="font-size: 20px; font-weight: 800; color: #1e293b;">$<?php echo number_format($item->price, 2); ?></span>
+						<button style="background: #1e293b; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;"><?php _e('Buy Now', 'agency-nexus'); ?></button>
+					</div>
 				</div>
 			<?php endforeach; ?>
 		</div>

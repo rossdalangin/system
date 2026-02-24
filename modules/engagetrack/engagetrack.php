@@ -37,6 +37,10 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 			if ( Agency_Nexus_Permissions::is_admin() ) {
 				$this->process_settings_actions();
 			}
+		} elseif ( 'an-social-settings' === $page ) {
+			if ( Agency_Nexus_Permissions::is_admin() ) {
+				$this->process_social_settings_actions();
+			}
 		} elseif ( 'an-canned-responses' === $page ) {
 			if ( Agency_Nexus_Permissions::is_admin() ) {
 				$this->process_response_actions();
@@ -189,6 +193,15 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 
 			add_submenu_page(
 				'agency-nexus',
+				__( 'Social Settings', 'agency-nexus' ),
+				__( 'Social Settings', 'agency-nexus' ),
+				'read',
+				'an-social-settings',
+				[ $this, 'render_social_settings' ]
+			);
+
+			add_submenu_page(
+				'agency-nexus',
 				__( 'Lead Intelligence', 'agency-nexus' ),
 				__( 'Lead Intelligence', 'agency-nexus' ),
 				'read',
@@ -232,6 +245,65 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 				[ $this, 'render_canned_responses' ]
 			);
 		}
+	}
+
+	private function process_social_settings_actions() {
+		if ( isset( $_POST['an_save_social_settings'] ) && check_admin_referer( 'an_social_settings_nonce' ) ) {
+			update_option( 'an_social_instagram', sanitize_text_field( $_POST['an_social_instagram'] ) );
+			update_option( 'an_social_linkedin', sanitize_text_field( $_POST['an_social_linkedin'] ) );
+			update_option( 'an_social_x', sanitize_text_field( $_POST['an_social_x'] ) );
+			update_option( 'an_social_facebook', sanitize_text_field( $_POST['an_social_facebook'] ) );
+			wp_redirect( admin_url( 'admin.php?page=an-social-settings&msg=saved' ) );
+			exit;
+		}
+	}
+
+	public function render_social_settings() {
+		if ( isset( $_GET['msg'] ) && 'saved' === $_GET['msg'] ) {
+			echo '<div class="updated"><p>' . __( 'Social settings saved!', 'agency-nexus' ) . '</p></div>';
+		}
+		?>
+		<div class="agency-nexus-wrap">
+			<h1><?php _e( 'Social Media Settings', 'agency-nexus' ); ?></h1>
+			<p class="description"><?php _e( 'Link your agency\'s social media accounts to aggregate engagement in the Social Dashboard.', 'agency-nexus' ); ?></p>
+
+			<form method="post">
+				<?php wp_nonce_field( 'an_social_settings_nonce' ); ?>
+				<div class="postbox" style="padding: 20px;">
+					<h3><?php _e( 'Connected Accounts', 'agency-nexus' ); ?></h3>
+					<table class="form-table">
+						<tr>
+							<th><label><?php _e( 'Instagram Handle', 'agency-nexus' ); ?></label></th>
+							<td>
+								<input type="text" name="an_social_instagram" value="<?php echo esc_attr( get_option( 'an_social_instagram' ) ); ?>" class="regular-text" placeholder="@youragency">
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e( 'LinkedIn Company Page URL', 'agency-nexus' ); ?></label></th>
+							<td>
+								<input type="url" name="an_social_linkedin" value="<?php echo esc_attr( get_option( 'an_social_linkedin' ) ); ?>" class="regular-text" placeholder="https://linkedin.com/company/youragency">
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e( 'X (Twitter) Handle', 'agency-nexus' ); ?></label></th>
+							<td>
+								<input type="text" name="an_social_x" value="<?php echo esc_attr( get_option( 'an_social_x' ) ); ?>" class="regular-text" placeholder="@youragency">
+							</td>
+						</tr>
+						<tr>
+							<th><label><?php _e( 'Facebook Page URL', 'agency-nexus' ); ?></label></th>
+							<td>
+								<input type="url" name="an_social_facebook" value="<?php echo esc_attr( get_option( 'an_social_facebook' ) ); ?>" class="regular-text" placeholder="https://facebook.com/youragency">
+							</td>
+						</tr>
+					</table>
+				</div>
+				<p class="submit">
+					<input type="submit" name="an_save_social_settings" class="button button-primary" value="<?php _e( 'Save Social Settings', 'agency-nexus' ); ?>">
+				</p>
+			</form>
+		</div>
+		<?php
 	}
 
 	private function process_settings_actions() {
@@ -717,10 +789,30 @@ class Agency_Nexus_Module_Engagetrack extends Agency_Nexus_Base_Module {
 			$interactions = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY created_at DESC LIMIT 50" );
 		}
 
+		$social_accounts = [
+			'Instagram' => get_option('an_social_instagram'),
+			'LinkedIn'  => get_option('an_social_linkedin'),
+			'X'         => get_option('an_social_x'),
+			'Facebook'  => get_option('an_social_facebook')
+		];
+
 		?>
 		<div class="agency-nexus-wrap">
 			<h1><?php _e( 'Unified Social Dashboard', 'agency-nexus' ); ?></h1>
 			<p class="description"><?php _e( 'Aggregate engagement from all your connected platforms. Respond to urgent interactions and track brand sentiment in real-time.', 'agency-nexus' ); ?></p>
+
+			<div class="an-social-accounts-strip" style="display:flex; gap:15px; margin-top: 20px; background:#fff; padding:15px; border:1px solid #e2e8f0; border-radius:8px;">
+				<?php foreach($social_accounts as $platform => $val): ?>
+					<div style="display:flex; align-items:center; gap:8px;">
+						<span class="dashicons dashicons-share"></span>
+						<strong><?php echo $platform; ?>:</strong>
+						<span><?php echo $val ? esc_html($val) : '<em>' . __('Not linked', 'agency-nexus') . '</em>'; ?></span>
+					</div>
+				<?php endforeach; ?>
+				<div style="margin-left:auto;">
+					<a href="<?php echo admin_url('admin.php?page=an-social-settings'); ?>" class="button button-small"><?php _e('Manage Accounts', 'agency-nexus'); ?></a>
+				</div>
+			</div>
 
 			<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-top: 30px;">
 				<div class="postbox" style="padding: 20px;">

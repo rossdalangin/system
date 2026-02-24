@@ -34,8 +34,10 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 				$data = [
 					'title'          => sanitize_text_field($_POST['title']),
 					'type'           => sanitize_text_field($_POST['type']),
+					'category'       => sanitize_text_field($_POST['category']),
 					'price'          => floatval($_POST['price']),
 					'content'        => wp_kses_post($_POST['content']),
+					'image_url'      => esc_url_raw($_POST['image_url']),
 					'file_url'       => esc_url_raw($_POST['file_url']),
 					'is_marketplace' => 1
 				];
@@ -232,13 +234,39 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 								<option value="swipe" <?php selected($item ? $item->type : '', 'swipe'); ?>>Swipe File</option>
 							</select>
 						</td></tr>
+						<tr><th>Category</th><td><input type="text" name="category" value="<?php echo $item ? esc_attr($item->category) : ''; ?>" class="regular-text" placeholder="e.g. SEO, Web Design"></td></tr>
 						<tr><th>Price ($)</th><td><input type="number" step="0.01" name="price" value="<?php echo $item ? esc_attr($item->price) : '0.00'; ?>" required></td></tr>
 						<tr><th>Description</th><td><textarea name="content" class="regular-text" rows="5"><?php echo $item ? esc_textarea($item->content) : ''; ?></textarea></td></tr>
-						<tr><th>File URL (Optional)</th><td><input type="text" name="file_url" value="<?php echo $item ? esc_attr($item->file_url) : ''; ?>" class="regular-text"></td></tr>
+						<tr><th>Product Image URL</th><td>
+							<input type="text" name="image_url" id="image_url" value="<?php echo $item ? esc_attr($item->image_url) : ''; ?>" class="regular-text">
+							<button type="button" id="upload_image_btn" class="button">Upload/Select Image</button>
+						</td></tr>
+						<tr><th>File URL (Optional)</th><td>
+							<input type="text" name="file_url" id="file_url" value="<?php echo $item ? esc_attr($item->file_url) : ''; ?>" class="regular-text">
+							<button type="button" id="upload_file_btn" class="button">Upload/Select File</button>
+						</td></tr>
 					</table>
 					<input type="submit" name="an_save_marketplace_item" class="button button-primary" value="Save Product">
 				</form>
 			</div>
+			<script>
+			jQuery(document).ready(function($){
+				$('#upload_image_btn').click(function(e) {
+					e.preventDefault();
+					var frame = wp.media({ title: 'Product Image', multiple: false }).open().on('select', function(e){
+						var attachment = frame.state().get('selection').first().toJSON();
+						$('#image_url').val(attachment.url);
+					});
+				});
+				$('#upload_file_btn').click(function(e) {
+					e.preventDefault();
+					var frame = wp.media({ title: 'Product File', multiple: false }).open().on('select', function(e){
+						var attachment = frame.state().get('selection').first().toJSON();
+						$('#file_url').val(attachment.url);
+					});
+				});
+			});
+			</script>
 			<?php
 			return;
 		}
@@ -250,11 +278,13 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 			<a href="?page=an-manage-marketplace&action=add" class="page-title-action">Add New Product</a>
 			<hr class="wp-header-end">
 			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>Title</th><th>Price</th><th>Type</th><th>Actions</th></tr></thead>
+				<thead><tr><th>Image</th><th>Title</th><th>Category</th><th>Price</th><th>Type</th><th>Actions</th></tr></thead>
 				<tbody>
 					<?php foreach($items as $item): ?>
 						<tr>
+							<td><?php echo $item->image_url ? '<img src="'.esc_url($item->image_url).'" style="width:50px; height:auto; border-radius:4px;">' : '<em>No image</em>'; ?></td>
 							<td><strong><?php echo esc_html($item->title); ?></strong></td>
+							<td><?php echo esc_html($item->category); ?></td>
 							<td>$<?php echo number_format($item->price, 2); ?></td>
 							<td><?php echo ucfirst($item->type); ?></td>
 							<td>

@@ -31,10 +31,10 @@ class Agency_Nexus_DB_Manager {
 	 */
 	private function maybe_update_db() {
 		$version = get_option( 'an_db_version', '0' );
-		// If version is less than 1.1.9 or not set.
-		if ( version_compare( $version, '1.1.9', '<' ) ) {
+		// If version is less than 1.2.0 or not set.
+		if ( version_compare( $version, '1.2.0', '<' ) ) {
 			self::create_tables();
-			update_option( 'an_db_version', '1.1.9' );
+			update_option( 'an_db_version', '1.2.0' );
 		}
 	}
 
@@ -212,6 +212,8 @@ PRIMARY KEY  (id)
 id bigint(20) NOT NULL AUTO_INCREMENT,
 title varchar(255) NOT NULL,
 type varchar(50) DEFAULT 'template' NOT NULL,
+category varchar(100) DEFAULT '' NOT NULL,
+image_url varchar(255) DEFAULT '' NOT NULL,
 file_url varchar(255) DEFAULT '' NOT NULL,
 content text NOT NULL,
 price decimal(10,2) DEFAULT 0.00 NOT NULL,
