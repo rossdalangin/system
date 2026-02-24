@@ -17,44 +17,82 @@ class Agency_Nexus_Seeder {
 
 		// 1. Create Sample Users
 		$team_members = [];
-		for ( $i = 1; $i <= 5; $i++ ) {
-			$team_members[] = self::get_or_create_user( "team_member_$i", "team$i@example.com", 'author', "Team Member $i" );
+		$team_data = [
+			['jules_dev', 'jules@example.com', 'administrator', 'Jules (Admin)'],
+			['sarah_pm', 'sarah@example.com', 'editor', 'Sarah Miller (Project Manager)'],
+			['mark_dev', 'mark@example.com', 'author', 'Mark Johnson (Senior Developer)'],
+			['elena_design', 'elena@example.com', 'author', 'Elena Rodriguez (UX Designer)'],
+			['david_seo', 'david@example.com', 'author', 'David Chen (SEO Specialist)']
+		];
+		foreach ( $team_data as $t ) {
+			$team_members[] = self::get_or_create_user( $t[0], $t[1], $t[2], $t[3] );
 		}
 
 		// 2. Create 10+ Clients
 		$client_ids = [];
-		for ( $i = 1; $i <= 12; $i++ ) {
-			$wpdb->insert( $wpdb->prefix . 'an_clients', [
-				'name'    => "Client $i",
-				'email'   => "client$i@example.com",
-				'company' => "Company $i Ltd",
-				'status'  => 'active',
-				'created_at' => date('Y-m-d H:i:s', strtotime("-$i days"))
-			] );
-			$client_ids[] = $wpdb->insert_id;
+		$clients_data = [
+			['Robert Fox', 'robert@acme.com', 'Acme Corp', '123 Business Way, NY'],
+			['Jane Cooper', 'jane@globex.com', 'Globex Corporation', '456 Tech Blvd, SF'],
+			['Cody Fisher', 'cody@soylent.com', 'Soylent Corp', '789 Green St, Austin'],
+			['Esther Howard', 'esther@stark.com', 'Stark Industries', '101 Tower Rd, Malibu'],
+			['Jenny Wilson', 'jenny@wayne.com', 'Wayne Enterprises', '202 Manor Ln, Gotham'],
+			['Guy Hawkins', 'guy@umbrella.com', 'Umbrella Corp', '303 Raccoon City'],
+			['Theresa Webb', 'theresa@initech.com', 'Initech', '404 Cubicle Dr, Houston'],
+			['Marvin McKinney', 'marvin@massive.com', 'Massive Dynamic', '505 Fringe St, Boston'],
+			['Jerome Bell', 'jerome@hooli.com', 'Hooli', '606 Nucleus Ave, Palo Alto'],
+			['Eleanor Pena', 'eleanor@wonka.com', 'Wonka Industries', '707 Chocolate Way'],
+			['Ralph Edwards', 'ralph@dunder.com', 'Dunder Mifflin', '1725 Slough Ave, Scranton'],
+			['Arlene McCoy', 'arlene@vandelay.com', 'Vandelay Industries', '808 Latex Cir, NY']
+		];
 
-			// Occasionally create a WP user for the client
-			if ( $i % 3 === 0 ) {
-				self::get_or_create_user( "client_user_$i", "client$i@example.com", 'subscriber', "Client $i" );
+		foreach ( $clients_data as $i => $c ) {
+			$wpdb->insert( $wpdb->prefix . 'an_clients', [
+				'name'    => $c[0],
+				'email'   => $c[1],
+				'company' => $c[2],
+				'address' => $c[3],
+				'status'  => 'active',
+				'created_at' => date('Y-m-d H:i:s', strtotime("-" . ($i+5) . " days"))
+			] );
+			$client_id = $wpdb->insert_id;
+			$client_ids[] = $client_id;
+
+			// Create a WP user for the first 5 clients
+			if ( $i < 5 ) {
+				self::get_or_create_user( strtolower(str_replace(' ', '_', $c[0])), $c[1], 'subscriber', $c[0] );
 			}
 		}
 
 		// 3. Create 10+ Projects
 		$project_ids = [];
-		$statuses = ['planned', 'in_progress', 'on_hold', 'completed'];
-		for ( $i = 1; $i <= 15; $i++ ) {
-			$client_id = $client_ids[ array_rand($client_ids) ];
+		$project_templates = [
+			['Website Redesign & Brand Refresh', 8500, 'Complete overhaul of corporate identity and digital presence.'],
+			['Quarterly SEO Strategy', 3200, 'Content gap analysis, backlink building, and technical audit.'],
+			['Social Media Campaign (Launch)', 4500, 'Creative assets and distribution for the new product line.'],
+			['Mobile App Development (MVP)', 12000, 'Phase 1 development of the consumer-facing mobile application.'],
+			['E-commerce Migration', 9500, 'Moving from Shopify to WooCommerce with full data integrity.'],
+			['Google Ads Optimization', 1500, 'Performance marketing audit and landing page A/B testing.'],
+			['Email Marketing Automation', 2800, 'Setting up nurture sequences and customer retention flows.'],
+			['B2B Content Pillar Strategy', 5500, 'Creating high-authority whitepapers and supporting blog posts.'],
+			['API Integration Project', 6000, 'Connecting internal ERP with third-party logistics providers.'],
+			['Custom CRM Implementation', 15000, 'Building a tailored sales pipeline management tool.'],
+			['Video Production & Editing', 7200, 'Series of 5 high-quality explainer videos for YouTube.'],
+			['Server Migration & Security Audit', 3500, 'Hardening infrastructure and migrating to AWS.']
+		];
+
+		foreach ( $project_templates as $i => $pt ) {
+			$client_id = $client_ids[ $i % count($client_ids) ];
 			$team_id   = $team_members[ array_rand($team_members) ];
-			$status    = $statuses[ array_rand($statuses) ];
+			$status    = ($i < 3) ? 'completed' : (($i < 8) ? 'in_progress' : 'planned');
 
 			$wpdb->insert( $wpdb->prefix . 'an_projects', [
 				'client_id'   => $client_id,
 				'assigned_to' => $team_id,
-				'title'       => "Project " . ($i <= 5 ? "Web Design $i" : ($i <= 10 ? "SEO Campaign $i" : "Social Media $i")),
-				'description' => "Sample project description for project $i.",
-				'budget'      => rand(1000, 10000),
+				'title'       => $pt[0],
+				'description' => Agency_Nexus::encrypt($pt[2]),
+				'budget'      => $pt[1],
 				'status'      => $status,
-				'start_date'  => date( 'Y-m-d', strtotime("-" . rand(1, 30) . " days") )
+				'start_date'  => date( 'Y-m-d', strtotime("-" . (rand(10, 60)) . " days") )
 			] );
 			$project_id = $wpdb->insert_id;
 			$project_ids[] = $project_id;
@@ -99,25 +137,37 @@ class Agency_Nexus_Seeder {
 		}
 
 		// 6. Create 10+ Leads
-		$lead_statuses = ['new', 'qualified', 'converted', 'lost'];
-		$sources = ['referral', 'google', 'linkedin', 'website'];
-		for ( $i = 1; $i <= 12; $i++ ) {
+		$lead_data = [
+			['Arthur Dent', 'arthur@hitchhiker.com', 'Referral', 'qualified', 5000],
+			['Ford Prefect', 'ford@guide.com', 'Website', 'new', 2500],
+			['Tricia McMillan', 'trillian@earth.com', 'LinkedIn', 'converted', 8000],
+			['Zaphod Beeblebrox', 'president@galaxy.com', 'Google', 'lost', 100000],
+			['Marvin Robot', 'paranoid@sirius.com', 'Direct', 'qualified', 1200],
+			['Slartibartfast', 'fjords@magrathea.com', 'Website', 'new', 15000],
+			['Beeblebrox IV', 'fourth@galaxy.com', 'Referral', 'new', 3000],
+			['Fenchurch', 'fen@flying.com', 'LinkedIn', 'converted', 4500],
+			['Random Dent', 'random@history.com', 'Google', 'new', 1800],
+			['Wonko Sane', 'wonko@asylum.com', 'Direct', 'lost', 500]
+		];
+
+		foreach ( $lead_data as $l ) {
 			$wpdb->insert( $wpdb->prefix . 'an_leads', [
-				'name'             => "Prospective Lead $i",
-				'email'            => "lead$i@example.com",
-				'source'           => $sources[ array_rand($sources) ],
-				'status'           => $lead_statuses[ array_rand($lead_statuses) ],
-				'conversion_value' => rand(1000, 5000),
-				'created_at'       => date('Y-m-d H:i:s', strtotime("-" . rand(1, 60) . " days"))
+				'name'             => $l[0],
+				'email'            => $l[1],
+				'source'           => $l[2],
+				'status'           => $l[3],
+				'conversion_value' => $l[4],
+				'score'            => rand(30, 95),
+				'created_at'       => date('Y-m-d H:i:s', strtotime("-" . rand(5, 45) . " days"))
 			] );
 		}
 
 		// 7. Create Canned Responses
 		$responses = [
-			['Welcome Message', 'Hi there! Welcome to our agency. How can we help you today?'],
-			['Pricing Inquiry', 'Our standard rates start at $50/hr for most services.'],
-			['Onboarding Link', 'Please fill out this onboarding form to get started: [link]'],
-			['Meeting Request', 'I would love to hop on a call. Are you free tomorrow?'],
+			['Initial Inquiry Response', 'Hi {{name}}, thanks for reaching out! We specialize in helping companies like yours scale their digital footprint. Would you be open to a 15-minute discovery call next Tuesday?'],
+			['Proposal Follow-up', 'Hi there, just checking in on the proposal I sent over last week. Do you have any questions about the deliverables or the timeline?'],
+			['Project Kickoff Welcome', 'Welcome to the agency! We are excited to start on {{project_name}}. Your dedicated Project Manager will be Sarah. You can track all progress in your Client Portal.'],
+			['Standard Service Rates', 'Our agency operates on a value-based pricing model, with standard implementation packages starting at $2,500. For custom development, our blended hourly rate is $150.'],
 		];
 		foreach ( $responses as $res ) {
 			$wpdb->insert( $wpdb->prefix . 'an_canned_responses', [

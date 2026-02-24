@@ -100,9 +100,10 @@ function loadMessages(id) {
 				var align = isSent ? 'right' : 'left';
 				var bg = isSent ? '#0073aa' : '#eee';
 				var color = isSent ? '#fff' : '#333';
+				var escapedMsg = jQuery('<div>').text(msg.message).html().replace(/\n/g, '<br>');
 				html += '<div class="msg" id="msg-' + msg.id + '" style="margin-bottom: 15px; text-align: ' + align + ';">';
 				html += '<div style="font-size: 10px; color: #999; margin-bottom: 2px;">' + (msg.sender_name || '<?php _e("Participant", "agency-nexus"); ?>') + '</div>';
-				html += '<div style="background: ' + bg + '; color: ' + color + '; padding: 10px; border-radius: 10px; display: inline-block; max-width: 80%; position:relative; text-align: left;">' + msg.message;
+				html += '<div style="background: ' + bg + '; color: ' + color + '; padding: 10px; border-radius: 10px; display: inline-block; max-width: 80%; position:relative; text-align: left;">' + escapedMsg;
 				html += '<span class="delete-msg" onclick="deleteMessage(' + msg.id + ')" style="cursor:pointer; font-size:10px; opacity:0.5; margin-left:10px;">×</span>';
 				html += '</div></div>';
 			});
@@ -145,8 +146,9 @@ function loadFiles(id) {
 		if (response.success) {
 			var html = '';
 			response.data.forEach(function(file) {
+				var escapedFileName = jQuery('<div>').text(file.file_name).html();
 				html += '<li id="file-' + file.id + '" style="padding: 10px; background: #fff; border: 1px solid #eee; margin-bottom: 5px; display: flex; justify-content: space-between;">';
-				html += '<span>' + file.file_name + '</span>';
+				html += '<span>' + escapedFileName + '</span>';
 				html += '<div><a href="' + file.file_url + '" class="button button-small" target="_blank">Download</a> ';
 				html += '<button onclick="deleteFile(' + file.id + ')" class="button button-small" style="color:red;">×</button></div>';
 				html += '</li>';

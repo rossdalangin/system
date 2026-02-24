@@ -248,7 +248,8 @@ class Agency_Nexus_Shortcodes {
 
 				$.post('<?php echo admin_url("admin-ajax.php"); ?>', {
 					action: 'an_marketplace_purchase',
-					product_id: productId
+					product_id: productId,
+					security: '<?php echo wp_create_nonce("an_marketplace_purchase_nonce"); ?>'
 				}, function(response){
 					if (response.success) {
 						window.location.href = response.data.redirect_url;

@@ -40,12 +40,6 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
 		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
-		if ( isset( $_POST['an_apply_late_fees'] ) ) {
-			$wpdb->query( "UPDATE {$wpdb->prefix}an_invoices SET amount = amount * 1.05, status = 'overdue' WHERE status = 'sent' AND due_date < CURDATE()" );
-			wp_redirect( admin_url( 'admin.php?page=an-invoices&msg=late_fees_applied' ) );
-			exit;
-		}
-
 		if ( 'delete' === $action && $id ) {
 			check_admin_referer( 'an_delete_expense_' . $id );
 			$wpdb->delete( $expenses_table, [ 'id' => $id ] );
@@ -84,6 +78,12 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		$payments_table = $wpdb->prefix . 'an_payments';
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
 		$id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+
+		if ( isset( $_POST['an_apply_late_fees'] ) ) {
+			$wpdb->query( "UPDATE {$wpdb->prefix}an_invoices SET amount = amount * 1.05, status = 'overdue' WHERE status = 'sent' AND due_date < CURDATE()" );
+			wp_redirect( admin_url( 'admin.php?page=an-invoices&msg=late_fees_applied' ) );
+			exit;
+		}
 
 		// Client is paying via Gateway
 		if ( isset( $_POST['an_pay_invoice_gateway'] ) ) {
@@ -743,8 +743,17 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 	 * AJAX Handler for Marketplace purchases.
 	 */
 	public function handle_marketplace_purchase() {
-		if ( ! is_user_logged_in() || ! Agency_Nexus_Permissions::is_client() ) {
-			wp_send_json_error( [ 'message' => __( 'Access denied. Please log in as a client.', 'agency-nexus' ) ] );
+		check_ajax_referer( 'an_marketplace_purchase_nonce', 'security' );
+
+		if ( ! is_user_logged_in() ) {
+			wp_send_json_error( [ 'message' => __( 'Please log in to purchase.', 'agency-nexus' ) ] );
+		}
+
+		$is_client = Agency_Nexus_Permissions::is_client();
+		$is_admin  = Agency_Nexus_Permissions::is_admin();
+
+		if ( ! $is_client && ! $is_admin ) {
+			wp_send_json_error( [ 'message' => __( 'Access denied. Purchase is reserved for clients.', 'agency-nexus' ) ] );
 		}
 
 		$product_id = isset( $_POST['product_id'] ) ? intval( $_POST['product_id'] ) : 0;
@@ -759,6 +768,10 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		}
 
 		$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
+
+		if ( ! $client_id ) {
+			wp_send_json_error( [ 'message' => __( 'Your user account is not linked to a Client record. Please contact the administrator.', 'agency-nexus' ) ] );
+		}
 
 		// 1. Ensure a "Marketplace Purchases" project exists for this client
 		$project_id = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}an_projects WHERE client_id = %d AND title = 'Marketplace Purchases'", $client_id ) );

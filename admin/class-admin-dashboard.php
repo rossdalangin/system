@@ -106,13 +106,15 @@ class Agency_Nexus_Admin_Dashboard {
 
 		if ( isset( $_POST['an_seed_data'] ) && check_admin_referer( 'an_seed_data_nonce' ) ) {
 			Agency_Nexus_Seeder::seed();
-			wp_redirect( admin_url( 'admin.php?page=agency-nexus&msg=seeded' ) );
+			$redirect_url = ( $page === 'an-settings' ) ? admin_url( 'admin.php?page=an-settings&msg=seeded' ) : admin_url( 'admin.php?page=agency-nexus&msg=seeded' );
+			wp_redirect( $redirect_url );
 			exit;
 		}
 
 		if ( isset( $_POST['an_reset_data'] ) && check_admin_referer( 'an_reset_data_nonce' ) ) {
 			Agency_Nexus_Seeder::clear_all();
-			wp_redirect( admin_url( 'admin.php?page=agency-nexus&msg=reset' ) );
+			$redirect_url = ( $page === 'an-settings' ) ? admin_url( 'admin.php?page=an-settings&msg=reset' ) : admin_url( 'admin.php?page=agency-nexus&msg=reset' );
+			wp_redirect( $redirect_url );
 			exit;
 		}
 
@@ -1170,7 +1172,7 @@ class Agency_Nexus_Admin_Dashboard {
 								<?php if ($profit) : ?>
 									<span style="color: <?php echo $profit['profitability'] >= 0 ? '#46b450' : '#dc3232'; ?>; font-weight: bold;">
 										$<?php echo number_format($profit['profitability'], 2); ?>
-									 small>(<?php echo round($profit['margin']); ?>%)</small>
+									 <small>(<?php echo round($profit['margin']); ?>%)</small>
 									</span>
 								<?php else : ?>
 									-
@@ -1256,8 +1258,14 @@ class Agency_Nexus_Admin_Dashboard {
 	 * Render the global settings page.
 	 */
 	public function render_settings() {
-		if ( isset( $_GET['msg'] ) && 'saved' === $_GET['msg'] ) {
-			echo '<div class="updated"><p>Settings saved!</p></div>';
+		if ( isset( $_GET['msg'] ) ) {
+			$m = '';
+			switch($_GET['msg']) {
+				case 'saved':  $m = 'Settings saved!'; break;
+				case 'seeded': $m = 'Best sample content added successfully!'; break;
+				case 'reset':  $m = 'Database cleared successfully!'; break;
+			}
+			if ($m) echo '<div class="updated"><p>' . esc_html($m) . '</p></div>';
 		}
 		?>
 		<div class="agency-nexus-wrap">
@@ -1436,6 +1444,21 @@ class Agency_Nexus_Admin_Dashboard {
 					<input type="submit" name="an_save_global_settings" class="button button-primary" value="Save Settings">
 				</p>
 			</form>
+
+			<hr>
+			<h2><?php _e( 'Database Management', 'agency-nexus' ); ?></h2>
+			<p class="description"><?php _e( 'Use these tools to manage your Agency Nexus database records.', 'agency-nexus' ); ?></p>
+
+			<div style="display: flex; gap: 15px; margin-top: 15px;">
+				<form method="post">
+					<?php wp_nonce_field('an_seed_data_nonce'); ?>
+					<input type="submit" name="an_seed_data" class="button button-primary" value="<?php _e( 'Add Best Sample Content', 'agency-nexus' ); ?>">
+				</form>
+				<form method="post">
+					<?php wp_nonce_field('an_reset_data_nonce'); ?>
+					<input type="submit" name="an_reset_data" class="button button-link-delete" value="<?php _e( 'Reset Database (Delete All)', 'agency-nexus' ); ?>" onclick="return confirm('WARNING: This will delete ALL Agency Nexus records. This cannot be undone. Proceed?')">
+				</form>
+			</div>
 		</div>
 		<script>
 		jQuery(document).ready(function($){
