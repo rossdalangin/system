@@ -11,9 +11,9 @@ Hi {{first_name}},
 
 You started your agency to do great work, not to spend 4 hours a day jumping between Slack, Asana, Stripe, and Google Sheets.
 
-When your tools don't talk to each other, you're suffering from "Tool Chaos." It leads to missed deadlines, overwhelmed team members, and shrinking margins.
+Every minute you spend "syncing" data is a minute you aren't billing. This hidden overhead is the #1 reason agencies plateau at $10k/mo. You aren't just losing time—you're losing the ability to scale.
 
-Tomorrow, I’m going to show you the invisible cost of this friction (it's higher than you think).
+Tomorrow, I’m going to show you exactly how much profit is "leaking" out of your agency every month (the number will shock you).
 
 Best,
 {{Your_Name}}
@@ -21,17 +21,17 @@ Best,
 ---
 
 ## Day 2: The 20% Profit Leak
-**Subject:** Where did your 20% margin go?
+**Subject:** You are working for free (2 hours every day)
 **Body:**
 Hi {{first_name}},
 
-Did you know the average agency loses 20-30% of its potential profit to "context switching"?
+Did you know the average agency loses 20-30% of its potential profit to "operational friction"?
 
-Every minute your project manager spends digging through emails just to find a status is a minute of lost billable time.
+If you're working 40 hours a week, about 8 of those hours are spent fighting your tools instead of fulfilling client work. You are effectively working for free for one full day every single week.
 
-That is "Uncalibrated" Operations. It’s the difference between an agency that survives and one that scales.
+That is "Uncalibrated" Operations. It’s a silent killer of project margins.
 
-Tomorrow, I’ll show you the "Command Center" solution.
+Tomorrow, I’ll show you the WordPress-native "Command Center" that stops the leak.
 
 Best,
 {{Your_Name}}

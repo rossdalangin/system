@@ -67,4 +67,28 @@ This document is the operational backbone of your agency. It contains a "walkthr
 5.  **Resource Library:** Check your 'Resources' tab for your brand guides, onboarding docs, and signed contracts.
 
 ---
-*End of SOPs. Standardize your way to 7-figures.*
+
+## 🗺 PART 3: The 90-Day Agency Scaling Roadmap
+
+Adopting a new operating system takes time. Follow this roadmap to transition your agency from "Tool Chaos" to "Calibrated Scale."
+
+### Phase 1: Days 1-30 (The Foundation)
+*   **Goal:** Centralize data and standardize onboarding.
+*   **Weeks 1-2:** Clean your existing database using the **System Reset** (if starting fresh) and enter your current clients and active projects.
+*   **Weeks 3-4:** Build your interactive **Scopes** for your top 3 service packages. Use the **Proposal Generator** for all new leads.
+*   **Milestone:** All new business is captured and scoped inside Agency Nexus.
+
+### Phase 2: Days 31-60 (The Execution)
+*   **Goal:** Drive team adoption and financial transparency.
+*   **Weeks 5-6:** Train team members on the **Project View**. Mandate that all labor is logged using the built-in time tracker.
+*   **Weeks 7-8:** Configure **SMTP** and start using **ClientSync** for all project communication. Move one existing client into the portal as a pilot.
+*   **Milestone:** Your dashboard shows real-time **True Profit** for at least 50% of your active projects.
+
+### Phase 3: Days 61-90 (The Optimization)
+*   **Goal:** Automation and sustainable growth.
+*   **Weeks 9-10:** Audit your workflows and create your first 5 **AutoPilot** rules (e.g., automated onboarding emails).
+*   **Weeks 11-12:** Monitor **BurnoutGuard** metrics. Use the **Referral Hub** to offload low-margin or overflow work to partners.
+*   **Milestone:** You are managing your agency from a single tab. Context switching is reduced by 80%.
+
+---
+*End of Tutorial & SOPs. Standardize your way to 7-figures.*

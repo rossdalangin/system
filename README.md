@@ -99,4 +99,22 @@ This repository is a complete business-in-a-box. Refer to these files for succes
 *   **Sales Scripts:** `OUTREACH_SCRIPTS.md` and `7_DAY_EMAIL_SERIES.md`.
 
 ---
+
+## 🛠 Developer & Customization Guide
+
+Agency Nexus is built with a highly modular architecture, making it easy for developers to extend its functionality.
+
+### 🔌 Modular Hooks
+*   `agency_nexus_project_status_updated`: Fired whenever a project status changes. Ideal for custom integrations.
+*   `agency_nexus_dashboard_widgets`: Action hook to add custom widgets to the main Nexus dashboard.
+
+### 🌐 REST API Endpoints
+The plugin exposes several endpoints for external integrations (e.g., mobile apps or custom lead forms):
+*   `POST /wp-json/agency-nexus/v1/leads/capture`: Programmatically ingest leads from any source.
+*   `GET /wp-json/agency-nexus/v1/projects`: Retrieve authorized project data for the current user.
+
+### 🧪 Database Schema
+All custom tables are prefixed with `an_` (e.g., `wp_an_projects`, `wp_an_tasks`). Refer to `includes/class-db-manager.php` for the full schema definitions.
+
+---
 **Agency Nexus.** *Stop managing. Start scaling.*

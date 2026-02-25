@@ -18,11 +18,11 @@ I recently moved my entire HQ to **Agency Nexus** (it’s an all-in-one OS built
 
 "Hi {{Name}},
 
-I was looking at your site and noticed a few operational gaps that we typically help agencies solve—specifically around client onboarding speed and ROI tracking.
+I was looking at your site and noticed a few operational gaps—specifically around client onboarding speed—that are likely costing you at least 15% of your annual profit.
 
-Most agencies lose 20% of their margin to 'Uncalibrated' operations. We use a system called **Agency Nexus** that allows us to onboard clients in 60 seconds with a professional scope builder and branded portal.
+When operations are 'Uncalibrated,' you aren't just working harder; you're actively losing money to administrative overhead. We use **Agency Nexus** to onboard clients in 60 seconds with a professional scope builder.
 
-Would you be open to a 10-minute chat about how 'calibrating' your workflow could increase your project margins by 15-20%?"
+Would you be open to a 10-minute chat about stopping the profit leak and increasing your project margins by 15-20%?"
 
 ---
 

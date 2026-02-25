@@ -51,4 +51,22 @@
 *   **Templates as Entry Points:** Sell premium frameworks in the Agency Nexus Marketplace to attract users who then upgrade to the full OS.
 
 ---
+
+## 📊 Appendix: The "Tool Chaos" Cost Comparison
+
+Show your prospects exactly how much they are overpaying for fragmented tools.
+
+| Function | Typical SaaS Stack | Monthly Cost (est.) | Agency Nexus |
+| :--- | :--- | :--- | :--- |
+| Project Management | Asana / Monday.com | $100+ | **Included** |
+| Client CRM | Pipedrive / HubSpot | $50+ | **Included** |
+| Internal/Client Chat | Slack (Pro) | $45+ | **Included** |
+| Content Planning | Planoly / Buffer | $30+ | **Included** |
+| Invoicing & Finance | QuickBooks / FreshBooks | $30+ | **Included** |
+| Booking/Scheduling | Calendly (Pro) | $15+ | **Included** |
+| **TOTALS** | | **$270+/mo** | **$16/mo (Pro)** |
+
+**Savings:** Over **$3,000 per year** in subscription fees, plus hundreds of hours saved in context switching.
+
+---
 **Marketing Motto:** *Calibration over chaos. Scaling over surviving.*

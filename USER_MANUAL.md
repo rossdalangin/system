@@ -32,6 +32,7 @@ Before diving into the modules, ensure your core settings are calibrated:
 Streamline the transition from "Lead" to "Active Project."
 
 *   **Interactive Scope Builder:** Select a base service (SEO, Design, etc.) and toggle addons. The dynamic calculator updates the budget in real-time.
+    *   *Sample Scope:* "High-Growth SEO" ($2,500 base) + "Backlink Outreach" ($500 addon) + "Technical Audit" ($750 addon) = **$3,750 Total**.
 *   **Proposals:** After building a scope, generate a Proposal. Your client can view this on the frontend, review the terms, and provide a digital signature.
 *   **Project Kickoff:** Once a proposal is signed, the system can automatically create an active Project in the database (via AutoPilot rules).
 
@@ -52,7 +53,8 @@ The engine that drives your agency's fulfillment.
 
 Scale your content engine without the chaos.
 
-*   **Pillar Architect:** Plan content in clusters. Mark high-level pieces as **Pillars** and link supporting cluster content to them to visualize your topical authority.
+*   **Pillar Architect:** Plan content in clusters. Mark high-level pieces as **Pillars** and link supporting cluster content to them.
+    *   *Sample Pillar Map:* **Pillar:** "Agency Operations" -> **Clusters:** "Client Onboarding SOP", "Reducing Tool Fatigue", "Scaling Project Margins".
 *   **Forecasting:** Each content item includes an engagement prediction based on historical performance and platform strength.
 *   **Visual Calendar:** Drag and drop content items to reschedule. Syncs automatically with your team's workload.
 *   **Batch Mode:** Use the Batch Automation tool to generate 10+ draft titles and skeletons for a project in a single click.
@@ -114,7 +116,8 @@ Turn your agency's knowledge into a scalable asset.
 
 Put your agency on cruise control.
 
-*   **Trigger Rules:** Create "If-This-Then-That" logic (e.g., *If Lead Score > 80 -> Send Welcome Email*).
+*   **Trigger Rules:** Create "If-This-Then-That" logic using JSON conditions.
+    *   *Sample Rule:* `{"trigger": "project_completed", "condition": {"budget_min": 5000}, "action": "trigger_zapier"}`.
 *   **Webhooks:** Connect to Zapier or Slack to push updates to your favorite external tools.
 *   **Daily Briefing:** Every morning, the system sends an email to the admin with:
     1.  All tasks overdue or due today.
