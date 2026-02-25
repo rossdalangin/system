@@ -1,76 +1,60 @@
-# Protecting and Licensing Your WordPress Plugin
+# Protection & Licensing: Securing Your Agency Asset
 
-Since WordPress is built on the GPL (General Public License), any code that interacts with WordPress core must also be GPL-compliant. This means users technically have the right to study, modify, and redistribute your code. However, you can still protect your business and revenue.
-
----
-
-## 1. The Best Protection: "Support & Updates"
-In the WordPress world, you aren't just selling code; you are selling **peace of mind**.
--   **License Keys**: Use a license key to gate access to your automatic update server. Users can use "nulled" versions, but they won't get security patches or new features without a key.
--   **Priority Support**: Agency owners cannot afford downtime. Make it clear that only licensed users get help from your expert team.
+As the owner of **Agency Nexus**, your intellectual property (IP) is your most valuable asset. While WordPress is built on the GPL (General Public License), there are several strategies—both technical and business-oriented—to protect your revenue and ensure long-term growth.
 
 ---
 
-## 2. Technical Protection Methods
+## 1. The GPL Reality & Business Strategy
+WordPress code must be GPL-compliant, meaning users have the right to modify it. However, the industry standard for protection is **"The Value of the Network."**
 
-### **A. Licensing Servers (The Industry Standard)**
-Connect your plugin to a remote server (like the provided **Agency Nexus Store** plugin).
--   *How it works*: On activation, the plugin sends the site URL and key to your server. Your server checks the database and records the activation.
--   *The Benefit*: You can enforce site limits. For example, our **Pro** tier is limited to 1 site, while the **Agency VIP** tier allows unlimited site activations.
-
-### **B. Obfuscation (The "Hard" Method)**
-If you have proprietary logic you don't want competitors to read:
--   **IonCube / SourceGuardian**: These tools "encrypt" your PHP files.
--   **Drawback**: This is controversial in the WP community and requires a special PHP extension to be installed on the user's server (which many shared hosts don't support).
-
-### **C. The SaaS Hybrid Approach**
-Move the most valuable logic to your own server (API-based).
--   *Example*: Instead of calculating ROI in the plugin, send the raw data to your server via API, calculate it there, and return the result.
--   *The Benefit*: They can't steal the logic because it's never on their server.
+*   **Continuous Updates:** Users pay for the license to access your automatic update server. Without a key, they miss out on critical security patches and new feature modules.
+*   **Expert Support:** Only licensed users get access to your "Agency Support Desk." For professional agencies, downtime is more expensive than a license fee.
+*   **Cloud Dependency (Optional):** You can move certain complex logic (like sentiment analysis or AI content forecasting) to a remote API that you control. This makes the plugin "useless" without an active connection to your server.
 
 ---
 
-## 3. Tier-Based Feature Gating
-Agency Nexus uses the `Agency_Nexus_License_Manager` class to dynamically enable or disable features based on the validated key.
+## 2. Technical Protection Architecture
 
-### **Tier Comparison Matrix:**
+### **A. Remote License Validation**
+Agency Nexus is designed to communicate with your "Main Domain" using the provided **Agency Nexus Store** plugin.
 
-| Module | Starter (Free) | Pro | Agency VIP |
+*   **Handshake:** On activation, the plugin sends the Site URL and License Key to your store via a secure REST API endpoint.
+*   **Validation:** Your store checks the `an_issued_licenses` table. If valid, it returns the `tier` (Starter, Pro, or VIP) and records the activation in `an_license_activations`.
+*   **Enforcement:** The plugin stores a transient locally. If the handshake fails or the key is suspended, the Pro modules are instantly locked.
+
+### **B. Tier-Based Feature Gating**
+We use a granular capability system to gate features. Only the `Agency VIP` tier, for example, can remove the "Powered by Agency Nexus" branding (White-Labeling).
+
+| Feature | Starter | Pro | VIP |
 | :--- | :---: | :---: | :---: |
-| Project Management | **Enabled** | **Enabled** | **Enabled** |
-| Client CRM | **Enabled** | **Enabled** | **Enabled** |
-| Messaging Hub | **Enabled** | **Enabled** | **Enabled** |
-| Content Calendar | **Enabled** | **Enabled** | **Enabled** |
-| MoneyFlow (ROI) | Disabled | **Enabled** | **Enabled** |
-| AutoPilot (Rules) | Disabled | **Enabled** | **Enabled** |
-| Lead Intel (Embeds) | Disabled | **Enabled** | **Enabled** |
-| White-Labeling | Disabled | Disabled | **Enabled** |
-| Multi-Site Support | Disabled | Disabled | **Enabled** |
-
-### **Technical Enforcement:**
--   **License Validation**: On activation, the plugin performs a `POST` request to your main domain store. The store returns the tier and site limit.
--   **Activation Tracking**: The `an_license_activations` table in your store database records every unique `site_url` to prevent Starter/Pro keys from being shared across multiple sites.
+| CRM & Projects | ✅ | ✅ | ✅ |
+| ROI Tracker | ❌ | ✅ | ✅ |
+| AutoPilot Rules | ❌ | ✅ | ✅ |
+| White-Labeling | ❌ | ❌ | ✅ |
+| Multi-Site Support | ❌ | ❌ | ✅ |
 
 ---
 
-## 4. Setting Up Your Store (The Main Domain)
-To sell Agency Nexus on your main domain, we have provided a companion plugin: **Agency Nexus Store & Licensing**.
+## 3. Implementing Your Store (Main Domain Setup)
 
-### **Setup Instructions:**
-1.  **Install**: Zip and install the `agency-nexus-store` directory on your main domain as a WordPress plugin.
-2.  **Configure Pricing**: Go to **AN Store > Settings** and set your Starter, Pro, and Agency tier prices.
-3.  **Payment Credentials**: In the same Settings page, enter your **Stripe Publishable/Secret Keys** or **PayPal Business Email** to start receiving real payments.
-4.  **Download Link**: Provide the URL where the Pro version of the plugin is hosted (e.g., your Amazon S3 link or local server path).
-5.  **Display Pricing**: Use the `[an_pricing_table]` shortcode on your landing page to show the 3 pricing tiers.
-6.  **Payment & Fulfillment**: The checkout handles payment processing and automatically generates a license key and provides the download link to the customer upon success.
-7.  **Transaction Tracking**: View all sales and issued keys in the **AN Store > Payments** and **AN Store > Licenses** tabs.
+To start selling Agency Nexus, follow these steps on your primary marketing site:
 
-### **Connecting the Plugins:**
--   On the client's site, go to **Agency Nexus > Settings**.
--   Enter your main domain URL in the **Main Domain Store URL** field.
--   Now, when the client enters their key in **Agency Nexus > Licensing**, it will validate instantly against your store's database.
+1.  **Install the Store Plugin:** Upload and activate the `agency-nexus-store` folder as a plugin on your main domain.
+2.  **Configure Gateway Credentials:** In **AN Store > Settings**, enter your live **Stripe Secret Key** and **PayPal Email**.
+3.  **Set Tier Pricing:** Define your costs for the Starter ($0), Pro ($199/yr), and VIP ($999/lifetime) tiers.
+4.  **Display the Pricing Table:** Create a "Pricing" page on your WordPress site and drop the `[an_pricing_table]` shortcode.
+5.  **Fulfillment Automation:** The store plugin handles the entire checkout flow. Once a payment is confirmed:
+    *   A unique license key is generated.
+    *   The customer receives an automated email with their key and a download link to the Pro ZIP file.
+    *   The transaction is logged in your **AN Store > Payments** dashboard.
 
 ---
 
-## 5. Final Recommendation
-Don't waste time fighting "piracy." Focus on making the Pro version so valuable and the updates so frequent that it's "cheaper" to pay for the license than to deal with a nulled version.
+## 4. Anti-Piracy Recommendations
+
+1.  **Site Limits:** Use the store dashboard to monitor how many sites a single key has activated. If a "Pro" key (limited to 1 site) appears on 50 domains, you can suspend it with one click.
+2.  **Branded Footers:** In the free version, include a "Powered by Agency Nexus" link in the client portal. This acts as a viral marketing engine. Users must pay for the VIP tier to remove it.
+3.  **Don't Fight the GPL:** Don't waste thousands on obfuscation software (like IonCube). Instead, focus on building the **Marketplace**. If users get "free" templates and swipe files as part of their paid subscription, they will never want a nulled version.
+
+---
+**Technical Note:** Always ensure your main domain has a valid SSL certificate. The license validation requests use `wp_remote_post()` and require a secure connection to process correctly.

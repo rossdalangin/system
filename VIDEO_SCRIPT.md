@@ -1,56 +1,57 @@
-# Comprehensive Walkthrough Script: How to Use Agency Nexus
+# Comprehensive Walkthrough Script: Master the Agency OS
 
 ---
 
-## 1. Intro (0:00 - 1:00)
-"Welcome to the full walkthrough of Agency Nexus. I’m going to show you how to set up your entire agency ecosystem in under 10 minutes. From the moment a lead finds you to the moment you calculate your final project profit."
+## 1. Introduction (0:00 - 1:00)
+"Welcome to the complete Agency Nexus walkthrough. In the next 10 minutes, I’m going to show you how to transform your WordPress site into a professional Agency HQ. We’ll go from zero to a fully managed project, covering lead intelligence, interactive scoping, client portals, and real-time profitability tracking."
 
 ---
 
-## 2. Global Setup (1:00 - 2:30)
-"First, head to **Settings**. This is the heart of your brand.
-1. **Upload your Agency Logo**: This white-labels your invoices and client portal.
-2. **Set your Hourly Rate**: This is crucial for the MoneyFlow module to calculate your labor costs accurately.
-3. **Configure SMTP**: Ensure your client messages and notifications hit the inbox every time using your own mail server."
+## 2. Core Calibration (1:00 - 2:30)
+"Every high-performance agency starts with standard settings. Navigate to **Nexus > Settings**.
+1. **Branding:** Upload your high-res logo. This instantly replaces the Agency Nexus branding on your client’s end.
+2. **Finance:** Set your **Blended Hourly Rate**. This is the secret sauce for our ROI calculator later on.
+3. **Mail:** Configure the **SMTP Settings**. We want to ensure that every automated invoice and daily briefing is delivered flawlessly."
 
 ---
 
-## 3. Lead Capture & Onboarding (2:30 - 4:00)
-"Go to **EngageTrack**. Use our 'Generate Embed Code' tool to drop a capture form on your site.
-When a lead arrives, they appear here.
-Ready to close? Click **Convert to Client**.
-Now, jump into **SmartOnboard**. Use the Scope Builder to select your service package.
-It generates the description, budget, and project roadmap instantly. This is how you look like a Fortune 500 agency."
+## 3. The Sales Engine: Lead to Scoping (2:30 - 4:30)
+"Now, let’s get some business in. Go to **Leads**. Use the 'Generate Embed Code' tool to drop a high-converting form on your landing page.
+Once a lead arrives, look at the **Lead Score**. High value leads are flagged automatically.
+Ready to close them? Open the **Scope Builder**. select your service package (like 'Full-Stack Web Design'), pick a scale, and add addons like 'Express Delivery.'
+The system builds the project roadmap and budget instantly. Send the **Proposal link**—your client can review and e-sign it in seconds."
 
 ---
 
-## 4. Operational Excellence (4:00 - 6:00)
-"Now we execute. In the **Projects** view, you can manage tasks at a granular level.
-Click into a task to add **detailed instructions or descriptions**.
-Assign it to a team member and set the priority.
-As the work happens, use the **Log Time** feature.
-Need to clean up? You can easily **edit or delete tasks and time logs** to keep your project dashboard pristine."
+## 4. Operational Fulfillment (4:30 - 6:30)
+"Once the deal is signed, it becomes an active **Project**.
+Inside the project view, we manage the 'Execution Flow.'
+Break the project into tasks. Assign them to specialists. Use the **brief field** to add granular SOPs so nothing is left to interpretation.
+Link your tasks using **Dependencies**—the system will visually indicate on the **Gantt Chart** if one delay will affect the final deadline.
+Your team can log their time directly against these tasks, ensuring we capture every minute of labor."
 
 ---
 
-## 5. Client Collaboration & Approvals (6:00 - 7:30)
-"Clients love transparency. The **ClientSync Messaging Hub** gives them a secure chat environment.
-When a draft is ready, use **ApprovalFlow**.
-The client sees a side-by-side comparison of versions and can sign off with one click.
-This removes the 'feedback loop of death' from your agency."
+## 5. Content Management & Collaboration (6:30 - 8:00)
+"For content agencies, the **ContentMatrix** module is a game changer.
+Use the **Pillar Architect** to map out topic clusters. Schedule posts with a drag-and-drop calendar.
+When a draft is ready, the client gets a notification to visit the **Approval Portal**.
+They can use the 'Compare' tool to see exactly what you improved from Version 1 to Version 2. One click, and the deliverable is 'Client Approved.'"
 
 ---
 
-## 6. Financial Intelligence (7:30 - 9:00)
-"Finally, the **MoneyFlow** module.
-Here you see your **Real-time Profitability**.
-It takes your project budget and subtracts expenses and labor costs.
-If a project is going over budget, you’ll know before it’s too late.
-Send branded invoices that can be paid via **Stripe or PayPal** directly through the portal."
+## 6. Financial ROI & Invoicing (8:00 - 9:30)
+"Revenue is vanity, but profit is sanity. Head to **MoneyFlow**.
+Because your team logged their hours and you set your hourly rate, Agency Nexus shows you your **True Project Profitability** in real-time.
+If a project is eating up too many resources, you'll see the margin drop into the red.
+Generate a branded **Invoice**. If the client is late, one click applies a **5% Late Fee**. They can pay instantly via **Stripe or PayPal** right from the invoice page."
 
 ---
 
-## 7. Outro (9:00 - 10:00)
-"That’s Agency Nexus. Lead management, project tracking, real-time ROI, and automated workflows—all in your WordPress dashboard.
-Pick your tier today and join the movement of calibrated agencies.
-Manage less. Scale more."
+## 7. Sustainability & Scale (9:30 - 10:00)
+"Finally, keep your team happy with **BurnoutGuard**. Monitor stress levels and capacity. If you're at 110%, use the **Referral Hub** to delegate work to your trusted partners.
+That is Agency Nexus. Manage less. Scale more.
+Choose your license today and start your calibration journey."
+
+---
+*End of Walkthrough Script.*

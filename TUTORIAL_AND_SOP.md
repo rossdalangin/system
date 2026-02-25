@@ -1,70 +1,70 @@
 # Agency Nexus: Official Tutorial Script & Standard Operating Procedures (SOPs)
 
-Welcome to the comprehensive guide for **Agency Nexus**. This document is designed to get you up and running quickly while ensuring your entire team (and your clients) follows a standardized, high-performance workflow.
+This document is the operational backbone of your agency. It contains a "walkthrough" script to train new staff and granular SOPs to ensure every member of your agency—from the owner to the client—operates at peak efficiency.
 
 ---
 
-## PART 1: The "Agency OS" Tutorial Script
-*Use this script for internal training or when first navigating the system.*
+## 🏗 PART 1: The "Agency OS" Master Tutorial
+*Use this script for internal onboarding or as a guide for your first 30 minutes in the system.*
 
 ### 1. The Command Center (Dashboard)
-"Start your day at the **Agency Nexus Dashboard**. Here, you get a bird's-eye view of your agency. Notice the **Quick Navigation** cards—these are your shortcuts to every major department. Check your **Daily Briefing** widget to see if any tasks are overdue or if new high-intent leads have come in from social media."
+"Welcome to your new HQ. The **Agency Nexus Dashboard** is where your day starts.
+- **Quick Nav:** Use these tiles to jump between departments (Leads, Projects, Messaging).
+- **Daily Briefing:** (Admin only) Check this widget first. It summarizes overdue tasks, fresh leads from the last 24 hours, and urgent social DMs.
+- **Project Health:** Look at the 'Project Profitability' widget to see if your margins are healthy across all active accounts."
 
-### 2. The Sales Engine (EngageTrack & SmartOnboard)
-"When a potential client fills out your form, they appear in **Leads**.
-- **Scoring:** Look at the 'Lead Score'. If it's above 70, prioritize them.
-- **Conversion:** Once they say 'Yes', go to the **Scope Builder**. Choose your service (e.g., Web Design), pick a scale (Medium), and add any addons.
-- **The Proposal:** Click 'Generate Proposal'. This sends a professional, e-signable document to the lead. Once they sign, the system automatically creates a **Project** for you."
+### 2. The Sales Pipeline (EngageTrack & SmartOnboard)
+"When a prospect enters our world:
+- **Lead Scoring:** Don't chase every lead. Priority goes to scores > 70.
+- **Nurture:** Click 'Email Lead' and use a **Canned Response** to book a call.
+- **Scoping:** Open the **Scope Builder**. select the service (e.g., 'Web Design'), choose the 'Scale' (Small/Medium/Large), and add 'Addons' (e.g., Logo Design).
+- **The Close:** Click 'Generate Proposal'. This sends an interactive, e-signable document. When signed, the system notifies you to start the project."
 
-### 2b. The Marketplace (FreebieFactory)
-"You can sell your agency's IP through the **Marketplace**. Manage your products in the 'Manage Marketplace' section. Clients can browse and purchase templates or swipe files directly from your site using the `[an_marketplace]` shortcode."
+### 3. Execution & Delivery (Projects & ContentMatrix)
+"Now we fulfill the promise:
+- **Tasking:** Every project must be broken into tasks. Assign them to specialists.
+- **Dependencies:** If the Developer can't start until the Designer is done, link the tasks using the 'Depends On' field.
+- **Content Architect:** For content-heavy clients, use the **Pillar Architect**. Map out 'Topic Clusters' to ensure we aren't just posting, but building authority.
+- **Gantt Visualization:** Use the visual timeline to spot bottlenecks before they delay a client deliverable."
 
-### 3. Project Fulfillment (Projects & ContentMatrix)
-"Now that the project is active:
-- **Tasking:** Break the project into tasks. Use 'Dependencies' if Step B relies on Step A.
-- **Content:** If it's a content project, use the **Pillar Architect** to map out topic clusters. Use **Batch Automation** to create 10+ draft posts in seconds.
-- **Visuals:** Use the **Gantt Chart** in the project view to ensure you aren't hitting any bottlenecks."
-
-### 4. Client Collaboration (ClientSync & ApprovalFlow)
-"Never use email for project chat again.
-- **Messaging:** Use the **Messaging Hub** for all client comms. If you're OOO, the auto-responder has your back.
-- **Approval:** When a draft is ready, set its status to 'Pending Approval'. The client sees this in their **Approval Portal**. They can leave comments directly on the content or sign off with one click."
+### 4. Client Experience (ClientSync & ApprovalFlow)
+"We never use email for project details. Email is for marketing; Agency Nexus is for delivery.
+- **Communication Hub:** All chat happens here. It's real-time, branded, and secure.
+- **Version Control:** When a draft is ready, upload it. The system archives the old version so the client can use the 'Side-by-Side Compare' tool.
+- **One-Click Sign-off:** The client portal allows for instant approvals, which triggers the next task automatically."
 
 ### 5. Financial Mastery (MoneyFlow)
-"Revenue is vanity, profit is sanity.
-- **Invoicing:** Generate a branded invoice directly from the project.
-- **Profitability:** MoneyFlow calculates your **True Profit** automatically by subtracting your team's labor cost (hours * rate) and external expenses from the project budget.
-- **Reports:** Check the **Financial Reports** page to see your 6-month cashflow trend."
+"We track profit, not just revenue.
+- **Profitability:** The system uses `Budget - (Team Hours * Hourly Rate) - Expenses` to show your 'True ROI' in real-time.
+- **Automated Billing:** Send a branded invoice. If they are late, use the 'Apply Late Fee (5%)' button."
 
 ---
 
-## PART 2: Standard Operating Procedures (SOPs)
+## 📋 PART 2: Standard Operating Procedures (SOPs)
 
 ### SOP: Level 1 - Admin / Agency Owner
-**Goal:** Strategic management, financial health, and automation.
-1. **Daily:** Review the 'Daily Briefing' email. Address any 'Urgent' social interactions in the Social Hub.
-2. **Referrals:** When a team member is at capacity, use the 'Referral Partners' dashboard to delegate projects to external partners.
-2. **Weekly:** Review the 'Financial Reports'. If a project margin is below 20%, investigate the 'Time Logs' for inefficiencies.
-3. **Monthly:** Audit 'AutoPilot' rules. Ensure Zapier/Slack webhooks are firing correctly for new wins.
-4. **Onboarding:** Use the 'Scope Builder' for every new deal to prevent scope creep.
-5. **Security:** Periodically check the 'Security Audit Log' and ensure 'At-Rest Encryption' is enabled for sensitive projects.
+**Goal:** Strategic scaling and oversight.
+1.  **Daily Review:** Check the 'Daily Briefing' at 9:00 AM. Assign any unassigned leads.
+2.  **Referral Hub:** If a team member's capacity is > 90%, move new overflow projects to a 'Referral Partner' in BurnoutGuard.
+3.  **Financial Audit:** Every Friday, review the 'Financial Reports'. Investigate any project with a margin < 30%.
+4.  **Automation Audit:** Once a month, review **AutoPilot** rules. Ensure Zapier/Slack webhooks are correctly notifying the team of wins.
+5.  **Data Security:** Periodically review the 'Security Audit Log' to ensure system integrity.
 
 ### SOP: Level 2 - Team Member / Staff
-**Goal:** Flawless execution and accurate data logging.
-1. **Daily:** Log in and check 'Active Tasks' in the Project view.
-2. **Time Tracking:** Log hours immediately after completing a task. Be specific in the 'Notes' section.
-3. **Productivity:** Use 'Focus Mode' for deep work blocks. Aim for a 'Focus Intensity' of at least 40% in your Productivity Reports.
-4. **Content:** When updating content, always use the 'Edit' view so the system captures a new **Version**.
-5. **Sustainability:** Perform a 'Health Check' every Friday. If your stress level is above 8, notify the Admin to adjust your workload.
+**Goal:** Productive execution and accurate data logging.
+1.  **Task Management:** Check your 'Active Tasks' dashboard upon login. Prioritize 'High' and 'Urgent' items.
+2.  **Time Tracking:** Log your hours *immediately* after completing a task. Notes should be client-facing quality (e.g., 'Developed responsive hero section' instead of 'worked on site').
+3.  **Focus Sprints:** Use **Focus Mode** for tasks requiring deep concentration. Avoid checking DMs during these intervals.
+4.  **Revision Hygiene:** When updating a client draft, always use the 'Edit' view in ContentMatrix to ensure the system captures a new **Version**.
+5.  **Burnout Check:** Log your stress level every Friday in **BurnoutGuard**. If you are at a '10', the Admin will be automatically alerted to adjust your workload.
 
-### SOP: Level 3 - Client
-**Goal:** Clear communication and timely approvals.
-1. **Communication:** Use the 'Messages' tab for all project-related questions.
-2. **Review:** When notified of new content, visit the 'Approval Portal'. Use the 'Compare' view to see what changed from the last version.
-3. **Sign-off:** Approve or Request Changes within 48 hours to keep the project on schedule.
-4. **Payments:** Access 'Invoices' through the portal. Pay via Stripe or PayPal to ensure immediate processing.
-5. **Meetings:** Use the 'Meeting Scheduler' to book strategy calls—it handles the timezone conversion for you.
+### SOP: Level 3 - Client (Onboarding instructions for your clients)
+**Goal:** Streamlined collaboration and fast approvals.
+1.  **Centralized Chat:** Please send all project-related questions through the **Messages** tab in your portal. This ensures our whole team stays updated.
+2.  **Deliverable Review:** When you receive a 'Pending Approval' notification, visit the **Approval Portal**. Use the 'Compare' view to see improvements from previous versions.
+3.  **Sign-off:** Please Approve or Request Changes within 48 hours to prevent project delays.
+4.  **Payments:** All invoices are available in your portal. You can pay via Credit Card or PayPal for instant receipt.
+5.  **Resource Library:** Check your 'Resources' tab for your brand guides, onboarding docs, and signed contracts.
 
 ---
-
-*End of Document*
+*End of SOPs. Standardize your way to 7-figures.*
