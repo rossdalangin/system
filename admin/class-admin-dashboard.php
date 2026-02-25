@@ -1445,19 +1445,33 @@ class Agency_Nexus_Admin_Dashboard {
 				</p>
 			</form>
 
-			<hr>
-			<h2><?php _e( 'Database Management', 'agency-nexus' ); ?></h2>
-			<p class="description"><?php _e( 'Use these tools to manage your Agency Nexus database records.', 'agency-nexus' ); ?></p>
+			<div class="postbox" style="margin-top: 40px; border: 1px solid #d63638; background: #fff;">
+				<div class="postbox-header" style="background: #fcf9f9; border-bottom: 1px solid #ccd0d4; padding: 10px 15px;">
+					<h2 style="margin:0; color: #d63638;"><?php _e( 'Database & Demo Management', 'agency-nexus' ); ?></h2>
+				</div>
+				<div class="inside" style="padding: 20px;">
+					<p><?php _e( 'Maintain your Agency Nexus installation by managing sample data or performing a full system reset.', 'agency-nexus' ); ?></p>
 
-			<div style="display: flex; gap: 15px; margin-top: 15px;">
-				<form method="post">
-					<?php wp_nonce_field('an_seed_data_nonce'); ?>
-					<input type="submit" name="an_seed_data" class="button button-primary" value="<?php _e( 'Add Best Sample Content', 'agency-nexus' ); ?>">
-				</form>
-				<form method="post">
-					<?php wp_nonce_field('an_reset_data_nonce'); ?>
-					<input type="submit" name="an_reset_data" class="button button-link-delete" value="<?php _e( 'Reset Database (Delete All)', 'agency-nexus' ); ?>" onclick="return confirm('WARNING: This will delete ALL Agency Nexus records. This cannot be undone. Proceed?')">
-				</form>
+					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
+						<div style="padding: 20px; border: 1px solid #eee; border-radius: 8px; background: #f8fafc;">
+							<h4 style="margin-top:0;"><?php _e( 'Demo Mode', 'agency-nexus' ); ?></h4>
+							<p class="description"><?php _e( 'Populate your dashboard with professional, high-quality sample clients, projects, and leads to explore all features instantly.', 'agency-nexus' ); ?></p>
+							<form method="post" style="margin-top: 15px;">
+								<?php wp_nonce_field('an_seed_data_nonce'); ?>
+								<input type="submit" name="an_seed_data" class="button button-primary" value="<?php _e( 'Add Best Sample Content', 'agency-nexus' ); ?>">
+							</form>
+						</div>
+
+						<div style="padding: 20px; border: 1px solid #fecaca; border-radius: 8px; background: #fff5f5;">
+							<h4 style="margin-top:0; color: #dc2626;"><?php _e( 'System Reset', 'agency-nexus' ); ?></h4>
+							<p class="description"><?php _e( 'Permanently delete ALL records from the database (Clients, Projects, Invoices, Messages). Use with extreme caution.', 'agency-nexus' ); ?></p>
+							<form method="post" style="margin-top: 15px;">
+								<?php wp_nonce_field('an_reset_data_nonce'); ?>
+								<input type="submit" name="an_reset_data" class="button" style="background: #dc2626; color: #fff; border-color: #b91c1c;" value="<?php _e( 'Reset Database (Delete All)', 'agency-nexus' ); ?>" onclick="return confirm('WARNING: This will delete ALL Agency Nexus records. This cannot be undone. Proceed?')">
+							</form>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 		<script>

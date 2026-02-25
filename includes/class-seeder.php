@@ -189,9 +189,12 @@ class Agency_Nexus_Seeder {
 
 		// 9. Create Marketplace Items
 		$m_items = [
-			['Premium Web Contract', 'template', 99, 'Legal', '1.2.0', 'Universal'],
-			['SEO Outreach Swipe File', 'swipe', 49, 'SEO', '1.0.5', 'Gmail/Outlook'],
-			['Agency Onboarding Deck', 'template', 149, 'Operations', '2.1.0', 'PowerPoint/Canva']
+			['Premium Service Agreement (Standard)', 'template', 99, 'Legal', '1.2.0', 'Universal', 'A comprehensive service agreement covering IP rights, payment terms, and liability. Essential for every agency project.'],
+			['High-Conversion SEO Audit Swipe File', 'swipe', 49, 'SEO', '1.0.5', 'Google Sheets', 'Our internal template for delivering SEO audits that close high-ticket clients. Includes all core technical checks.'],
+			['Agency Operations Onboarding Deck', 'template', 149, 'Operations', '2.1.0', 'PowerPoint/Canva', 'Impress your new clients from day one with this professionally designed onboarding presentation template.'],
+			['B2B Lead Generation Workflow', 'template', 79, 'Sales', '1.1.0', 'Universal', 'A step-by-step workflow for prospecting and nurturing B2B leads using cold outreach and LinkedIn.'],
+			['Social Media Strategy Framework', 'template', 129, 'Social Media', '3.0.1', 'PDF/Doc', 'Complete framework for building 6-month social media strategies for clients in any niche.'],
+			['Technical Web Design Discovery Pack', 'swipe', 59, 'Design', '2.0.0', 'Universal', 'The exact set of questions we ask during discovery to avoid scope creep and ensure project success.']
 		];
 		foreach($m_items as $item) {
 			$wpdb->insert( $wpdb->prefix . 'an_resources', [
@@ -201,7 +204,7 @@ class Agency_Nexus_Seeder {
 				'category'        => $item[3],
 				'version'         => $item[4],
 				'compatible_with' => $item[5],
-				'content'         => "This is a premium " . $item[1] . " for your agency.",
+				'content'         => $item[6],
 				'is_marketplace'  => 1,
 				'created_at'      => current_time('mysql'),
 				'last_updated_at' => current_time('mysql')

@@ -18,6 +18,7 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_action( 'template_redirect', [ $this, 'handle_client_payment' ] );
 		add_action( 'wp_ajax_an_marketplace_purchase', [ $this, 'handle_marketplace_purchase' ] );
+		add_action( 'wp_ajax_nopriv_an_marketplace_purchase', [ $this, 'handle_marketplace_purchase' ] );
 	}
 
 	public function handle_post() {
@@ -770,7 +771,21 @@ class Agency_Nexus_Module_Moneyflow extends Agency_Nexus_Base_Module {
 		$client_id = Agency_Nexus_Permissions::get_client_id_for_user( get_current_user_id() );
 
 		if ( ! $client_id ) {
-			wp_send_json_error( [ 'message' => __( 'Your user account is not linked to a Client record. Please contact the administrator.', 'agency-nexus' ) ] );
+			// For Administrators testing the system, auto-create a client record if it doesn't exist.
+			if ( current_user_can( 'manage_options' ) ) {
+				$current_user = wp_get_current_user();
+				$wpdb->insert( $wpdb->prefix . 'an_clients', [
+					'name'       => $current_user->display_name,
+					'email'      => $current_user->user_email,
+					'company'    => 'Agency Admin (Test)',
+					'address'    => 'Internal',
+					'status'     => 'active',
+					'created_at' => current_time( 'mysql' )
+				] );
+				$client_id = $wpdb->insert_id;
+			} else {
+				wp_send_json_error( [ 'message' => __( 'Your user account is not linked to a Client record. Please contact the administrator.', 'agency-nexus' ) ] );
+			}
 		}
 
 		// 1. Ensure a "Marketplace Purchases" project exists for this client

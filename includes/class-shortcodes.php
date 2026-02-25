@@ -193,8 +193,15 @@ class Agency_Nexus_Shortcodes {
 	}
 
 	public function render_marketplace() {
+		wp_enqueue_script( 'jquery' );
 		global $wpdb;
 		$items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_resources WHERE is_marketplace = 1 ORDER BY created_at DESC" );
+
+		// Seeding if empty to ensure the marketplace always has content
+		if ( empty( $items ) ) {
+			Agency_Nexus_Seeder::seed();
+			$items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_resources WHERE is_marketplace = 1 ORDER BY created_at DESC" );
+		}
 
 		ob_start();
 		?>
@@ -251,12 +258,16 @@ class Agency_Nexus_Shortcodes {
 					product_id: productId,
 					security: '<?php echo wp_create_nonce("an_marketplace_purchase_nonce"); ?>'
 				}, function(response){
-					if (response.success) {
+					if (response.success && response.data && response.data.redirect_url) {
 						window.location.href = response.data.redirect_url;
 					} else {
-						alert(response.data.message || '<?php _e("An error occurred.", "agency-nexus"); ?>');
+						var msg = (response.data && response.data.message) ? response.data.message : '<?php _e("An error occurred. Please try logging in.", "agency-nexus"); ?>';
+						alert(msg);
 						btn.prop('disabled', false).text('<?php _e("Buy Now", "agency-nexus"); ?>');
 					}
+				}).fail(function(){
+					alert('<?php _e("Server error. Please check your connection.", "agency-nexus"); ?>');
+					btn.prop('disabled', false).text('<?php _e("Buy Now", "agency-nexus"); ?>');
 				});
 			});
 		});

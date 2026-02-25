@@ -177,23 +177,7 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 		$items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_resources WHERE is_marketplace = 1 ORDER BY created_at DESC" );
 
 		if ( empty($items) ) {
-			// Seed some items if empty
-			$wpdb->insert($wpdb->prefix . 'an_resources', [
-				'title' => 'Web Design Discovery Pack',
-				'type' => 'template',
-				'price' => 49.00,
-				'content' => 'Complete onboarding pack for web projects.',
-				'is_marketplace' => 1,
-				'created_at' => current_time('mysql')
-			]);
-			$wpdb->insert($wpdb->prefix . 'an_resources', [
-				'title' => 'SEO Audit Workflow (Pro)',
-				'type' => 'template',
-				'price' => 29.00,
-				'content' => 'Step-by-step technical SEO checklist.',
-				'is_marketplace' => 1,
-				'created_at' => current_time('mysql')
-			]);
+			Agency_Nexus_Seeder::seed();
 			$items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_resources WHERE is_marketplace = 1 ORDER BY created_at DESC" );
 		}
 
@@ -228,12 +212,16 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 					product_id: productId,
 					security: '<?php echo wp_create_nonce("an_marketplace_purchase_nonce"); ?>'
 				}, function(response){
-					if (response.success) {
+					if (response.success && response.data && response.data.redirect_url) {
 						window.location.href = response.data.redirect_url;
 					} else {
-						alert(response.data.message || '<?php _e("An error occurred.", "agency-nexus"); ?>');
+						var msg = (response.data && response.data.message) ? response.data.message : '<?php _e("An error occurred.", "agency-nexus"); ?>';
+						alert(msg);
 						btn.prop('disabled', false).text('<?php _e("Buy Now", "agency-nexus"); ?>');
 					}
+				}).fail(function(){
+					alert('<?php _e("Server error. Please check your connection.", "agency-nexus"); ?>');
+					btn.prop('disabled', false).text('<?php _e("Buy Now", "agency-nexus"); ?>');
 				});
 			});
 		});
