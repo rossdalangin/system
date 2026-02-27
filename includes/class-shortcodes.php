@@ -197,10 +197,8 @@ class Agency_Nexus_Shortcodes {
 		global $wpdb;
 		$items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_resources WHERE is_marketplace = 1 ORDER BY created_at DESC" );
 
-		// Seeding if empty to ensure the marketplace always has content
 		if ( empty( $items ) ) {
-			Agency_Nexus_Seeder::seed();
-			$items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_resources WHERE is_marketplace = 1 ORDER BY created_at DESC" );
+			return '<p>' . __( 'No marketplace items found.', 'agency-nexus' ) . '</p>';
 		}
 
 		ob_start();

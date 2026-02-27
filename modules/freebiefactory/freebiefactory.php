@@ -177,8 +177,7 @@ class Agency_Nexus_Module_Freebiefactory extends Agency_Nexus_Base_Module {
 		$items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_resources WHERE is_marketplace = 1 ORDER BY created_at DESC" );
 
 		if ( empty($items) ) {
-			Agency_Nexus_Seeder::seed();
-			$items = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}an_resources WHERE is_marketplace = 1 ORDER BY created_at DESC" );
+			return '<p>' . __( 'The marketplace is currently empty. Visit Settings to seed sample data.', 'agency-nexus' ) . '</p>';
 		}
 
 		?>

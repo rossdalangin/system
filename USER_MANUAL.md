@@ -133,4 +133,24 @@ Put your agency on cruise control.
 *   **Audit Logging:** Monitor administrative actions to ensure the integrity of your agency's data.
 
 ---
-**Need Support?** Visit our official documentation portal or contact your Agency VIP account manager.
+
+## ❓ Frequently Asked Questions (FAQ)
+
+**Q: Can I use Agency Nexus on a multisite network?**
+A: Yes. The Agency VIP tier supports unlimited site activations across your entire network.
+
+**Q: Does the plugin slow down my site?**
+A: No. Agency Nexus is built with performance in mind. It uses custom tables and lazy-loading for data, ensuring your frontend marketing pages remain lightning fast.
+
+**Q: How secure is my client data?**
+A: Extremely. We use AES-256-CBC encryption for sensitive notes and descriptions. Only authorized users with the correct roles can access client data.
+
+---
+
+## 🛠 Troubleshooting & Support
+
+1.  **Invoices Not Sending:** Ensure your SMTP settings are correct in **Nexus > Settings**. Send a test email to verify connectivity.
+2.  **Shortcode Not Rendering:** Check your license tier in **Nexus > Licensing**. Some shortcodes (like the Marketplace) require a Pro or VIP key.
+3.  **Media Upload Errors:** If you cannot upload files to the Shared Repository, ensure the `upload_files` capability is granted to your client user role (automatically handled for 'Subscriber' by the plugin).
+
+**Need Priority Support?** Contact your Agency VIP account manager directly through the support portal.
