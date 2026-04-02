@@ -1,94 +1,54 @@
-# Agency Nexus: Official Tutorial Script & Standard Operating Procedures (SOPs)
+# Agency Nexus: Standard Operating Procedures (SOPs) & Strategic Roadmap
 
-This document is the operational backbone of your agency. It contains a "walkthrough" script to train new staff and granular SOPs to ensure every member of your agency—from the owner to the client—operates at peak efficiency.
-
----
-
-## 🏗 PART 1: The "Agency OS" Master Tutorial
-*Use this script for internal onboarding or as a guide for your first 30 minutes in the system.*
-
-### 1. The Command Center (Dashboard)
-"Welcome to your new HQ. The **Agency Nexus Dashboard** is where your day starts.
-- **Quick Nav:** Use these tiles to jump between departments (Leads, Projects, Messaging).
-- **Daily Briefing:** (Admin only) Check this widget first. It summarizes overdue tasks, fresh leads from the last 24 hours, and urgent social DMs.
-- **Project Health:** Look at the 'Project Profitability' widget to see if your margins are healthy across all active accounts."
-
-### 2. The Sales Pipeline (EngageTrack & SmartOnboard)
-"When a prospect enters our world:
-- **Lead Scoring:** Don't chase every lead. Priority goes to scores > 70.
-- **Nurture:** Click 'Email Lead' and use a **Canned Response** to book a call.
-- **Scoping:** Open the **Scope Builder**. select the service (e.g., 'Web Design'), choose the 'Scale' (Small/Medium/Large), and add 'Addons' (e.g., Logo Design).
-- **The Close:** Click 'Generate Proposal'. This sends an interactive, e-signable document. When signed, the system notifies you to start the project."
-
-### 3. Execution & Delivery (Projects & ContentMatrix)
-"Now we fulfill the promise:
-- **Tasking:** Every project must be broken into tasks. Assign them to specialists.
-- **Dependencies:** If the Developer can't start until the Designer is done, link the tasks using the 'Depends On' field.
-- **Content Architect:** For content-heavy clients, use the **Pillar Architect**. Map out 'Topic Clusters' to ensure we aren't just posting, but building authority.
-- **Gantt Visualization:** Use the visual timeline to spot bottlenecks before they delay a client deliverable."
-
-### 4. Client Experience (ClientSync & ApprovalFlow)
-"We never use email for project details. Email is for marketing; Agency Nexus is for delivery.
-- **Communication Hub:** All chat happens here. It's real-time, branded, and secure.
-- **Version Control:** When a draft is ready, upload it. The system archives the old version so the client can use the 'Side-by-Side Compare' tool.
-- **One-Click Sign-off:** The client portal allows for instant approvals, which triggers the next task automatically."
-
-### 5. Financial Mastery (MoneyFlow)
-"We track profit, not just revenue.
-- **Profitability:** The system uses `Budget - (Team Hours * Hourly Rate) - Expenses` to show your 'True ROI' in real-time.
-- **Automated Billing:** Send a branded invoice. If they are late, use the 'Apply Late Fee (5%)' button."
+This document serves as the operational backbone for any agency using the Nexus OS. It contains granular SOPs for each user role and a 90-day roadmap to transition from "Tool Chaos" to "Calibrated Scale."
 
 ---
 
-## 📋 PART 2: Standard Operating Procedures (SOPs)
+## 🏗 PART 1: Role-Based Standard Operating Procedures (SOPs)
 
-### SOP: Level 1 - Admin / Agency Owner
-**Goal:** Strategic scaling and oversight.
-1.  **Daily Review:** Check the 'Daily Briefing' at 9:00 AM. Assign any unassigned leads.
-2.  **Referral Hub:** If a team member's capacity is > 90%, move new overflow projects to a 'Referral Partner' in BurnoutGuard.
-3.  **Financial Audit:** Every Friday, review the 'Financial Reports'. Investigate any project with a margin < 30%.
-4.  **Automation Audit:** Once a month, review **AutoPilot** rules. Ensure Zapier/Slack webhooks are correctly notifying the team of wins.
-5.  **Data Security:** Periodically review the 'Security Audit Log' to ensure system integrity.
+### SOP: Level 1 — The Agency Owner (The Strategist)
+**Primary Goal:** Strategic oversight, margin protection, and high-level growth.
+1.  **Morning Alignment (9:00 AM):** Review the 'Daily Briefing' email. Identify overdue tasks and fresh, high-score leads. Assign unassigned tasks to team members.
+2.  **Margin Audit (Weekly - Fridays):** Review the **MoneyFlow** profitability reports. Investigate any active project where the profit margin has dropped below 30%.
+3.  **Capacity Planning:** Monitor the **BurnoutGuard** dashboard. If a team member’s capacity is consistently > 90%, use the **Referral Hub** to delegate new overflow work to external partners.
+4.  **Client Experience Check:** Periodically log into the **Client Portal** view to ensure all branding and communication are consistent with your agency's standards.
 
-### SOP: Level 2 - Team Member / Staff
-**Goal:** Productive execution and accurate data logging.
-1.  **Task Management:** Check your 'Active Tasks' dashboard upon login. Prioritize 'High' and 'Urgent' items.
-2.  **Time Tracking:** Log your hours *immediately* after completing a task. Notes should be client-facing quality (e.g., 'Developed responsive hero section' instead of 'worked on site').
-3.  **Focus Sprints:** Use **Focus Mode** for tasks requiring deep concentration. Avoid checking DMs during these intervals.
-4.  **Revision Hygiene:** When updating a client draft, always use the 'Edit' view in ContentMatrix to ensure the system captures a new **Version**.
-5.  **Burnout Check:** Log your stress level every Friday in **BurnoutGuard**. If you are at a '10', the Admin will be automatically alerted to adjust your workload.
+### SOP: Level 2 — The Team Member (The Executor)
+**Primary Goal:** High-quality delivery and accurate data logging.
+1.  **Task Initiation:** Check the 'Active Tasks' dashboard upon login. Always start with tasks marked 'Urgent' or those that have dependencies linked to other team members.
+2.  **Focus Sprints:** Use the **TimeBlock Pro** Focus Mode for complex tasks. Avoid checking messages or emails during these 90-minute intervals.
+3.  **Labor Logging:** Log your hours *immediately* after completing a task. Notes must be professional and client-ready (e.g., "Optimized responsive grid for mobile" vs. "fixed css").
+4.  **Version Hygiene:** When updating a client draft, always use the 'Edit' function in **ContentMatrix** to ensure the system creates a new version for the client to compare.
+5.  **Health Check:** Log your stress level in **BurnoutGuard** every Friday. This ensures the Owner has the data needed to protect your bandwidth.
 
-### SOP: Level 3 - Client (Onboarding instructions for your clients)
-**Goal:** Streamlined collaboration and fast approvals.
-1.  **Centralized Chat:** Please send all project-related questions through the **Messages** tab in your portal. This ensures our whole team stays updated.
-2.  **Deliverable Review:** When you receive a 'Pending Approval' notification, visit the **Approval Portal**. Use the 'Compare' view to see improvements from previous versions.
-3.  **Sign-off:** Please Approve or Request Changes within 48 hours to prevent project delays.
-4.  **Payments:** All invoices are available in your portal. You can pay via Credit Card or PayPal for instant receipt.
-5.  **Resource Library:** Check your 'Resources' tab for your brand guides, onboarding docs, and signed contracts.
+### SOP: Level 3 — The Client (The Partner)
+**Primary Goal:** Streamlined collaboration and rapid approvals.
+1.  **Centralized Chat:** Please use the **Messaging Hub** in your portal for all project-related questions. This ensures our entire team stays updated and nothing is lost in an inbox.
+2.  **Deliverable Review:** When you receive a 'Pending Approval' notification, visit the **Approval Portal**. Use the 'Side-by-Side' tool to review changes from the previous version.
+3.  **Sign-off:** Please approve or request changes within 48 hours to ensure your project stays on schedule.
+4.  **Resources:** Access your brand guides, signed contracts, and final files in the **Shared Repository** tab at any time.
 
 ---
 
-## 🗺 PART 3: The 90-Day Agency Scaling Roadmap
-
-Adopting a new operating system takes time. Follow this roadmap to transition your agency from "Tool Chaos" to "Calibrated Scale."
+## 🗺 PART 2: The 90-Day Agency Scaling Roadmap
 
 ### Phase 1: Days 1-30 (The Foundation)
-*   **Goal:** Centralize data and standardize onboarding.
-*   **Weeks 1-2:** Clean your existing database using the **System Reset** (if starting fresh) and enter your current clients and active projects.
-*   **Weeks 3-4:** Build your interactive **Scopes** for your top 3 service packages. Use the **Proposal Generator** for all new leads.
-*   **Milestone:** All new business is captured and scoped inside Agency Nexus.
+*   **Objective:** Centralize all data and standardize the sales process.
+*   **Weeks 1-2:** Populate the system with your current active clients and projects. Set up your global SMTP and branding.
+*   **Weeks 3-4:** Build your first 3 **Interactive Scopes** for your core services. Use the **Proposal Generator** for every new lead.
+*   **Milestone:** 100% of new business is captured and scoped within Agency Nexus.
 
-### Phase 2: Days 31-60 (The Execution)
-*   **Goal:** Drive team adoption and financial transparency.
-*   **Weeks 5-6:** Train team members on the **Project View**. Mandate that all labor is logged using the built-in time tracker.
-*   **Weeks 7-8:** Configure **SMTP** and start using **ClientSync** for all project communication. Move one existing client into the portal as a pilot.
-*   **Milestone:** Your dashboard shows real-time **True Profit** for at least 50% of your active projects.
+### Phase 2: Days 31-60 (Execution & ROI)
+*   **Objective:** Drive team adoption and financial transparency.
+*   **Weeks 5-6:** Train your team on labor logging. Mandate that every minute of work is tracked against a task.
+*   **Weeks 7-8:** Move all client communication into the **Messaging Hub**. Start using **ApprovalFlow** for all deliverable sign-offs.
+*   **Milestone:** Your dashboard shows real-time **True Profit** for every active account.
 
-### Phase 3: Days 61-90 (The Optimization)
-*   **Goal:** Automation and sustainable growth.
-*   **Weeks 9-10:** Audit your workflows and create your first 5 **AutoPilot** rules (e.g., automated onboarding emails).
-*   **Weeks 11-12:** Monitor **BurnoutGuard** metrics. Use the **Referral Hub** to offload low-margin or overflow work to partners.
-*   **Milestone:** You are managing your agency from a single tab. Context switching is reduced by 80%.
+### Phase 3: Days 61-90 (Optimization & Automation)
+*   **Objective:** Scale through automation and protect team health.
+*   **Weeks 9-10:** Audit your workflows and create your first 5 **AutoPilot** rules (e.g., Automated onboarding emails after invoice payment).
+*   **Weeks 11-12:** Use **BurnoutGuard** data to optimize your hiring plan. Activate the **Referral Hub** for overflow work.
+*   **Milestone:** You are managing your entire agency from a single browser tab. Context switching is reduced by 80%.
 
 ---
-*End of Tutorial & SOPs. Standardize your way to 7-figures.*
+**Agency Nexus.** *Standardize your way to 7-figures.*

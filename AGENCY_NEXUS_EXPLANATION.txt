@@ -1,0 +1,9 @@
+Agency Nexus is an all-in-one "Agency Operating System" built directly on WordPress. It is designed to centralize every aspect of a freelancer's or agency owner's business—from lead capture and project management to financial tracking and client collaboration—into a single, high-performance dashboard.
+
+Why Freelancers and Agency Owners Need This:
+1. End Tool Chaos: Instead of jumping between 5-10 different SaaS subscriptions (Asana, Slack, Stripe, Calendly, etc.), users can manage everything from one WordPress tab.
+2. Profit Intelligence: Real-time visibility into "True ROI" (Budget minus Labor & Expenses) ensures every project is actually profitable.
+3. Professional Branding: A fully white-labeled client portal and branded invoices build massive trust and justify high-ticket prices.
+4. Automated Efficiency: Features like AutoPilot rules, daily briefings, and interactive scope builders eliminate hours of manual admin work.
+5. Data Sovereignty: Users own their data on their own server, avoiding the risks and recurring costs of third-party platforms.
+6. Scalability: Built-in team health monitoring (BurnoutGuard) and referral hubs allow agencies to grow sustainably without the usual growing pains.

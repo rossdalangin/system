@@ -1,94 +1,95 @@
-# Agency Nexus User Manual: Master Your Operations
+# Agency Nexus Master Mastery Guide: Unified Operations
 
-Welcome to **Agency Nexus**, the ultimate Agency Operating System. This manual provides detailed instructions on how to set up and use every module in the system to maximize your efficiency and scale your agency.
+Welcome to **Agency Nexus**, the ultimate Agency Operating System. This mastery guide provides granular, step-by-step instructions to ensure you and your team leverage every module to its full potential.
 
 ---
 
 ## 🟢 1. Initial Setup & Global Configuration
 
-Before diving into the modules, ensure your core settings are calibrated:
+Calibrating your core settings is the first step toward a high-performance agency.
 
-1.  **Installation:** Activate the plugin. Note that Agency Nexus creates several custom database tables to manage its advanced logic.
-2.  **Licensing:** Go to **Nexus > Licensing**. Enter your key. This unlocks specific modules based on your tier (Starter, Pro, or VIP).
-3.  **Branding:** In **Nexus > Settings**, upload your **Agency Logo**. This logo will automatically appear on all client invoices and proposals (VIP tier).
-4.  **SMTP Configuration:** Under the "Email & SMTP" section in Settings, configure your mail server. This is critical for ensuring automated invoices and daily briefings reach their destination.
-5.  **Demo Mode:** If you want to see how the system looks when fully operational, click **Add Best Sample Content** at the bottom of the Settings page.
+1.  **Installation & Activation:** After activation, Agency Nexus initializes custom database tables prefixed with `an_`.
+2.  **Licensing:** Go to **Nexus > Licensing**. Enter your key (e.g., `VIP-777`). This unlocks tier-specific features like White-Labeling and BurnoutGuard.
+3.  **Global Branding:** In **Nexus > Settings**, upload your **Agency Logo**.
+    *   *Pro Tip:* Use a high-resolution PNG with a transparent background. This logo will appear on all client-facing invoices and proposals.
+4.  **Financial Foundations:** Set your **Default Hourly Rate**. This is the baseline used by MoneyFlow to calculate real-time profitability.
+5.  **SMTP Configuration:** Under the "Email & SMTP" section, configure your server. **Verification Step:** Send a test email to your own address to ensure automated briefings and invoices are functional.
+6.  **System Seeding:** New to the system? Click **Add Best Sample Content** at the bottom of the Settings page to populate your dashboard with demo data.
 
 ---
 
 ## 📈 2. Sales & CRM (EngageTrack)
 
-**EngageTrack** turns your agency into a lead-generation machine.
+Turn your website into a lead-capture machine.
 
-*   **Lead Capture:** Use the **Generate Embed Code** button on the Leads page. Copy the HTML to your marketing site. Leads will flow directly into your dashboard.
-*   **Lead Scoring:** The system scores prospects (0-100). High values indicate a large budget or a warm source (like a referral). Focus your sales team here.
-*   **Social Hub:** Link your Instagram, LinkedIn, X, and Facebook handles in **Social Settings**. The dashboard will aggregate engagement and flag "Priority Interactions" for immediate reply.
-*   **Conversion:** When a prospect says "Yes," click **Convert to Client**. This creates a Client record and a WordPress 'Subscriber' user account simultaneously.
+*   **Lead Capture:** Navigate to **Leads > Lead Forms**. Generate an embed code and place it on your marketing pages.
+*   **Lead Scoring:** The system automatically ranks prospects (0-100) based on budget, source, and urgency. Focus your energy on scores > 75.
+*   **Social Integration:** Link your handles (Instagram, LinkedIn, etc.) in **Social Settings**. The Social Hub widget will alert you to high-priority interactions that need a reply.
+*   **Conversion Flow:** Once a lead is ready, click **Convert to Client**. This creates a Client record and a WordPress 'Subscriber' account, granting them access to their private portal.
 
 ---
 
-## 🤝 3. Onboarding & Deals (SmartOnboard)
+## 🤝 3. Interactive Deals (SmartOnboard)
 
-Streamline the transition from "Lead" to "Active Project."
+Standardize the transition from "Interested" to "Invested."
 
-*   **Interactive Scope Builder:** Select a base service (SEO, Design, etc.) and toggle addons. The dynamic calculator updates the budget in real-time.
-    *   *Sample Scope:* "High-Growth SEO" ($2,500 base) + "Backlink Outreach" ($500 addon) + "Technical Audit" ($750 addon) = **$3,750 Total**.
-*   **Proposals:** After building a scope, generate a Proposal. Your client can view this on the frontend, review the terms, and provide a digital signature.
-*   **Project Kickoff:** Once a proposal is signed, the system can automatically create an active Project in the database (via AutoPilot rules).
+*   **Interactive Scope Builder:** Create service templates (e.g., "Premium Web Design").
+    *   **Action:** Toggle addons (Logo, Copywriting, SEO) to see the budget update in real-time.
+*   **Proposal Management:** Generate an interactive Proposal link.
+    *   **The Client View:** Clients review the roadmap, provide a digital signature, and can even pay their initial deposit immediately.
+*   **Auto-Kickoff:** Once signed, the system can automatically create a Project and assign initial tasks based on your preset rules.
 
 ---
 
 ## 🚀 4. Delivery & Execution (Project Management)
 
-The engine that drives your agency's fulfillment.
+The engine of your agency’s fulfillment.
 
-*   **Task Management:** Add tasks to any project. Use the **Briefs** field for detailed SOP instructions so your team knows exactly what to do.
-*   **Dependencies:** Link tasks using the "Depends On" selector. This prevents "Task B" from being marked as completed before "Task A" is finalized.
-*   **Buffer Management:** Set **Buffer Days** in Project settings. This adds a visual safety margin to your Gantt charts to protect against delays.
-*   **Time Tracking:** Team members log hours against specific tasks. Admins can view and edit these entries to ensure labor costs are accurate.
+*   **Task Management:** Break every project into granular tasks. Use the **Instructions** field for rich-text SOPs.
+*   **Dependencies:** Use the "Depends On" selector. This prevents a developer from starting until the design task is marked as 'Approved.'
+*   **Gantt Visualization:** Toggle the **Gantt View** in any project to see your timeline and identify potential bottlenecks.
+*   **Time Tracking:** Team members log hours against tasks. Admins can edit logs in the **Task Edit** screen to ensure total accuracy for ROI reporting.
 
 ---
 
 ## ✍️ 5. Content Operations (ContentMatrix)
 
-Scale your content engine without the chaos.
+Scale your content strategy without the manual chaos.
 
-*   **Pillar Architect:** Plan content in clusters. Mark high-level pieces as **Pillars** and link supporting cluster content to them.
-    *   *Sample Pillar Map:* **Pillar:** "Agency Operations" -> **Clusters:** "Client Onboarding SOP", "Reducing Tool Fatigue", "Scaling Project Margins".
-*   **Forecasting:** Each content item includes an engagement prediction based on historical performance and platform strength.
-*   **Visual Calendar:** Drag and drop content items to reschedule. Syncs automatically with your team's workload.
-*   **Batch Mode:** Use the Batch Automation tool to generate 10+ draft titles and skeletons for a project in a single click.
+*   **Pillar Architect:** Plan your topical authority. Mark high-level pieces as **Pillars** and link supporting **Clusters** to them.
+*   **Batch Automation:** Use the Batch tool to generate a month's worth of draft titles and skeletons for a specific project in seconds.
+*   **Visual Calendar:** Drag and drop items to reschedule. The calendar syncs with team capacity to prevent over-allocation.
 
 ---
 
 ## ✅ 6. Client Sign-off (ApprovalFlow)
 
-Eliminate "Email Ping-Pong" during the review process.
+Eliminate "Email Ping-Pong" and speed up cash flow.
 
-*   **Draft System:** Move content through stages (Idea, Draft, Review, Approved).
-*   **Comparison Engine:** View version history side-by-side to see exactly what changed between revisions.
-*   **Client Portal:** Clients see a simplified view of items awaiting their signature. They can approve or request changes with a single click.
+*   **Drafting Pipeline:** Move content through stages: Idea -> Draft -> Review -> Approved.
+*   **Side-by-Side Comparison:** Clients can see Version 1 vs Version 2 on a single screen, highlighting exactly what was changed.
+*   **One-Click Approval:** Clients sign off on deliverables within their portal, which can automatically trigger the next project phase.
 
 ---
 
-## 💰 7. Financials & ROI (MoneyFlow)
+## 💰 7. Financial ROI (MoneyFlow)
 
-Know exactly how much profit you're making on every project.
+Know your truth. Revenue is vanity; profit is sanity.
 
-*   **True Profit Formula:** The system calculates: `Project Budget - (Team Hours * Hourly Rate) - Hard Expenses`.
-*   **Invoicing:** Generate PDF-style invoices. You can add one-click **Late Fees (5%)** to any overdue invoice.
-*   **Online Payments:** Clients can pay their invoices directly via Stripe or PayPal from the printable invoice view.
-*   **Financial Reports:** View 6-month P&L trends and automated tax estimations (25%) in the Reports dashboard.
+*   **Profitability Calculation:** The system automatically calculates: `Project Budget - (Team Hours * Hourly Rate) - Hard Expenses`.
+*   **Branded Invoices:** Generate PDF-style invoices in one click.
+*   **Automated Fees:** Apply a **5% Late Fee** to any invoice that is past its due date.
+*   **Gateway Integration:** Enable Stripe or PayPal in Settings to allow clients to settle invoices directly from the portal.
 
 ---
 
 ## 💬 8. Client Collaboration (ClientSync)
 
-Secure, branded communication that stays inside your ecosystem.
+Branded, secure, and centralized communication.
 
-*   **Communication Hub:** A real-time chat interface for all client interactions. No more lost emails.
-*   **Shared Files:** A dedicated repository where you can upload deliverables and clients can upload assets (brand guides, etc.).
-*   **Meeting Scheduler:** Integrated tool to book strategy sessions without leaving WordPress.
+*   **Messaging Hub:** A real-time chat interface. All project communication stays within the dashboard, creating a permanent audit trail.
+*   **Shared Repository:** Upload final deliverables. Clients can upload assets (logos, brand guides) directly to the project folder.
+*   **Meeting Scheduler:** Book and manage strategy sessions with timezone-aware coordination.
 
 ---
 
@@ -96,9 +97,8 @@ Secure, branded communication that stays inside your ecosystem.
 
 Maximized focus for you and your team.
 
-*   **Focus Mode:** Launch the Pomodoro timer during deep work sessions. The system can log these as "Focus Sprints" in your productivity report.
-*   **Boundaries:** Set your "Communication Hours" in Settings. The system will automatically notify clients that you are away if they message you after hours.
-*   **Capacity Reports:** See which team members are over-leveraged and who has room for new tasks.
+*   **Focus Mode:** Launch the Pomodoro timer during deep work. Logs are categorized as "Focus Sprints" in productivity reports.
+*   **Office Hours:** Set your "Communication Hours." The system sends an automated after-hours responder to any client messages received outside these windows.
 
 ---
 
@@ -106,9 +106,9 @@ Maximized focus for you and your team.
 
 Turn your agency's knowledge into a scalable asset.
 
-*   **Internal Library:** Store your best contract clauses, email swipes, and SOP templates.
-*   **Questionnaire Builder:** Create discovery forms to send to clients during onboarding.
-*   **Marketplace:** Sell your frameworks or buy premium templates from the Agency Nexus community.
+*   **IP Vault:** Store your internal SOPs, contract templates, and swipe files.
+*   **Questionnaire Builder:** Create and send discovery forms to clients during onboarding to extract critical data.
+*   **Marketplace:** Manage your own marketplace of products or download community assets.
 
 ---
 
@@ -116,41 +116,32 @@ Turn your agency's knowledge into a scalable asset.
 
 Put your agency on cruise control.
 
-*   **Trigger Rules:** Create "If-This-Then-That" logic using JSON conditions.
-    *   *Sample Rule:* `{"trigger": "project_completed", "condition": {"budget_min": 5000}, "action": "trigger_zapier"}`.
-*   **Webhooks:** Connect to Zapier or Slack to push updates to your favorite external tools.
-*   **Daily Briefing:** Every morning, the system sends an email to the admin with:
-    1.  All tasks overdue or due today.
-    2.  Leads captured in the last 24h.
-    3.  Urgent social interactions.
+*   **Logic Rules:** Create triggers using JSON conditions.
+    *   *Example:* `{"trigger": "invoice_paid", "action": "notify_slack", "channel": "#wins"}`.
+*   **Daily Briefing:** Every morning at 8 AM, the admin receives an email digest of overdue tasks, new leads, and urgent messages.
 
 ---
 
-## 🔒 12. Security & Compliance
+## ❤️ 12. Team Health (BurnoutGuard)
 
-*   **Encryption at Rest:** Enable "Encrypt internal notes" in **Security & Privacy**. This protects sensitive client data using AES-256-CBC encryption.
-*   **GDPR Compliance:** Use the **Data Portability** tool to export a client's entire history (projects, invoices, messages) into a single JSON file.
-*   **Audit Logging:** Monitor administrative actions to ensure the integrity of your agency's data.
+Scale sustainably by protecting your most valuable resource: your people.
 
----
-
-## ❓ Frequently Asked Questions (FAQ)
-
-**Q: Can I use Agency Nexus on a multisite network?**
-A: Yes. The Agency VIP tier supports unlimited site activations across your entire network.
-
-**Q: Does the plugin slow down my site?**
-A: No. Agency Nexus is built with performance in mind. It uses custom tables and lazy-loading for data, ensuring your frontend marketing pages remain lightning fast.
-
-**Q: How secure is my client data?**
-A: Extremely. We use AES-256-CBC encryption for sensitive notes and descriptions. Only authorized users with the correct roles can access client data.
+*   **Capacity Monitoring:** View real-time bandwidth reports.
+*   **Stress Tracking:** Team members log stress levels (1-10) weekly. High scores trigger an admin alert.
+*   **Referral Hub:** If capacity is exceeded, use the Referral Hub to delegate projects to external partners in your network.
 
 ---
 
-## 🛠 Troubleshooting & Support
+## ❓ FAQ & Troubleshooting
 
-1.  **Invoices Not Sending:** Ensure your SMTP settings are correct in **Nexus > Settings**. Send a test email to verify connectivity.
-2.  **Shortcode Not Rendering:** Check your license tier in **Nexus > Licensing**. Some shortcodes (like the Marketplace) require a Pro or VIP key.
-3.  **Media Upload Errors:** If you cannot upload files to the Shared Repository, ensure the `upload_files` capability is granted to your client user role (automatically handled for 'Subscriber' by the plugin).
+**Q: Why isn't my invoice sending?**
+A: Check **Nexus > Settings > SMTP**. Ensure your credentials are correct and send a test email.
 
-**Need Priority Support?** Contact your Agency VIP account manager directly through the support portal.
+**Q: How do I remove the "Powered by Agency Nexus" link?**
+A: This requires the **Agency VIP** license tier. Once activated, the white-labeling options appear in Settings.
+
+**Q: Can clients see internal task notes?**
+A: No. Clients only see data explicitly shared in their portal. Internal briefs and team chat are strictly private.
+
+---
+**Agency Nexus.** *Standardize your way to 7-figures.*
