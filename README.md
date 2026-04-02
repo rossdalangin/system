@@ -1,62 +1,62 @@
 # Agency Nexus: The All-in-One Agency OS for WordPress
 
-**Agency Nexus** is a professional-grade "Agency Operating System" designed to centralize and automate the entire lifecycle of a freelancer or agency owner. Built on WordPress, it integrates CRM, project management, content operations, client collaboration, financial intelligence, and team health into a single, high-performance dashboard.
+**Agency Nexus** is a professional-grade "Agency Operating System" designed to centralize and automate the entire lifecycle of a freelancer or agency owner. Built natively on WordPress, it integrates CRM, project management, content operations, client collaboration, financial intelligence, and team health into a single, high-performance dashboard.
 
-Stop jumping between five different SaaS tools. Control your agency from the platform you already know.
+Stop jumping between five different SaaS tools. Control your agency from the platform you already know. Move from "Tool Chaos" to "Calibrated Growth."
 
 ---
 
-## 🚀 The Core Ecosystem
+## 🚀 The Core Ecosystem: 10 Integrated Modules
 
-Agency Nexus is composed of 10 deeply integrated modules:
+Agency Nexus is composed of 10 deeply integrated modules designed to handle every stage of your agency's growth:
 
-### 1. 💼 SmartOnboard (Client Onboarding)
-*   **Interactive Scope Builder:** Build service packages with dynamic pricing and addons.
-*   **Proposal Generator:** Turn scopes into professional proposals with e-signature simulation.
+### 1. 💼 SmartOnboard (Strategic Scoping)
+*   **Interactive Scope Builder:** Build service packages with dynamic pricing and addons in under 60 seconds.
+*   **Proposal Generator:** Turn scopes into professional, e-signable proposals that impress high-ticket clients.
 *   **Milestone Tracking:** Set clear deliverables and progress indicators from day one.
 
-### 2. 📅 ContentMatrix (Content Planning)
-*   **Pillar Content Architect:** Map out topic clusters and maintain content authority.
+### 2. 📅 ContentMatrix (Topical Authority)
+*   **Pillar Content Architect:** Map out topic clusters and maintain content authority visually.
 *   **Visual Calendar:** Drag-and-drop scheduling across multiple platforms.
-*   **Batch Automation:** Generate multiple content drafts for a project in seconds.
+*   **Batch Automation:** Generate 10+ content drafts for a project in a single click.
 
-### 3. ✅ ApprovalFlow (Posting & Sign-off)
+### 3. ✅ ApprovalFlow (One-Click Sign-offs)
 *   **Multi-Stage Drafting:** Move content from Idea -> Draft -> Review -> Approved.
-*   **Version History:** Side-by-side comparison of revisions with threaded feedback.
+*   **Version Comparison:** Side-by-side view of revisions with threaded feedback to eliminate confusion.
 *   **Client Sign-off:** A dedicated portal for one-click approvals and annotations.
 
 ### 4. 🧠 EngageTrack (Lead Intelligence)
 *   **Smart Capture:** High-converting forms with automated redirect builders.
-*   **Lead Scoring:** AI-inspired algorithm ranks prospects (0-100) based on potential value.
-*   **Social Hub:** Aggregate engagement from Instagram, LinkedIn, X, and Facebook.
+*   **Lead Scoring:** Focus your sales efforts on high-value leads (scored 0-100).
+*   **Social Hub:** Aggregate engagement from Instagram, LinkedIn, X, and Facebook in one place.
 
 ### 5. 💰 MoneyFlow (Financial Intelligence)
-*   **True ROI Tracking:** Automatically calculate project profitability: `Budget - (Labor + Expenses)`.
-*   **Branded Invoicing:** Generate professional invoices with your logo and automated late fees.
-*   **Payment Gateways:** Integrated Stripe and PayPal support for instant settling.
+*   **True ROI Tracking:** Real-time visibility into project profitability: `Budget - (Labor + Expenses)`.
+*   **Branded Invoicing:** Generate professional invoices with automated late fees and your custom logo.
+*   **Integrated Payments:** Built-in Stripe and PayPal support for instant settling.
 
-### 6. 💬 ClientSync (Communication Hub)
-*   **Unified Messaging:** Secure, real-time chat between staff and clients.
-*   **Shared Repository:** Role-based file sharing with restricted client views.
+### 6. 💬 ClientSync (Professional Communication)
+*   **Unified Messaging:** Secure, real-time chat between staff and clients—move out of messy inboxes.
+*   **Shared Repository:** Role-based file sharing with version history.
 *   **Meeting Scheduler:** Coordinate strategy calls across timezones within the dashboard.
 
-### 7. ⏰ TimeBlock Pro (Time Management)
-*   **Focus Mode:** A built-in productivity timer to eliminate distractions during "Deep Work."
-*   **Capacity Monitoring:** Track assigned tasks vs. individual team bandwidth.
+### 7. ⏰ TimeBlock Pro (Peak Productivity)
+*   **Focus Mode:** A built-in productivity timer for "Deep Work" sessions.
+*   **Capacity Monitoring:** Track assigned tasks vs. individual team bandwidth in real-time.
 *   **Boundary Enforcement:** Set office hours with automated after-hours responders.
 
-### 8. 🏗 FreebieFactory (Resource Library)
-*   **Internal IP Vault:** Store contract templates, swipe files, and standard SOPs.
-*   **Discovery Questionnaires:** Built-in tool to extract insights from new clients.
-*   **Asset Marketplace:** Buy/Sell premium templates directly within the plugin.
+### 8. 🏗 FreebieFactory (IP & Resource Vault)
+*   **Internal Library:** Store contract templates, swipe files, and standard SOPs.
+*   **Discovery Questionnaires:** Extract deep insights from new clients during onboarding.
+*   **Asset Marketplace:** Sell your frameworks or buy templates from the Agency Nexus community.
 
-### 9. 🤖 AutoPilot (Automation Center)
+### 9. 🤖 AutoPilot (Agency Automation)
 *   **Event Triggers:** Custom "If-This-Then-That" logic (e.g., *If Invoice Paid -> Start Project*).
 *   **External Webhooks:** Native support for Zapier, Make.com, and Slack.
-*   **Daily Briefing:** Automated email summary for admins covering urgent tasks and new leads.
+*   **Daily Briefing:** Automated morning email summarizing urgent tasks and new leads.
 
-### 10. ❤️ BurnoutGuard (Health & Sustainability)
-*   **Stress Level Tracking:** Team members log workload capacity and stress levels.
+### 10. ❤️ BurnoutGuard (Sustainable Scale)
+*   **Stress Level Tracking:** Monitor team workload capacity and stress levels to prevent high-value churn.
 *   **Vacation Planner:** Centralized OOO calendar to prevent over-allocation.
 *   **Referral Hub:** Seamlessly delegate overflow work to trusted external partners.
 
@@ -71,14 +71,14 @@ Agency Nexus doesn't just list tasks; it manages the execution flow:
 
 ---
 
-## 📦 Installation & Setup
+## 📦 Installation & Quick Start
 
 1.  **Requirement:** WordPress 5.8+ and PHP 7.4+.
 2.  **Upload:** Place the `agency-nexus` folder in your `/wp-content/plugins/` directory.
 3.  **Activate:** Go to **Plugins > Installed Plugins** and click 'Activate' on Agency Nexus.
-4.  **License:** Navigate to **Nexus > Licensing** and enter a key (e.g., `PRO-1234`) to unlock modules.
-5.  **Settings:** Visit **Nexus > Settings** to upload your logo and configure your default hourly rate.
-6.  **Demo:** Use the **Add Best Sample Content** button in Settings to instantly see the system in action.
+4.  **License:** Navigate to **Nexus > Licensing** and enter a key to unlock modules.
+5.  **Settings:** Visit **Nexus > Settings** to upload your logo and configure default rates.
+6.  **Seeding:** Use the **Add Best Sample Content** button in Settings to instantly see the system in action.
 
 ---
 
@@ -89,32 +89,21 @@ Agency Nexus doesn't just list tasks; it manages the execution flow:
 
 ---
 
-## 📂 Documentation & Growth Assets
+## 📂 Growth Assets & Documentation
 This repository is a complete business-in-a-box. Refer to these files for success:
-*   **User Manual:** `USER_MANUAL.md` - The definitive guide for you and your clients.
-*   **Operating Procedures:** `TUTORIAL_AND_SOP.md` - Workflows for Admins and Team members.
-*   **Marketing Strategy:** `MARKETING_STRATEGY.md` - How to position and sell the "Agency OS."
-*   **Copywriting Assets:** `SALES_LETTER_AND_LANDING_PAGE.md` - High-converting web copy.
-*   **Video Resources:** `SALES_VIDEO_SCRIPT.md` and `VIDEO_SCRIPT.md` (Technical Walkthrough).
-*   **Sales Scripts:** `OUTREACH_SCRIPTS.md` and `7_DAY_EMAIL_SERIES.md`.
+*   **User Manual:** `USER_MANUAL.md` - Granular guides for every feature.
+*   **Operating Procedures:** `TUTORIAL_AND_SOP.md` - Actionable workflows for all user roles.
+*   **Marketing Strategy:** `MARKETING_STRATEGY.md` - Strategic positioning and "Loss Aversion" metrics.
+*   **Content Strategy:** `30_DAY_CONTENT_PLAN.md` and `SOCIAL_CONTENT_CALENDAR.md`.
+*   **Sales Copy:** `SALES_LETTER_AND_LANDING_PAGE.md` and `7_DAY_EMAIL_SERIES.md`.
 
 ---
 
 ## 🛠 Developer & Customization Guide
-
-Agency Nexus is built with a highly modular architecture, making it easy for developers to extend its functionality.
-
-### 🔌 Modular Hooks
-*   `agency_nexus_project_status_updated`: Fired whenever a project status changes. Ideal for custom integrations.
-*   `agency_nexus_dashboard_widgets`: Action hook to add custom widgets to the main Nexus dashboard.
-
-### 🌐 REST API Endpoints
-The plugin exposes several endpoints for external integrations (e.g., mobile apps or custom lead forms):
-*   `POST /wp-json/agency-nexus/v1/leads/capture`: Programmatically ingest leads from any source.
-*   `GET /wp-json/agency-nexus/v1/projects`: Retrieve authorized project data for the current user.
-
-### 🧪 Database Schema
-All custom tables are prefixed with `an_` (e.g., `wp_an_projects`, `wp_an_tasks`). Refer to `includes/class-db-manager.php` for the full schema definitions.
+Built for extensibility, Agency Nexus includes:
+*   **Modular Hooks:** `agency_nexus_project_status_updated`, `agency_nexus_dashboard_widgets`.
+*   **REST API:** Comprehensive endpoints for lead capture and project data.
+*   **Database Schema:** Optimized custom tables prefixed with `an_`.
 
 ---
 **Agency Nexus.** *Stop managing. Start scaling.*
